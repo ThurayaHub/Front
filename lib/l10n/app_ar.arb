@@ -1,0 +1,102 @@
+{
+  "@@locale": "ar",
+  "appTitle": "ثريا",
+  "back": "رجوع",
+  "trendingTitle": "الترند الآن",
+  "trendingDescription": "اكتشف الوجهات الأكثر رواجاً في المدينة هذه اللحظة.",
+  "activeNow": "نشط الآن",
+  "trendingRestaurantOneName": "إيليا للغوص",
+  "trendingRestaurantOneDetails": "مأكولات بحرية • العليا",
+  "trendingRestaurantTwoName": "محمصة الأصول",
+  "trendingRestaurantTwoDetails": "مقهى مختص • الملقا",
+  "trendingRestaurantThreeName": "لوكوموتيف",
+  "trendingRestaurantThreeDetails": "حلويات فاخرة • السليمانية",
+  "restaurantOneCategory": "مأكولات بحرية",
+  "restaurantOneNeighborhood": "العليا",
+  "restaurantOneDescription": "يقدم إيليا للغوص تجربة مأكولات بحرية استثنائية تمزج بين النكهات العالمية العصرية واللمسات البحرية الكلاسيكية. يتميز بأجواء فاخرة وخدمة راقية تلبي تطلعات الذواقة الباحثين عن التفرد.",
+  "restaurantTwoCategory": "مقهى مختص",
+  "restaurantTwoNeighborhood": "الملقا",
+  "restaurantTwoDescription": "تقدم محمصة الأصول تجربة قهوة مختصة تهتم بأدق التفاصيل، من اختيار المحاصيل وتحميصها إلى تقديمها في أجواء هادئة وعصرية تناسب عشاق القهوة.",
+  "restaurantThreeCategory": "حلويات فاخرة",
+  "restaurantThreeNeighborhood": "السليمانية",
+  "restaurantThreeDescription": "يقدم لوكوموتيف تشكيلة مبتكرة من الحلويات الفاخرة المحضرة بعناية، مع نكهات متوازنة وتقديم أنيق في أجواء دافئة تناسب اللقاءات المميزة.",
+  "saveRestaurant": "حفظ المطعم",
+  "thurayaStar": "نجمة ثريا",
+  "thurayaStarDescription": "حائز على نجمة التميز للإبداع الطهوي",
+  "userReviewCount": "{count} تقييم مستخدم",
+  "@userReviewCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "call": "اتصال",
+  "directions": "الاتجاهات",
+  "share": "مشاركة",
+  "aboutRestaurant": "نبذة عن المطعم",
+  "photos": "الصور",
+  "viewAll": "عرض الكل",
+  "reviewsTitle": "التقييمات",
+  "openRestaurantReviews": "عرض تقييمات المستخدمين",
+  "ratingCount": "{count} تقييم",
+  "@ratingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noReviewsYet": "لا توجد تقييمات حتى الآن",
+  "searchRestaurant": "ابحث عن مطعم...",
+  "filterRestaurants": "تصفية المطاعم",
+  "currentLocation": "موقعي الحالي",
+  "locatingCurrentLocation": "جارٍ تحديد موقعك الحالي",
+  "locationPermissionDenied": "تم رفض إذن الوصول إلى الموقع",
+  "locationPermissionPermanentlyDenied": "تم حظر الوصول إلى الموقع. يمكنك تفعيله من الإعدادات.",
+  "locationServicesDisabled": "خدمات الموقع غير مفعلة",
+  "locationUnavailable": "تعذر تحديد موقعك حالياً. حاول مرة أخرى.",
+  "restaurantMarkersUnavailable": "تعذر تحميل المطاعم على الخريطة حالياً",
+  "loadingRestaurantDetails": "جارٍ تحميل بيانات المطعم...",
+  "restaurantDetailsUnavailable": "تعذر تحميل بيانات المطعم حالياً",
+  "retry": "إعادة المحاولة",
+  "serviceAvailableInRegion": "الخدمة متاحة حالياً داخل {region} فقط",
+  "@serviceAvailableInRegion": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
+  "settings": "الإعدادات",
+  "homeRestaurantName": "نوزومي",
+  "homeRestaurantCategory": "مأكولات يابانية عصرية",
+  "homeRestaurantNeighborhood": "العليا",
+  "homeRestaurantDescription": "يقدم نوزومي تجربة يابانية عصرية راقية تجمع بين الأطباق الأنيقة والنكهات المتوازنة والخدمة المميزة في أجواء فاخرة.",
+  "minutesAway": "{count} د",
+  "@minutesAway": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "search": "البحث",
+  "trending": "الترند",
+  "wheel": "العجلة",
+  "wheelHeroTitle": "محتار؟ خلها علينا",
+  "wheelHeroSubtitle": "لف العجلة وجرب حظك",
+  "addWheelOption": "أضف خياراً",
+  "enterWheelOption": "أدخل اسم خيار",
+  "duplicateWheelOption": "هذا الخيار موجود بالفعل",
+  "minimumWheelOptions": "أضف خيارين على الأقل",
+  "spinWheel": "لف العجلة",
+  "yourWheelChoice": "اختيارك هو",
+  "wheelOptionBurger": "برجر",
+  "wheelOptionPizza": "بيتزا",
+  "wheelOptionSushi": "سوشي",
+  "wheelOptionCoffee": "قهوة",
+  "chooseRestaurant": "اختر لي مطعم",
+  "account": "حسابي",
+  "home": "الرئيسية"
+}

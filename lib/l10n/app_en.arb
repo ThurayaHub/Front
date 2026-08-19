@@ -1,0 +1,102 @@
+{
+  "@@locale": "en",
+  "appTitle": "Thuraya",
+  "back": "Back",
+  "trendingTitle": "Trending now",
+  "trendingDescription": "Discover the city's most popular destinations right now.",
+  "activeNow": "Active now",
+  "trendingRestaurantOneName": "Ilia Diving",
+  "trendingRestaurantOneDetails": "Seafood • Al Olaya",
+  "trendingRestaurantTwoName": "Al Osool Roastery",
+  "trendingRestaurantTwoDetails": "Specialty coffee • Al Malqa",
+  "trendingRestaurantThreeName": "Locomotive",
+  "trendingRestaurantThreeDetails": "Fine desserts • Al Sulaymaniyah",
+  "restaurantOneCategory": "Seafood",
+  "restaurantOneNeighborhood": "Al Olaya",
+  "restaurantOneDescription": "Ilia Diving offers an exceptional seafood experience blending contemporary global flavors with classic coastal touches, in a refined atmosphere with attentive service for guests seeking something distinctive.",
+  "restaurantTwoCategory": "Specialty coffee",
+  "restaurantTwoNeighborhood": "Al Malqa",
+  "restaurantTwoDescription": "Al Osool Roastery offers a specialty coffee experience with close attention to every detail, from selecting and roasting the beans to serving them in a calm, modern setting for coffee lovers.",
+  "restaurantThreeCategory": "Fine desserts",
+  "restaurantThreeNeighborhood": "Al Sulaymaniyah",
+  "restaurantThreeDescription": "Locomotive presents an inventive selection of carefully prepared fine desserts, with balanced flavors and elegant presentation in a warm setting for memorable gatherings.",
+  "saveRestaurant": "Save restaurant",
+  "thurayaStar": "Thuraya Star",
+  "thurayaStarDescription": "Awarded the star of excellence for culinary creativity",
+  "userReviewCount": "{count} user reviews",
+  "@userReviewCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "call": "Call",
+  "directions": "Directions",
+  "share": "Share",
+  "aboutRestaurant": "About the restaurant",
+  "photos": "Photos",
+  "viewAll": "View all",
+  "reviewsTitle": "Reviews",
+  "openRestaurantReviews": "View user reviews",
+  "ratingCount": "{count} reviews",
+  "@ratingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noReviewsYet": "No reviews yet",
+  "searchRestaurant": "Search for a restaurant...",
+  "filterRestaurants": "Filter restaurants",
+  "currentLocation": "Current location",
+  "locatingCurrentLocation": "Finding your current location",
+  "locationPermissionDenied": "Location permission was denied",
+  "locationPermissionPermanentlyDenied": "Location access is blocked. You can enable it in Settings.",
+  "locationServicesDisabled": "Location services are turned off",
+  "locationUnavailable": "We couldn't find your location right now. Please try again.",
+  "restaurantMarkersUnavailable": "Restaurants cannot be loaded on the map right now",
+  "loadingRestaurantDetails": "Loading restaurant details...",
+  "restaurantDetailsUnavailable": "Restaurant details cannot be loaded right now",
+  "retry": "Try again",
+  "serviceAvailableInRegion": "The service is currently available only in {region}",
+  "@serviceAvailableInRegion": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
+  "settings": "Settings",
+  "homeRestaurantName": "Nozomi",
+  "homeRestaurantCategory": "Contemporary Japanese cuisine",
+  "homeRestaurantNeighborhood": "Al Olaya",
+  "homeRestaurantDescription": "Nozomi offers a refined contemporary Japanese dining experience with elegant dishes, balanced flavors, and attentive service in a sophisticated atmosphere.",
+  "minutesAway": "{count} min",
+  "@minutesAway": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "search": "Search",
+  "trending": "Trending",
+  "wheel": "Wheel",
+  "wheelHeroTitle": "Not sure? Leave it to us",
+  "wheelHeroSubtitle": "Spin the wheel and try your luck",
+  "addWheelOption": "Add an option",
+  "enterWheelOption": "Enter an option name",
+  "duplicateWheelOption": "This option already exists",
+  "minimumWheelOptions": "Add at least two options",
+  "spinWheel": "Spin the wheel",
+  "yourWheelChoice": "Your choice is",
+  "wheelOptionBurger": "Burger",
+  "wheelOptionPizza": "Pizza",
+  "wheelOptionSushi": "Sushi",
+  "wheelOptionCoffee": "Coffee",
+  "chooseRestaurant": "Choose a restaurant",
+  "account": "Account",
+  "home": "Home"
+}

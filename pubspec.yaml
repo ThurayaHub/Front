@@ -1,0 +1,45 @@
+name: thuraya
+description: "The Thuraya Flutter application."
+publish_to: "none"
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  flutter_svg: ^2.3.0
+  geolocator: 14.0.3
+  maplibre_gl: ^0.26.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  generate: true
+
+  assets:
+    - assets/images/trending/
+    - assets/images/restaurant_details/
+    - assets/images/home/
+    - assets/icons/trending/
+    - assets/icons/restaurant_details/
+    - assets/icons/wheel/
+    - assets/icons/home/
+
+  fonts:
+    - family: Tajawal
+      fonts:
+        - asset: assets/fonts/Tajawal-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Tajawal-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Tajawal-Bold.ttf
+          weight: 700
