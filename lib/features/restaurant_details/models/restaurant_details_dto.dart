@@ -109,6 +109,26 @@ class RestaurantDetailsDto {
   }
 }
 
+class RestaurantFavoriteDto {
+  const RestaurantFavoriteDto({
+    required this.restaurantId,
+    required this.userId,
+    required this.isFavorite,
+  });
+
+  final int restaurantId;
+  final int userId;
+  final bool isFavorite;
+
+  factory RestaurantFavoriteDto.fromJson(Map<String, dynamic> json) {
+    return RestaurantFavoriteDto(
+      restaurantId: _requiredNumber(json, 'restaurantId').toInt(),
+      userId: _requiredNumber(json, 'userId').toInt(),
+      isFavorite: _requiredBool(json, 'isFavorite'),
+    );
+  }
+}
+
 class RestaurantCategoryDto {
   const RestaurantCategoryDto({required this.id, required this.name});
 
@@ -269,6 +289,14 @@ num _requiredNumber(Map<String, dynamic> json, String key) {
 String _requiredString(Map<String, dynamic> json, String key) {
   final value = json[key];
   if (value is String) {
+    return value;
+  }
+  throw FormatException('Missing or invalid "$key" in restaurant details.');
+}
+
+bool _requiredBool(Map<String, dynamic> json, String key) {
+  final value = json[key];
+  if (value is bool) {
     return value;
   }
   throw FormatException('Missing or invalid "$key" in restaurant details.');

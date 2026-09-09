@@ -23,6 +23,8 @@
   "saveRestaurant": "حفظ المطعم",
   "thurayaStar": "نجمة ثريا",
   "thurayaStarDescription": "حائز على نجمة التميز للإبداع الطهوي",
+  "thurayaRatingLabel": "تقييم ثريا",
+  "thurayaReviewLabel": "رأي ثريا",
   "userReviewCount": "{count} تقييم مستخدم",
   "@userReviewCount": {
     "placeholders": {
@@ -34,6 +36,8 @@
   "call": "اتصال",
   "directions": "الاتجاهات",
   "share": "مشاركة",
+  "directionsUnavailable": "تعذر فتح الاتجاهات حالياً.",
+  "shareUnavailable": "تعذرت مشاركة المطعم حالياً.",
   "aboutRestaurant": "نبذة عن المطعم",
   "photos": "الصور",
   "viewAll": "عرض الكل",
@@ -48,6 +52,7 @@
     }
   },
   "noReviewsYet": "لا توجد تقييمات حتى الآن",
+  "restaurantReviewListUnavailable": "ملخص التقييمات متاح، لكن تفاصيل تقييمات المستخدمين غير متاحة من الخادم حالياً.",
   "searchRestaurant": "ابحث عن مطعم...",
   "filterRestaurants": "تصفية المطاعم",
   "currentLocation": "موقعي الحالي",
@@ -97,6 +102,115 @@
   "wheelOptionSushi": "سوشي",
   "wheelOptionCoffee": "قهوة",
   "chooseRestaurant": "اختر لي مطعم",
+  "chooseRestaurantNavigation": "اختر لي",
   "account": "حسابي",
-  "home": "الرئيسية"
+  "home": "الرئيسية",
+  "loginTitle": "تسجيل الدخول",
+  "authenticationWelcome": "مرحباً بك في ثريا",
+  "loginSubtitle": "أدخل رقم جوالك للمتابعة إلى مزايا ثريا التي تتطلب حساباً.",
+  "phoneNumber": "رقم الجوال",
+  "phoneNumberHint": "+9665XXXXXXXX",
+  "continueLabel": "متابعة",
+  "registrationTitle": "إكمال التسجيل",
+  "registrationSubtitle": "هذا الرقم غير مسجل. أكمل بياناتك لإنشاء حساب ثريا.",
+  "fullName": "الاسم",
+  "emailAddress": "البريد الإلكتروني",
+  "createAccount": "إنشاء الحساب",
+  "changePhoneNumber": "تغيير رقم الجوال",
+  "fieldRequired": "هذا الحقل مطلوب",
+  "invalidEmail": "أدخل بريداً إلكترونياً صحيحاً",
+  "authenticationUnavailable": "تعذر إكمال تسجيل الدخول حالياً. حاول مرة أخرى.",
+  "accountGuestTitle": "مرحباً بك في ثريا",
+  "accountGuestSubtitle": "سجّل الدخول لاستخدام المفضلة والمزايا الخاصة بحسابك.",
+  "accountWelcome": "مرحباً، {name}",
+  "@accountWelcome": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "accountAuthenticatedSubtitle": "جلستك محفوظة بأمان ويمكنك استخدام مزايا ثريا المحمية.",
+  "login": "تسجيل الدخول",
+  "logout": "تسجيل الخروج",
+  "loggingOut": "جارٍ تسجيل الخروج...",
+  "addToFavorites": "إضافة إلى المفضلة",
+  "removeFromFavorites": "إزالة من المفضلة",
+  "favoriteUpdateUnavailable": "تعذر تحديث المفضلة حالياً. حاول مرة أخرى.",
+  "profileDetailsTitle": "بياناتي",
+  "myFavorites": "مفضلاتي",
+  "myReviews": "مراجعاتي",
+  "emailVerified": "البريد الإلكتروني موثق",
+  "emailUnverified": "البريد الإلكتروني غير موثق",
+  "reviewsWritten": "{count} مراجعة",
+  "@reviewsWritten": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "profileDetailsSubtitle": "معلومات حسابك في ثريا",
+  "favoritesSubtitle": "المطاعم اللي حفظتها للرجوع لها بسهولة",
+  "myReviewsSubtitle": "آراؤك وتجاربك مع المطاعم",
+  "nameLabel": "الاسم",
+  "phoneLabel": "رقم الجوال",
+  "emailLabel": "البريد الإلكتروني",
+  "emailVerificationLabel": "حالة توثيق البريد",
+  "notAdded": "غير مضاف",
+  "memberSince": "عضو منذ {year}",
+  "@memberSince": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "profileLoadError": "تعذر تحميل البيانات",
+  "favoritesEmptyTitle": "ما عندك مطاعم مفضلة للحين",
+  "favoritesEmptySubtitle": "أضف المطاعم اللي تعجبك وبتلقاها هنا",
+  "reviewsEmptyTitle": "ما كتبت أي مراجعة للحين",
+  "reviewsEmptySubtitle": "جرّب مطعم وشاركنا رأيك",
+  "exploreRestaurants": "استكشف المطاعم",
+  "removeFavorite": "إزالة من المفضلة",
+  "favoriteRemoveError": "تعذر إزالة المطعم من المفضلة حالياً",
+  "refresh": "تحديث",
+  "chooseStepOf": "من",
+  "choosePriceTitle": "وش ميزانيتك؟",
+  "choosePriceSubtitle": "حدد مستوى السعر المناسب لك",
+  "chooseCategoryTitle": "وش تشتهي اليوم؟",
+  "chooseCategorySubtitle": "اختر نوع أو أكثر من المطاعم",
+  "chooseNeighborhoodTitle": "وين ودك تاكل؟",
+  "chooseNeighborhoodSubtitle": "اختر الحي أو الأحياء المناسبة لك",
+  "next": "التالي",
+  "selectionRequired": "اختر خياراً واحداً على الأقل للمتابعة",
+  "searchNeighborhood": "ابحث عن حي...",
+  "selectedNeighborhoods": "الأحياء المختارة",
+  "allNeighborhoods": "كل الأحياء",
+  "allNeighborhoodsHint": "خلّ الاختيار مفتوحاً ونبحث لك في كل الأحياء",
+  "noNeighborhoodResults": "ما لقينا حياً بهذا الاسم",
+  "chooseLoading": "لحظة... ثريا تختار لك",
+  "recommendationTitle": "اختيار ثريا لك",
+  "viewRestaurant": "عرض المطعم",
+  "chooseAnother": "اختيار مطعم آخر",
+  "changeSelections": "تغيير الاختيارات",
+  "noMatchTitle": "ما لقينا مطعم يطابق كل اختياراتك",
+  "noMatchSubtitle": "جرب توسع اختياراتك ونختار لك من جديد",
+  "editSelections": "تعديل الاختيارات",
+  "chooseLookupError": "تعذر تحميل خيارات المطاعم حالياً",
+  "chooseRequestError": "تعذر اختيار مطعم حالياً. حاول مرة أخرى.",
+  "recommendedRestaurant": "مطعم مقترح لك",
+  "writeYourReview": "اكتب مراجعتك",
+  "yourRating": "تقييمك",
+  "reviewRatingBad": "سيئ",
+  "reviewRatingAcceptable": "مقبول",
+  "reviewRatingGood": "جيد",
+  "reviewRatingVeryGood": "جيد جداً",
+  "reviewRatingExcellent": "ممتاز",
+  "reviewCommentLabel": "تعليقك",
+  "reviewCommentHint": "اكتب تجربتك مع المطعم...",
+  "submitReview": "إرسال المراجعة",
+  "reviewCreatedSuccess": "تمت إضافة مراجعتك بنجاح",
+  "reviewSubmitError": "تعذر إرسال المراجعة حالياً. حاول مرة أخرى.",
+  "reviewDuplicateError": "سبق أن أضفت مراجعة لهذا المطعم."
 }

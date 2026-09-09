@@ -38,10 +38,54 @@ void main() {
     expect(details.categories.single.name, 'Saudi');
     expect(details.photos.single.isCoverPhoto, isTrue);
     expect(details.badges.single.name, 'Thuraya Star');
-    expect(details.reviewSummary.userRatingAverage, 9);
+    expect(details.reviewSummary.userRatingAverage, 4.5);
     expect(details.reviewSummary.reviewCount, 8);
     expect(details.thurayaReviewSummary.averageRating, 9.5);
     expect(details.thurayaReviewSummary.latestReview?.id, 71);
     expect(details.isFavorite, isNull);
   });
+
+  test(
+    'uses the authenticated favorite endpoints and parses their state',
+    () async {
+      final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      addTearDown(() => server.close(force: true));
+      final requests = <(String, String)>[];
+
+      server.listen((request) async {
+        requests.add((request.method, request.uri.path));
+        final isFavorite = request.method == 'POST';
+        request.response
+          ..headers.contentType = ContentType.json
+          ..write(
+            jsonEncode({
+              'success': true,
+              'message': 'Favorite updated.',
+              'data': {
+                'restaurantId': 42,
+                'userId': 7,
+                'isFavorite': isFavorite,
+              },
+              'errors': <String>[],
+              'statusCode': 200,
+            }),
+          );
+        await request.response.close();
+      });
+
+      final apiClient = ApiClient(baseUrl: 'http://127.0.0.1:${server.port}');
+      addTearDown(apiClient.close);
+      final service = RestaurantDetailsService(apiClient: apiClient);
+
+      final added = await service.setFavorite(42, isFavorite: true);
+      final removed = await service.setFavorite(42, isFavorite: false);
+
+      expect(requests, [
+        ('POST', '/api/restaurants/42/favorite'),
+        ('DELETE', '/api/restaurants/42/favorite'),
+      ]);
+      expect(added.isFavorite, isTrue);
+      expect(removed.isFavorite, isFalse);
+    },
+  );
 }

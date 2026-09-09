@@ -1,6 +1,9 @@
 abstract final class AppAssets {
+  static const String branding = 'assets/branding';
   static const String images = 'assets/images';
   static const String icons = 'assets/icons';
+
+  static const String thurayaLogo = '$branding/thuraya_logo.png';
 
   static const String trendingRestaurantInterior =
       '$images/trending/restaurant_interior.png';

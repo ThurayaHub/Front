@@ -52,7 +52,7 @@ void main() {
     final map = tester.widget<MapLibreMap>(
       find.byKey(const ValueKey('home-map')),
     );
-    expect(map.styleString, ThurayaMap.openFreeMapLibertyStyle);
+    expect(map.styleString, ThurayaMap.customStyleAsset);
     const riyadh = SupportedMapRegions.riyadh;
     expect(
       map.initialCameraPosition?.target,
@@ -150,15 +150,15 @@ void main() {
     expect(find.text('الترند'), findsOneWidget);
     expect(find.text('حسابي'), findsOneWidget);
     expect(find.text('العجلة'), findsOneWidget);
-    expect(find.text('اختر لي مطعم'), findsOneWidget);
+    expect(find.text('اختر لي'), findsOneWidget);
     expect(find.text('البحث'), findsNothing);
 
     const navigationKeys = [
       ValueKey('navigation-home'),
-      ValueKey('navigation-account'),
       ValueKey('navigation-trending'),
       ValueKey('navigation-wheel'),
       ValueKey('navigation-choose-restaurant'),
+      ValueKey('navigation-account'),
     ];
     for (final key in navigationKeys) {
       expect(find.byKey(key), findsOneWidget);
@@ -172,7 +172,7 @@ void main() {
       orderedEquals([...navigationCenters]..sort((a, b) => b.compareTo(a))),
     );
 
-    final chooseRestaurantLabel = tester.getRect(find.text('اختر لي مطعم'));
+    final chooseRestaurantLabel = tester.getRect(find.text('اختر لي'));
     final chooseRestaurantItem = tester.getRect(
       find.byKey(const ValueKey('navigation-choose-restaurant')),
     );
@@ -229,9 +229,9 @@ void main() {
     await tester.pumpAndSettle();
 
     const restaurants = [
-      ('إيليا للغوص', '124 تقييم مستخدم', '4.8'),
-      ('محمصة الأصول', '96 تقييم مستخدم', '4.8'),
-      ('لوكوموتيف', '142 تقييم مستخدم', '4.9'),
+      ('إيليا للغوص', '124 تقييم', '4.8'),
+      ('محمصة الأصول', '96 تقييم', '4.8'),
+      ('لوكوموتيف', '142 تقييم', '4.9'),
     ];
 
     for (var index = 0; index < restaurants.length; index++) {
@@ -244,7 +244,7 @@ void main() {
       );
       expect(find.text(restaurants[index].$1), findsOneWidget);
       expect(find.text(restaurants[index].$2), findsOneWidget);
-      expect(find.text(restaurants[index].$3), findsOneWidget);
+      expect(find.text(restaurants[index].$3), findsAtLeastNWidgets(1));
       expect(
         find.byKey(const ValueKey('thuraya-bottom-navigation')),
         findsNothing,
@@ -288,12 +288,13 @@ void main() {
     await tester.tap(
       find.byKey(const ValueKey('navigation-choose-restaurant')),
     );
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
     expect(
-      find.byKey(const ValueKey('placeholder-chooseRestaurant')),
+      find.byKey(const ValueKey('choose-restaurant-page')),
       findsOneWidget,
     );
-    expect(navigationLabel('اختر لي مطعم').style?.color, AppColors.primary);
+    expect(navigationLabel('اختر لي').style?.color, AppColors.primary);
 
     await tester.tap(find.byKey(const ValueKey('navigation-trending')));
     await tester.pumpAndSettle();
@@ -302,8 +303,13 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('navigation-account')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('placeholder-account')), findsOneWidget);
-    expect(navigationLabel('حسابي').style?.color, AppColors.primary);
+    expect(find.byKey(const ValueKey('login-page')), findsOneWidget);
+    expect(find.byKey(const ValueKey('account-page')), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('login-back')));
+    await tester.pumpAndSettle();
+    expect(find.text('الترند الآن'), findsOneWidget);
+    expect(navigationLabel('حسابي').style?.color, AppColors.textSecondary);
 
     await tester.tap(find.byKey(const ValueKey('navigation-home')));
     await tester.pumpAndSettle();
@@ -486,7 +492,7 @@ void main() {
       find.byKey(const ValueKey('restaurant-details-page')),
       findsOneWidget,
     );
-    expect(find.text('124 تقييم مستخدم'), findsOneWidget);
+    expect(find.text('124 تقييم'), findsOneWidget);
   });
 
   testWidgets('shows the Arabic empty reviews state', (tester) async {

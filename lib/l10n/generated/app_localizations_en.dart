@@ -84,6 +84,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Awarded the star of excellence for culinary creativity';
 
   @override
+  String get thurayaRatingLabel => 'Thuraya rating';
+
+  @override
+  String get thurayaReviewLabel => 'Thuraya review';
+
+  @override
   String userReviewCount(int count) {
     return '$count user reviews';
   }
@@ -96,6 +102,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get share => 'Share';
+
+  @override
+  String get directionsUnavailable => 'Directions cannot be opened right now.';
+
+  @override
+  String get shareUnavailable => 'This restaurant cannot be shared right now.';
 
   @override
   String get aboutRestaurant => 'About the restaurant';
@@ -119,6 +131,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noReviewsYet => 'No reviews yet';
+
+  @override
+  String get restaurantReviewListUnavailable =>
+      'The review summary is available, but individual user reviews are not currently provided by the server.';
 
   @override
   String get searchRestaurant => 'Search for a restaurant...';
@@ -235,8 +251,296 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chooseRestaurant => 'Choose a restaurant';
 
   @override
+  String get chooseRestaurantNavigation => 'Choose for me';
+
+  @override
   String get account => 'Account';
 
   @override
   String get home => 'Home';
+
+  @override
+  String get loginTitle => 'Log in';
+
+  @override
+  String get authenticationWelcome => 'Welcome to Thuraya';
+
+  @override
+  String get loginSubtitle =>
+      'Enter your mobile number to continue to Thuraya features that require an account.';
+
+  @override
+  String get phoneNumber => 'Mobile number';
+
+  @override
+  String get phoneNumberHint => '+9665XXXXXXXX';
+
+  @override
+  String get continueLabel => 'Continue';
+
+  @override
+  String get registrationTitle => 'Complete registration';
+
+  @override
+  String get registrationSubtitle =>
+      'This number is not registered. Complete your details to create a Thuraya account.';
+
+  @override
+  String get fullName => 'Name';
+
+  @override
+  String get emailAddress => 'Email address';
+
+  @override
+  String get createAccount => 'Create account';
+
+  @override
+  String get changePhoneNumber => 'Change mobile number';
+
+  @override
+  String get fieldRequired => 'This field is required';
+
+  @override
+  String get invalidEmail => 'Enter a valid email address';
+
+  @override
+  String get authenticationUnavailable =>
+      'We couldn\'t complete login right now. Please try again.';
+
+  @override
+  String get accountGuestTitle => 'Welcome to Thuraya';
+
+  @override
+  String get accountGuestSubtitle =>
+      'Log in to use favorites and features linked to your account.';
+
+  @override
+  String accountWelcome(String name) {
+    return 'Welcome, $name';
+  }
+
+  @override
+  String get accountAuthenticatedSubtitle =>
+      'Your session is stored securely and protected Thuraya features are available.';
+
+  @override
+  String get login => 'Log in';
+
+  @override
+  String get logout => 'Log out';
+
+  @override
+  String get loggingOut => 'Logging out...';
+
+  @override
+  String get addToFavorites => 'Add to favorites';
+
+  @override
+  String get removeFromFavorites => 'Remove from favorites';
+
+  @override
+  String get favoriteUpdateUnavailable =>
+      'Favorites cannot be updated right now. Please try again.';
+
+  @override
+  String get profileDetailsTitle => 'My details';
+
+  @override
+  String get myFavorites => 'My favorites';
+
+  @override
+  String get myReviews => 'My reviews';
+
+  @override
+  String get emailVerified => 'Email address verified';
+
+  @override
+  String get emailUnverified => 'Email address not verified';
+
+  @override
+  String reviewsWritten(int count) {
+    return '$count reviews';
+  }
+
+  @override
+  String get profileDetailsSubtitle => 'Your Thuraya account information';
+
+  @override
+  String get favoritesSubtitle => 'Restaurants you\'ve saved for easy access';
+
+  @override
+  String get myReviewsSubtitle => 'Your restaurant opinions and experiences';
+
+  @override
+  String get nameLabel => 'Name';
+
+  @override
+  String get phoneLabel => 'Mobile number';
+
+  @override
+  String get emailLabel => 'Email address';
+
+  @override
+  String get emailVerificationLabel => 'Email verification';
+
+  @override
+  String get notAdded => 'Not added';
+
+  @override
+  String memberSince(int year) {
+    return 'Member since $year';
+  }
+
+  @override
+  String get profileLoadError => 'Data could not be loaded';
+
+  @override
+  String get favoritesEmptyTitle =>
+      'You don\'t have any favorite restaurants yet';
+
+  @override
+  String get favoritesEmptySubtitle =>
+      'Save restaurants you like and find them here';
+
+  @override
+  String get reviewsEmptyTitle => 'You haven\'t written any reviews yet';
+
+  @override
+  String get reviewsEmptySubtitle =>
+      'Try a restaurant and share your experience';
+
+  @override
+  String get exploreRestaurants => 'Explore restaurants';
+
+  @override
+  String get removeFavorite => 'Remove from favorites';
+
+  @override
+  String get favoriteRemoveError =>
+      'The restaurant could not be removed from favorites';
+
+  @override
+  String get refresh => 'Refresh';
+
+  @override
+  String get chooseStepOf => 'of';
+
+  @override
+  String get choosePriceTitle => 'What\'s your budget?';
+
+  @override
+  String get choosePriceSubtitle => 'Select the price level that suits you';
+
+  @override
+  String get chooseCategoryTitle => 'What are you craving today?';
+
+  @override
+  String get chooseCategorySubtitle => 'Choose one or more restaurant types';
+
+  @override
+  String get chooseNeighborhoodTitle => 'Where would you like to eat?';
+
+  @override
+  String get chooseNeighborhoodSubtitle =>
+      'Choose a suitable neighborhood or neighborhoods';
+
+  @override
+  String get next => 'Next';
+
+  @override
+  String get selectionRequired => 'Choose at least one option to continue';
+
+  @override
+  String get searchNeighborhood => 'Search for a neighborhood...';
+
+  @override
+  String get selectedNeighborhoods => 'Selected neighborhoods';
+
+  @override
+  String get allNeighborhoods => 'All neighborhoods';
+
+  @override
+  String get allNeighborhoodsHint =>
+      'Keep it open and we\'ll search every neighborhood';
+
+  @override
+  String get noNeighborhoodResults => 'No neighborhood matches that search';
+
+  @override
+  String get chooseLoading => 'One moment... Thuraya is choosing for you';
+
+  @override
+  String get recommendationTitle => 'Thuraya\'s choice for you';
+
+  @override
+  String get viewRestaurant => 'View restaurant';
+
+  @override
+  String get chooseAnother => 'Choose another restaurant';
+
+  @override
+  String get changeSelections => 'Change selections';
+
+  @override
+  String get noMatchTitle =>
+      'We couldn\'t find a restaurant matching every choice';
+
+  @override
+  String get noMatchSubtitle => 'Broaden your choices and we\'ll choose again';
+
+  @override
+  String get editSelections => 'Edit selections';
+
+  @override
+  String get chooseLookupError =>
+      'Restaurant choices cannot be loaded right now';
+
+  @override
+  String get chooseRequestError =>
+      'A restaurant cannot be selected right now. Try again.';
+
+  @override
+  String get recommendedRestaurant => 'Recommended for you';
+
+  @override
+  String get writeYourReview => 'Write your review';
+
+  @override
+  String get yourRating => 'Your rating';
+
+  @override
+  String get reviewRatingBad => 'Bad';
+
+  @override
+  String get reviewRatingAcceptable => 'Acceptable';
+
+  @override
+  String get reviewRatingGood => 'Good';
+
+  @override
+  String get reviewRatingVeryGood => 'Very good';
+
+  @override
+  String get reviewRatingExcellent => 'Excellent';
+
+  @override
+  String get reviewCommentLabel => 'Your comment';
+
+  @override
+  String get reviewCommentHint =>
+      'Tell us about your experience with the restaurant...';
+
+  @override
+  String get submitReview => 'Submit review';
+
+  @override
+  String get reviewCreatedSuccess => 'Your review was added successfully';
+
+  @override
+  String get reviewSubmitError =>
+      'Your review could not be submitted right now. Please try again.';
+
+  @override
+  String get reviewDuplicateError =>
+      'You have already reviewed this restaurant.';
 }

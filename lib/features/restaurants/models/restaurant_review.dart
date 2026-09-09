@@ -15,11 +15,11 @@ class RestaurantReview {
   final int restaurantId;
   final int userId;
   final String reviewerName;
-  final double stars;
+  final int stars;
   final String? comment;
   final bool isPublished;
   final DateTime createdAtUtc;
   final DateTime? updatedAtUtc;
 
-  double get ratingOutOfFive => (stars / 2).clamp(0, 5).toDouble();
+  double get ratingOutOfFive => stars.clamp(0, 5).toDouble();
 }

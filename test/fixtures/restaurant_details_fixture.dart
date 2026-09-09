@@ -47,7 +47,7 @@ final Map<String, dynamic> restaurantDetailsData = {
     },
   ],
   'reviewSummary': {
-    'userRatingAverage': 9.0,
+    'userRatingAverage': 4.5,
     'reviewCount': 8,
     'adminRatingAverage': 8.5,
     'adminRatingCount': 2,

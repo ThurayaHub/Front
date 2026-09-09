@@ -66,12 +66,13 @@ Start the backend from the repository root before running the Android app:
 dotnet run --project backend/src/Thuraya.Api/Thuraya.Api.csproj --launch-profile http
 ```
 
-No Google Maps API key or billing account is used. The map style is OpenFreeMap
-Liberty, and marker requests are sent to `/api/restaurants/map` after the map
-camera becomes idle. Tapping a restaurant annotation selects it and shows a
-compact preview over the map. Tapping that preview opens the shared details page
-and loads `/api/restaurants/{restaurantId}`; returning keeps the Home route and
-its map state in the navigation stack.
+No Google Maps API key or billing account is used. The map uses the custom
+Thuraya light style in `assets/map/thuraya_map_style.json`, based on OpenFreeMap
+Bright data and resources. Marker requests are sent to `/api/restaurants/map`
+after the map camera becomes idle. Tapping a restaurant annotation selects it and
+shows a compact preview over the map. Tapping that preview opens the shared details
+page and loads `/api/restaurants/{restaurantId}`; returning keeps the Home route
+and its map state in the navigation stack.
 
 ```powershell
 flutter pub get

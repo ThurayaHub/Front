@@ -23,6 +23,8 @@
   "saveRestaurant": "Save restaurant",
   "thurayaStar": "Thuraya Star",
   "thurayaStarDescription": "Awarded the star of excellence for culinary creativity",
+  "thurayaRatingLabel": "Thuraya rating",
+  "thurayaReviewLabel": "Thuraya review",
   "userReviewCount": "{count} user reviews",
   "@userReviewCount": {
     "placeholders": {
@@ -34,6 +36,8 @@
   "call": "Call",
   "directions": "Directions",
   "share": "Share",
+  "directionsUnavailable": "Directions cannot be opened right now.",
+  "shareUnavailable": "This restaurant cannot be shared right now.",
   "aboutRestaurant": "About the restaurant",
   "photos": "Photos",
   "viewAll": "View all",
@@ -48,6 +52,7 @@
     }
   },
   "noReviewsYet": "No reviews yet",
+  "restaurantReviewListUnavailable": "The review summary is available, but individual user reviews are not currently provided by the server.",
   "searchRestaurant": "Search for a restaurant...",
   "filterRestaurants": "Filter restaurants",
   "currentLocation": "Current location",
@@ -97,6 +102,115 @@
   "wheelOptionSushi": "Sushi",
   "wheelOptionCoffee": "Coffee",
   "chooseRestaurant": "Choose a restaurant",
+  "chooseRestaurantNavigation": "Choose for me",
   "account": "Account",
-  "home": "Home"
+  "home": "Home",
+  "loginTitle": "Log in",
+  "authenticationWelcome": "Welcome to Thuraya",
+  "loginSubtitle": "Enter your mobile number to continue to Thuraya features that require an account.",
+  "phoneNumber": "Mobile number",
+  "phoneNumberHint": "+9665XXXXXXXX",
+  "continueLabel": "Continue",
+  "registrationTitle": "Complete registration",
+  "registrationSubtitle": "This number is not registered. Complete your details to create a Thuraya account.",
+  "fullName": "Name",
+  "emailAddress": "Email address",
+  "createAccount": "Create account",
+  "changePhoneNumber": "Change mobile number",
+  "fieldRequired": "This field is required",
+  "invalidEmail": "Enter a valid email address",
+  "authenticationUnavailable": "We couldn't complete login right now. Please try again.",
+  "accountGuestTitle": "Welcome to Thuraya",
+  "accountGuestSubtitle": "Log in to use favorites and features linked to your account.",
+  "accountWelcome": "Welcome, {name}",
+  "@accountWelcome": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "accountAuthenticatedSubtitle": "Your session is stored securely and protected Thuraya features are available.",
+  "login": "Log in",
+  "logout": "Log out",
+  "loggingOut": "Logging out...",
+  "addToFavorites": "Add to favorites",
+  "removeFromFavorites": "Remove from favorites",
+  "favoriteUpdateUnavailable": "Favorites cannot be updated right now. Please try again.",
+  "profileDetailsTitle": "My details",
+  "myFavorites": "My favorites",
+  "myReviews": "My reviews",
+  "emailVerified": "Email address verified",
+  "emailUnverified": "Email address not verified",
+  "reviewsWritten": "{count} reviews",
+  "@reviewsWritten": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "profileDetailsSubtitle": "Your Thuraya account information",
+  "favoritesSubtitle": "Restaurants you've saved for easy access",
+  "myReviewsSubtitle": "Your restaurant opinions and experiences",
+  "nameLabel": "Name",
+  "phoneLabel": "Mobile number",
+  "emailLabel": "Email address",
+  "emailVerificationLabel": "Email verification",
+  "notAdded": "Not added",
+  "memberSince": "Member since {year}",
+  "@memberSince": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "profileLoadError": "Data could not be loaded",
+  "favoritesEmptyTitle": "You don't have any favorite restaurants yet",
+  "favoritesEmptySubtitle": "Save restaurants you like and find them here",
+  "reviewsEmptyTitle": "You haven't written any reviews yet",
+  "reviewsEmptySubtitle": "Try a restaurant and share your experience",
+  "exploreRestaurants": "Explore restaurants",
+  "removeFavorite": "Remove from favorites",
+  "favoriteRemoveError": "The restaurant could not be removed from favorites",
+  "refresh": "Refresh",
+  "chooseStepOf": "of",
+  "choosePriceTitle": "What's your budget?",
+  "choosePriceSubtitle": "Select the price level that suits you",
+  "chooseCategoryTitle": "What are you craving today?",
+  "chooseCategorySubtitle": "Choose one or more restaurant types",
+  "chooseNeighborhoodTitle": "Where would you like to eat?",
+  "chooseNeighborhoodSubtitle": "Choose a suitable neighborhood or neighborhoods",
+  "next": "Next",
+  "selectionRequired": "Choose at least one option to continue",
+  "searchNeighborhood": "Search for a neighborhood...",
+  "selectedNeighborhoods": "Selected neighborhoods",
+  "allNeighborhoods": "All neighborhoods",
+  "allNeighborhoodsHint": "Keep it open and we'll search every neighborhood",
+  "noNeighborhoodResults": "No neighborhood matches that search",
+  "chooseLoading": "One moment... Thuraya is choosing for you",
+  "recommendationTitle": "Thuraya's choice for you",
+  "viewRestaurant": "View restaurant",
+  "chooseAnother": "Choose another restaurant",
+  "changeSelections": "Change selections",
+  "noMatchTitle": "We couldn't find a restaurant matching every choice",
+  "noMatchSubtitle": "Broaden your choices and we'll choose again",
+  "editSelections": "Edit selections",
+  "chooseLookupError": "Restaurant choices cannot be loaded right now",
+  "chooseRequestError": "A restaurant cannot be selected right now. Try again.",
+  "recommendedRestaurant": "Recommended for you",
+  "writeYourReview": "Write your review",
+  "yourRating": "Your rating",
+  "reviewRatingBad": "Bad",
+  "reviewRatingAcceptable": "Acceptable",
+  "reviewRatingGood": "Good",
+  "reviewRatingVeryGood": "Very good",
+  "reviewRatingExcellent": "Excellent",
+  "reviewCommentLabel": "Your comment",
+  "reviewCommentHint": "Tell us about your experience with the restaurant...",
+  "submitReview": "Submit review",
+  "reviewCreatedSuccess": "Your review was added successfully",
+  "reviewSubmitError": "Your review could not be submitted right now. Please try again.",
+  "reviewDuplicateError": "You have already reviewed this restaurant."
 }

@@ -19,6 +19,27 @@ class RestaurantDetailsService {
     return RestaurantDetailsDto.fromJson(Map<String, dynamic>.from(data));
   }
 
+  Future<RestaurantFavoriteDto> setFavorite(
+    int restaurantId, {
+    required bool isFavorite,
+  }) async {
+    final path = '/api/restaurants/$restaurantId/favorite';
+    final data = isFavorite
+        ? await _apiClient.postResultData(path)
+        : await _apiClient.deleteResultData(path);
+    if (data is! Map) {
+      throw const ApiException('The restaurant favorite response is invalid.');
+    }
+
+    final favorite = RestaurantFavoriteDto.fromJson(
+      Map<String, dynamic>.from(data),
+    );
+    if (favorite.restaurantId != restaurantId) {
+      throw const ApiException('The restaurant favorite response is invalid.');
+    }
+    return favorite;
+  }
+
   void close() {
     if (_ownsApiClient) {
       _apiClient.close();

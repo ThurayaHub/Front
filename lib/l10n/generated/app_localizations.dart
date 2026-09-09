@@ -236,6 +236,18 @@ abstract class AppLocalizations {
   /// **'Awarded the star of excellence for culinary creativity'**
   String get thurayaStarDescription;
 
+  /// No description provided for @thurayaRatingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Thuraya rating'**
+  String get thurayaRatingLabel;
+
+  /// No description provided for @thurayaReviewLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Thuraya review'**
+  String get thurayaReviewLabel;
+
   /// No description provided for @userReviewCount.
   ///
   /// In en, this message translates to:
@@ -259,6 +271,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Share'**
   String get share;
+
+  /// No description provided for @directionsUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Directions cannot be opened right now.'**
+  String get directionsUnavailable;
+
+  /// No description provided for @shareUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This restaurant cannot be shared right now.'**
+  String get shareUnavailable;
 
   /// No description provided for @aboutRestaurant.
   ///
@@ -301,6 +325,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No reviews yet'**
   String get noReviewsYet;
+
+  /// No description provided for @restaurantReviewListUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The review summary is available, but individual user reviews are not currently provided by the server.'**
+  String get restaurantReviewListUnavailable;
 
   /// No description provided for @searchRestaurant.
   ///
@@ -512,6 +542,12 @@ abstract class AppLocalizations {
   /// **'Choose a restaurant'**
   String get chooseRestaurant;
 
+  /// No description provided for @chooseRestaurantNavigation.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose for me'**
+  String get chooseRestaurantNavigation;
+
   /// No description provided for @account.
   ///
   /// In en, this message translates to:
@@ -523,6 +559,528 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Home'**
   String get home;
+
+  /// No description provided for @loginTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in'**
+  String get loginTitle;
+
+  /// No description provided for @authenticationWelcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to Thuraya'**
+  String get authenticationWelcome;
+
+  /// No description provided for @loginSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your mobile number to continue to Thuraya features that require an account.'**
+  String get loginSubtitle;
+
+  /// No description provided for @phoneNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile number'**
+  String get phoneNumber;
+
+  /// No description provided for @phoneNumberHint.
+  ///
+  /// In en, this message translates to:
+  /// **'+9665XXXXXXXX'**
+  String get phoneNumberHint;
+
+  /// No description provided for @continueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get continueLabel;
+
+  /// No description provided for @registrationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete registration'**
+  String get registrationTitle;
+
+  /// No description provided for @registrationSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This number is not registered. Complete your details to create a Thuraya account.'**
+  String get registrationSubtitle;
+
+  /// No description provided for @fullName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get fullName;
+
+  /// No description provided for @emailAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Email address'**
+  String get emailAddress;
+
+  /// No description provided for @createAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Create account'**
+  String get createAccount;
+
+  /// No description provided for @changePhoneNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Change mobile number'**
+  String get changePhoneNumber;
+
+  /// No description provided for @fieldRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'This field is required'**
+  String get fieldRequired;
+
+  /// No description provided for @invalidEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid email address'**
+  String get invalidEmail;
+
+  /// No description provided for @authenticationUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t complete login right now. Please try again.'**
+  String get authenticationUnavailable;
+
+  /// No description provided for @accountGuestTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to Thuraya'**
+  String get accountGuestTitle;
+
+  /// No description provided for @accountGuestSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in to use favorites and features linked to your account.'**
+  String get accountGuestSubtitle;
+
+  /// No description provided for @accountWelcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome, {name}'**
+  String accountWelcome(String name);
+
+  /// No description provided for @accountAuthenticatedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your session is stored securely and protected Thuraya features are available.'**
+  String get accountAuthenticatedSubtitle;
+
+  /// No description provided for @login.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in'**
+  String get login;
+
+  /// No description provided for @logout.
+  ///
+  /// In en, this message translates to:
+  /// **'Log out'**
+  String get logout;
+
+  /// No description provided for @loggingOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Logging out...'**
+  String get loggingOut;
+
+  /// No description provided for @addToFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to favorites'**
+  String get addToFavorites;
+
+  /// No description provided for @removeFromFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from favorites'**
+  String get removeFromFavorites;
+
+  /// No description provided for @favoriteUpdateUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites cannot be updated right now. Please try again.'**
+  String get favoriteUpdateUnavailable;
+
+  /// No description provided for @profileDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My details'**
+  String get profileDetailsTitle;
+
+  /// No description provided for @myFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'My favorites'**
+  String get myFavorites;
+
+  /// No description provided for @myReviews.
+  ///
+  /// In en, this message translates to:
+  /// **'My reviews'**
+  String get myReviews;
+
+  /// No description provided for @emailVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Email address verified'**
+  String get emailVerified;
+
+  /// No description provided for @emailUnverified.
+  ///
+  /// In en, this message translates to:
+  /// **'Email address not verified'**
+  String get emailUnverified;
+
+  /// No description provided for @reviewsWritten.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} reviews'**
+  String reviewsWritten(int count);
+
+  /// No description provided for @profileDetailsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Thuraya account information'**
+  String get profileDetailsSubtitle;
+
+  /// No description provided for @favoritesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restaurants you\'ve saved for easy access'**
+  String get favoritesSubtitle;
+
+  /// No description provided for @myReviewsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your restaurant opinions and experiences'**
+  String get myReviewsSubtitle;
+
+  /// No description provided for @nameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get nameLabel;
+
+  /// No description provided for @phoneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile number'**
+  String get phoneLabel;
+
+  /// No description provided for @emailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email address'**
+  String get emailLabel;
+
+  /// No description provided for @emailVerificationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email verification'**
+  String get emailVerificationLabel;
+
+  /// No description provided for @notAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Not added'**
+  String get notAdded;
+
+  /// No description provided for @memberSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Member since {year}'**
+  String memberSince(int year);
+
+  /// No description provided for @profileLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Data could not be loaded'**
+  String get profileLoadError;
+
+  /// No description provided for @favoritesEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You don\'t have any favorite restaurants yet'**
+  String get favoritesEmptyTitle;
+
+  /// No description provided for @favoritesEmptySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save restaurants you like and find them here'**
+  String get favoritesEmptySubtitle;
+
+  /// No description provided for @reviewsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You haven\'t written any reviews yet'**
+  String get reviewsEmptyTitle;
+
+  /// No description provided for @reviewsEmptySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a restaurant and share your experience'**
+  String get reviewsEmptySubtitle;
+
+  /// No description provided for @exploreRestaurants.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore restaurants'**
+  String get exploreRestaurants;
+
+  /// No description provided for @removeFavorite.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from favorites'**
+  String get removeFavorite;
+
+  /// No description provided for @favoriteRemoveError.
+  ///
+  /// In en, this message translates to:
+  /// **'The restaurant could not be removed from favorites'**
+  String get favoriteRemoveError;
+
+  /// No description provided for @refresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get refresh;
+
+  /// No description provided for @chooseStepOf.
+  ///
+  /// In en, this message translates to:
+  /// **'of'**
+  String get chooseStepOf;
+
+  /// No description provided for @choosePriceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s your budget?'**
+  String get choosePriceTitle;
+
+  /// No description provided for @choosePriceSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the price level that suits you'**
+  String get choosePriceSubtitle;
+
+  /// No description provided for @chooseCategoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What are you craving today?'**
+  String get chooseCategoryTitle;
+
+  /// No description provided for @chooseCategorySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose one or more restaurant types'**
+  String get chooseCategorySubtitle;
+
+  /// No description provided for @chooseNeighborhoodTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Where would you like to eat?'**
+  String get chooseNeighborhoodTitle;
+
+  /// No description provided for @chooseNeighborhoodSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a suitable neighborhood or neighborhoods'**
+  String get chooseNeighborhoodSubtitle;
+
+  /// No description provided for @next.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get next;
+
+  /// No description provided for @selectionRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose at least one option to continue'**
+  String get selectionRequired;
+
+  /// No description provided for @searchNeighborhood.
+  ///
+  /// In en, this message translates to:
+  /// **'Search for a neighborhood...'**
+  String get searchNeighborhood;
+
+  /// No description provided for @selectedNeighborhoods.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected neighborhoods'**
+  String get selectedNeighborhoods;
+
+  /// No description provided for @allNeighborhoods.
+  ///
+  /// In en, this message translates to:
+  /// **'All neighborhoods'**
+  String get allNeighborhoods;
+
+  /// No description provided for @allNeighborhoodsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep it open and we\'ll search every neighborhood'**
+  String get allNeighborhoodsHint;
+
+  /// No description provided for @noNeighborhoodResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No neighborhood matches that search'**
+  String get noNeighborhoodResults;
+
+  /// No description provided for @chooseLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'One moment... Thuraya is choosing for you'**
+  String get chooseLoading;
+
+  /// No description provided for @recommendationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Thuraya\'s choice for you'**
+  String get recommendationTitle;
+
+  /// No description provided for @viewRestaurant.
+  ///
+  /// In en, this message translates to:
+  /// **'View restaurant'**
+  String get viewRestaurant;
+
+  /// No description provided for @chooseAnother.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose another restaurant'**
+  String get chooseAnother;
+
+  /// No description provided for @changeSelections.
+  ///
+  /// In en, this message translates to:
+  /// **'Change selections'**
+  String get changeSelections;
+
+  /// No description provided for @noMatchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t find a restaurant matching every choice'**
+  String get noMatchTitle;
+
+  /// No description provided for @noMatchSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Broaden your choices and we\'ll choose again'**
+  String get noMatchSubtitle;
+
+  /// No description provided for @editSelections.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit selections'**
+  String get editSelections;
+
+  /// No description provided for @chooseLookupError.
+  ///
+  /// In en, this message translates to:
+  /// **'Restaurant choices cannot be loaded right now'**
+  String get chooseLookupError;
+
+  /// No description provided for @chooseRequestError.
+  ///
+  /// In en, this message translates to:
+  /// **'A restaurant cannot be selected right now. Try again.'**
+  String get chooseRequestError;
+
+  /// No description provided for @recommendedRestaurant.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended for you'**
+  String get recommendedRestaurant;
+
+  /// No description provided for @writeYourReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Write your review'**
+  String get writeYourReview;
+
+  /// No description provided for @yourRating.
+  ///
+  /// In en, this message translates to:
+  /// **'Your rating'**
+  String get yourRating;
+
+  /// No description provided for @reviewRatingBad.
+  ///
+  /// In en, this message translates to:
+  /// **'Bad'**
+  String get reviewRatingBad;
+
+  /// No description provided for @reviewRatingAcceptable.
+  ///
+  /// In en, this message translates to:
+  /// **'Acceptable'**
+  String get reviewRatingAcceptable;
+
+  /// No description provided for @reviewRatingGood.
+  ///
+  /// In en, this message translates to:
+  /// **'Good'**
+  String get reviewRatingGood;
+
+  /// No description provided for @reviewRatingVeryGood.
+  ///
+  /// In en, this message translates to:
+  /// **'Very good'**
+  String get reviewRatingVeryGood;
+
+  /// No description provided for @reviewRatingExcellent.
+  ///
+  /// In en, this message translates to:
+  /// **'Excellent'**
+  String get reviewRatingExcellent;
+
+  /// No description provided for @reviewCommentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Your comment'**
+  String get reviewCommentLabel;
+
+  /// No description provided for @reviewCommentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell us about your experience with the restaurant...'**
+  String get reviewCommentHint;
+
+  /// No description provided for @submitReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit review'**
+  String get submitReview;
+
+  /// No description provided for @reviewCreatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Your review was added successfully'**
+  String get reviewCreatedSuccess;
+
+  /// No description provided for @reviewSubmitError.
+  ///
+  /// In en, this message translates to:
+  /// **'Your review could not be submitted right now. Please try again.'**
+  String get reviewSubmitError;
+
+  /// No description provided for @reviewDuplicateError.
+  ///
+  /// In en, this message translates to:
+  /// **'You have already reviewed this restaurant.'**
+  String get reviewDuplicateError;
 }
 
 class _AppLocalizationsDelegate

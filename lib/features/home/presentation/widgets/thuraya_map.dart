@@ -8,10 +8,11 @@ import 'package:thuraya/core/theme/app_colors.dart';
 import 'package:thuraya/features/home/models/restaurant_map_bounds.dart';
 import 'package:thuraya/features/home/models/restaurant_map_marker.dart';
 import 'package:thuraya/features/home/models/supported_map_region.dart';
+import 'package:thuraya/features/home/presentation/widgets/restaurant_map_preview.dart';
 import 'package:thuraya/features/home/presentation/widgets/restaurant_marker_layer.dart';
-import 'package:thuraya/features/home/presentation/widgets/restaurant_preview_card.dart';
 import 'package:thuraya/features/home/services/current_location_service.dart';
 import 'package:thuraya/features/home/services/restaurant_map_service.dart';
+import 'package:thuraya/features/restaurant_details/models/restaurant_details_dto.dart';
 import 'package:thuraya/l10n/generated/app_localizations.dart';
 
 class ThurayaMap extends StatefulWidget {
@@ -24,8 +25,7 @@ class ThurayaMap extends StatefulWidget {
     this.restaurantMapService,
   });
 
-  static const String openFreeMapLibertyStyle =
-      'https://tiles.openfreemap.org/styles/liberty';
+  static const String customStyleAsset = 'assets/map/thuraya_map_style.json';
 
   final SupportedMapRegion region;
   final EdgeInsets padding;
@@ -306,16 +306,15 @@ class _ThurayaMapState extends State<ThurayaMap> {
     _dismissRestaurantPreview();
   }
 
-  void _openSelectedRestaurantDetails() {
-    final restaurantId = _selectedRestaurant?.id;
-    if (restaurantId == null || _isOpeningRestaurantDetails || !mounted) {
+  void _openSelectedRestaurantDetails(RestaurantDetailsDto details) {
+    if (_isOpeningRestaurantDetails || !mounted) {
       return;
     }
 
     _isOpeningRestaurantDetails = true;
     unawaited(
       Navigator.of(context)
-          .pushNamed(AppRouteNames.restaurantDetails, arguments: restaurantId)
+          .pushNamed(AppRouteNames.restaurantDetails, arguments: details)
           .whenComplete(() => _isOpeningRestaurantDetails = false),
     );
   }
@@ -439,7 +438,7 @@ class _ThurayaMapState extends State<ThurayaMap> {
       children: [
         MapLibreMap(
           key: const ValueKey('home-map'),
-          styleString: ThurayaMap.openFreeMapLibertyStyle,
+          styleString: ThurayaMap.customStyleAsset,
           initialCameraPosition: CameraPosition(
             target: LatLng(
               widget.region.centerLatitude,
@@ -540,7 +539,7 @@ class _ThurayaMapState extends State<ThurayaMap> {
                 ? const SizedBox.shrink(
                     key: ValueKey('restaurant-preview-empty'),
                   )
-                : RestaurantPreviewCard(
+                : RestaurantMapPreview(
                     key: ValueKey(
                       'restaurant-preview-${_selectedRestaurant!.id}',
                     ),

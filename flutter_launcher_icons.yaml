@@ -1,0 +1,16 @@
+flutter_launcher_icons:
+  android: "ic_launcher"
+  ios: true
+  image_path: "assets/branding/thuraya_launcher_icon.png"
+  min_sdk_android: 24
+  adaptive_icon_background: "#FCF9F8"
+  adaptive_icon_foreground: "assets/branding/thuraya_logo.png"
+  adaptive_icon_foreground_inset: 25
+  remove_alpha_ios: true
+  background_color_ios: "#FCF9F8"
+
+  web:
+    generate: true
+    image_path: "assets/branding/thuraya_launcher_icon.png"
+    background_color: "#FCF9F8"
+    theme_color: "#000080"

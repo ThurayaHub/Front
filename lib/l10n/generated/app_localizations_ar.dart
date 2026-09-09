@@ -82,6 +82,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get thurayaStarDescription => 'حائز على نجمة التميز للإبداع الطهوي';
 
   @override
+  String get thurayaRatingLabel => 'تقييم ثريا';
+
+  @override
+  String get thurayaReviewLabel => 'رأي ثريا';
+
+  @override
   String userReviewCount(int count) {
     return '$count تقييم مستخدم';
   }
@@ -94,6 +100,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get share => 'مشاركة';
+
+  @override
+  String get directionsUnavailable => 'تعذر فتح الاتجاهات حالياً.';
+
+  @override
+  String get shareUnavailable => 'تعذرت مشاركة المطعم حالياً.';
 
   @override
   String get aboutRestaurant => 'نبذة عن المطعم';
@@ -117,6 +129,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get noReviewsYet => 'لا توجد تقييمات حتى الآن';
+
+  @override
+  String get restaurantReviewListUnavailable =>
+      'ملخص التقييمات متاح، لكن تفاصيل تقييمات المستخدمين غير متاحة من الخادم حالياً.';
 
   @override
   String get searchRestaurant => 'ابحث عن مطعم...';
@@ -231,8 +247,285 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chooseRestaurant => 'اختر لي مطعم';
 
   @override
+  String get chooseRestaurantNavigation => 'اختر لي';
+
+  @override
   String get account => 'حسابي';
 
   @override
   String get home => 'الرئيسية';
+
+  @override
+  String get loginTitle => 'تسجيل الدخول';
+
+  @override
+  String get authenticationWelcome => 'مرحباً بك في ثريا';
+
+  @override
+  String get loginSubtitle =>
+      'أدخل رقم جوالك للمتابعة إلى مزايا ثريا التي تتطلب حساباً.';
+
+  @override
+  String get phoneNumber => 'رقم الجوال';
+
+  @override
+  String get phoneNumberHint => '+9665XXXXXXXX';
+
+  @override
+  String get continueLabel => 'متابعة';
+
+  @override
+  String get registrationTitle => 'إكمال التسجيل';
+
+  @override
+  String get registrationSubtitle =>
+      'هذا الرقم غير مسجل. أكمل بياناتك لإنشاء حساب ثريا.';
+
+  @override
+  String get fullName => 'الاسم';
+
+  @override
+  String get emailAddress => 'البريد الإلكتروني';
+
+  @override
+  String get createAccount => 'إنشاء الحساب';
+
+  @override
+  String get changePhoneNumber => 'تغيير رقم الجوال';
+
+  @override
+  String get fieldRequired => 'هذا الحقل مطلوب';
+
+  @override
+  String get invalidEmail => 'أدخل بريداً إلكترونياً صحيحاً';
+
+  @override
+  String get authenticationUnavailable =>
+      'تعذر إكمال تسجيل الدخول حالياً. حاول مرة أخرى.';
+
+  @override
+  String get accountGuestTitle => 'مرحباً بك في ثريا';
+
+  @override
+  String get accountGuestSubtitle =>
+      'سجّل الدخول لاستخدام المفضلة والمزايا الخاصة بحسابك.';
+
+  @override
+  String accountWelcome(String name) {
+    return 'مرحباً، $name';
+  }
+
+  @override
+  String get accountAuthenticatedSubtitle =>
+      'جلستك محفوظة بأمان ويمكنك استخدام مزايا ثريا المحمية.';
+
+  @override
+  String get login => 'تسجيل الدخول';
+
+  @override
+  String get logout => 'تسجيل الخروج';
+
+  @override
+  String get loggingOut => 'جارٍ تسجيل الخروج...';
+
+  @override
+  String get addToFavorites => 'إضافة إلى المفضلة';
+
+  @override
+  String get removeFromFavorites => 'إزالة من المفضلة';
+
+  @override
+  String get favoriteUpdateUnavailable =>
+      'تعذر تحديث المفضلة حالياً. حاول مرة أخرى.';
+
+  @override
+  String get profileDetailsTitle => 'بياناتي';
+
+  @override
+  String get myFavorites => 'مفضلاتي';
+
+  @override
+  String get myReviews => 'مراجعاتي';
+
+  @override
+  String get emailVerified => 'البريد الإلكتروني موثق';
+
+  @override
+  String get emailUnverified => 'البريد الإلكتروني غير موثق';
+
+  @override
+  String reviewsWritten(int count) {
+    return '$count مراجعة';
+  }
+
+  @override
+  String get profileDetailsSubtitle => 'معلومات حسابك في ثريا';
+
+  @override
+  String get favoritesSubtitle => 'المطاعم اللي حفظتها للرجوع لها بسهولة';
+
+  @override
+  String get myReviewsSubtitle => 'آراؤك وتجاربك مع المطاعم';
+
+  @override
+  String get nameLabel => 'الاسم';
+
+  @override
+  String get phoneLabel => 'رقم الجوال';
+
+  @override
+  String get emailLabel => 'البريد الإلكتروني';
+
+  @override
+  String get emailVerificationLabel => 'حالة توثيق البريد';
+
+  @override
+  String get notAdded => 'غير مضاف';
+
+  @override
+  String memberSince(int year) {
+    return 'عضو منذ $year';
+  }
+
+  @override
+  String get profileLoadError => 'تعذر تحميل البيانات';
+
+  @override
+  String get favoritesEmptyTitle => 'ما عندك مطاعم مفضلة للحين';
+
+  @override
+  String get favoritesEmptySubtitle => 'أضف المطاعم اللي تعجبك وبتلقاها هنا';
+
+  @override
+  String get reviewsEmptyTitle => 'ما كتبت أي مراجعة للحين';
+
+  @override
+  String get reviewsEmptySubtitle => 'جرّب مطعم وشاركنا رأيك';
+
+  @override
+  String get exploreRestaurants => 'استكشف المطاعم';
+
+  @override
+  String get removeFavorite => 'إزالة من المفضلة';
+
+  @override
+  String get favoriteRemoveError => 'تعذر إزالة المطعم من المفضلة حالياً';
+
+  @override
+  String get refresh => 'تحديث';
+
+  @override
+  String get chooseStepOf => 'من';
+
+  @override
+  String get choosePriceTitle => 'وش ميزانيتك؟';
+
+  @override
+  String get choosePriceSubtitle => 'حدد مستوى السعر المناسب لك';
+
+  @override
+  String get chooseCategoryTitle => 'وش تشتهي اليوم؟';
+
+  @override
+  String get chooseCategorySubtitle => 'اختر نوع أو أكثر من المطاعم';
+
+  @override
+  String get chooseNeighborhoodTitle => 'وين ودك تاكل؟';
+
+  @override
+  String get chooseNeighborhoodSubtitle => 'اختر الحي أو الأحياء المناسبة لك';
+
+  @override
+  String get next => 'التالي';
+
+  @override
+  String get selectionRequired => 'اختر خياراً واحداً على الأقل للمتابعة';
+
+  @override
+  String get searchNeighborhood => 'ابحث عن حي...';
+
+  @override
+  String get selectedNeighborhoods => 'الأحياء المختارة';
+
+  @override
+  String get allNeighborhoods => 'كل الأحياء';
+
+  @override
+  String get allNeighborhoodsHint =>
+      'خلّ الاختيار مفتوحاً ونبحث لك في كل الأحياء';
+
+  @override
+  String get noNeighborhoodResults => 'ما لقينا حياً بهذا الاسم';
+
+  @override
+  String get chooseLoading => 'لحظة... ثريا تختار لك';
+
+  @override
+  String get recommendationTitle => 'اختيار ثريا لك';
+
+  @override
+  String get viewRestaurant => 'عرض المطعم';
+
+  @override
+  String get chooseAnother => 'اختيار مطعم آخر';
+
+  @override
+  String get changeSelections => 'تغيير الاختيارات';
+
+  @override
+  String get noMatchTitle => 'ما لقينا مطعم يطابق كل اختياراتك';
+
+  @override
+  String get noMatchSubtitle => 'جرب توسع اختياراتك ونختار لك من جديد';
+
+  @override
+  String get editSelections => 'تعديل الاختيارات';
+
+  @override
+  String get chooseLookupError => 'تعذر تحميل خيارات المطاعم حالياً';
+
+  @override
+  String get chooseRequestError => 'تعذر اختيار مطعم حالياً. حاول مرة أخرى.';
+
+  @override
+  String get recommendedRestaurant => 'مطعم مقترح لك';
+
+  @override
+  String get writeYourReview => 'اكتب مراجعتك';
+
+  @override
+  String get yourRating => 'تقييمك';
+
+  @override
+  String get reviewRatingBad => 'سيئ';
+
+  @override
+  String get reviewRatingAcceptable => 'مقبول';
+
+  @override
+  String get reviewRatingGood => 'جيد';
+
+  @override
+  String get reviewRatingVeryGood => 'جيد جداً';
+
+  @override
+  String get reviewRatingExcellent => 'ممتاز';
+
+  @override
+  String get reviewCommentLabel => 'تعليقك';
+
+  @override
+  String get reviewCommentHint => 'اكتب تجربتك مع المطعم...';
+
+  @override
+  String get submitReview => 'إرسال المراجعة';
+
+  @override
+  String get reviewCreatedSuccess => 'تمت إضافة مراجعتك بنجاح';
+
+  @override
+  String get reviewSubmitError => 'تعذر إرسال المراجعة حالياً. حاول مرة أخرى.';
+
+  @override
+  String get reviewDuplicateError => 'سبق أن أضفت مراجعة لهذا المطعم.';
 }

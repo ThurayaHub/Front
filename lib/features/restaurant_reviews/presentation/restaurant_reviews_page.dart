@@ -5,19 +5,23 @@ import 'package:thuraya/core/constants/app_spacing.dart';
 import 'package:thuraya/core/theme/app_colors.dart';
 import 'package:thuraya/core/theme/app_text_styles.dart';
 import 'package:thuraya/core/widgets/rating_stars.dart';
+import 'package:thuraya/features/restaurant_reviews/models/restaurant_reviews_data.dart';
 import 'package:thuraya/features/restaurants/models/restaurant.dart';
 import 'package:thuraya/features/restaurants/models/restaurant_review.dart';
 import 'package:thuraya/l10n/generated/app_localizations.dart';
 
 class RestaurantReviewsPage extends StatelessWidget {
-  const RestaurantReviewsPage({super.key, required this.restaurant});
+  RestaurantReviewsPage({super.key, required Restaurant restaurant})
+    : data = RestaurantReviewsData.fromRestaurant(restaurant);
 
-  final Restaurant restaurant;
+  const RestaurantReviewsPage.fromData({super.key, required this.data});
+
+  final RestaurantReviewsData data;
 
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
-    final reviews = restaurant.reviews
+    final reviews = data.reviews
         .where((review) => review.isPublished)
         .toList(growable: false);
 
@@ -40,17 +44,19 @@ class RestaurantReviewsPage extends StatelessWidget {
               ),
               children: [
                 Text(
-                  restaurant.name,
+                  data.restaurantName,
                   textAlign: TextAlign.right,
                   style: AppTextStyles.cardTitle,
                 ),
                 const SizedBox(height: AppSpacing.md),
                 _RatingSummary(
-                  rating: restaurant.rating,
-                  reviewCount: restaurant.reviewCount,
+                  rating: data.rating,
+                  reviewCount: data.reviewCount,
                 ),
                 const SizedBox(height: AppSpacing.lg),
-                if (reviews.isEmpty)
+                if (!data.hasReviewList)
+                  const _ReviewListUnavailable()
+                else if (reviews.isEmpty)
                   const _EmptyReviews()
                 else
                   for (var index = 0; index < reviews.length; index++) ...[
@@ -292,6 +298,34 @@ class _EmptyReviews extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
           Text(
             localizations.noReviewsYet,
+            textAlign: TextAlign.center,
+            style: AppTextStyles.screenSubtitle,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ReviewListUnavailable extends StatelessWidget {
+  const _ReviewListUnavailable();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      key: const ValueKey('restaurant-reviews-unavailable'),
+      height: 220,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.rate_review_outlined,
+            color: AppColors.textMuted,
+            size: 34,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            AppLocalizations.of(context).restaurantReviewListUnavailable,
             textAlign: TextAlign.center,
             style: AppTextStyles.screenSubtitle,
           ),

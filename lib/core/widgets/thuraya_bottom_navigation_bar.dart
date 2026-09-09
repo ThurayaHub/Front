@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:thuraya/core/auth/authentication_guard.dart';
 import 'package:thuraya/core/constants/app_assets.dart';
 import 'package:thuraya/core/constants/app_spacing.dart';
 import 'package:thuraya/core/routing/app_route_names.dart';
@@ -9,7 +10,7 @@ import 'package:thuraya/core/theme/app_colors.dart';
 import 'package:thuraya/core/theme/app_text_styles.dart';
 import 'package:thuraya/l10n/generated/app_localizations.dart';
 
-enum ThurayaNavigationTab { home, account, trending, wheel, chooseRestaurant }
+enum ThurayaNavigationTab { home, trending, wheel, chooseRestaurant, account }
 
 class ThurayaBottomNavigationBar extends StatelessWidget {
   const ThurayaBottomNavigationBar({super.key, required this.selectedTab});
@@ -49,15 +50,6 @@ class ThurayaBottomNavigationBar extends StatelessWidget {
                 onTap: () => _selectTab(context, ThurayaNavigationTab.home),
               ),
               _NavigationItem(
-                key: const ValueKey('navigation-account'),
-                assetIcon: AppAssets.navProfile,
-                label: localizations.account,
-                iconWidth: 16,
-                iconHeight: 16,
-                isActive: selectedTab == ThurayaNavigationTab.account,
-                onTap: () => _selectTab(context, ThurayaNavigationTab.account),
-              ),
-              _NavigationItem(
                 key: const ValueKey('navigation-trending'),
                 assetIcon: AppAssets.navTrending,
                 label: localizations.trending,
@@ -78,12 +70,21 @@ class ThurayaBottomNavigationBar extends StatelessWidget {
               _NavigationItem(
                 key: const ValueKey('navigation-choose-restaurant'),
                 materialIcon: Icons.restaurant_menu,
-                label: localizations.chooseRestaurant,
+                label: localizations.chooseRestaurantNavigation,
                 iconWidth: 18,
                 iconHeight: 18,
                 isActive: selectedTab == ThurayaNavigationTab.chooseRestaurant,
                 onTap: () =>
                     _selectTab(context, ThurayaNavigationTab.chooseRestaurant),
+              ),
+              _NavigationItem(
+                key: const ValueKey('navigation-account'),
+                assetIcon: AppAssets.navProfile,
+                label: localizations.account,
+                iconWidth: 16,
+                iconHeight: 16,
+                isActive: selectedTab == ThurayaNavigationTab.account,
+                onTap: () => _selectTab(context, ThurayaNavigationTab.account),
               ),
             ],
           ),
@@ -92,9 +93,23 @@ class ThurayaBottomNavigationBar extends StatelessWidget {
     );
   }
 
-  void _selectTab(BuildContext context, ThurayaNavigationTab tab) {
+  Future<void> _selectTab(
+    BuildContext context,
+    ThurayaNavigationTab tab,
+  ) async {
     if (tab == selectedTab) return;
 
+    if (tab == ThurayaNavigationTab.account) {
+      await AuthenticationGuard.requireAuthentication<void>(context, () async {
+        if (context.mounted) _navigateToTab(context, tab);
+      });
+      return;
+    }
+
+    _navigateToTab(context, tab);
+  }
+
+  void _navigateToTab(BuildContext context, ThurayaNavigationTab tab) {
     if (tab == ThurayaNavigationTab.home) {
       Navigator.of(context).popUntil((route) => route.isFirst);
       return;
