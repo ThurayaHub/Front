@@ -15,7 +15,8 @@ if (-not (Get-Command flutter -ErrorAction SilentlyContinue)) {
     throw 'Flutter was not found on PATH.'
 }
 
-if (-not (Get-Command npx -ErrorAction SilentlyContinue)) {
+$npxCommand = Get-Command npx.cmd -ErrorAction SilentlyContinue
+if (-not $npxCommand) {
     throw 'Node.js/npx was not found on PATH.'
 }
 
@@ -28,7 +29,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host 'Deploying build/web to Firebase Hosting...'
-& npx --yes firebase-tools@latest deploy --only hosting --project $FirebaseProjectId
+& $npxCommand.Source --yes firebase-tools@latest deploy --only hosting --project $FirebaseProjectId
 if ($LASTEXITCODE -ne 0) {
     throw 'Firebase Hosting deployment failed. Run npx firebase-tools login and retry.'
 }
