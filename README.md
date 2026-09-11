@@ -89,6 +89,9 @@ suite, and builds both an Android debug APK and the production Flutter Web
 bundle. Successful non-PR runs retain both bundles as GitHub Actions artifacts
 for 14 days.
 
+The Android job uses Temurin JDK 21 because the MapLibre Android plugin compiles
+with Java source level 21. The app itself can continue targeting Java 17.
+
 After a successful `main` build, the tested web artifact is deployed to the
 live Firebase Hosting channel at `https://thuraya-test-amr-202609.web.app`.
 Configure the frontend GitHub repository with one Actions secret before the
