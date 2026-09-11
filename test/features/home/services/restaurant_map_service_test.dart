@@ -5,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:thuraya/core/network/api_client.dart';
 import 'package:thuraya/features/home/models/restaurant_map_bounds.dart';
 import 'package:thuraya/features/home/models/restaurant_map_marker.dart';
+import 'package:thuraya/features/home/models/restaurant_search_filters.dart';
+import 'package:thuraya/features/home/models/supported_map_region.dart';
 import 'package:thuraya/features/home/services/restaurant_map_service.dart';
 
 void main() {
@@ -126,5 +128,89 @@ void main() {
         ),
       ),
     );
+  });
+
+  test('posts every optional discovery filter as typed JSON', () async {
+    final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+    addTearDown(() => server.close(force: true));
+    Uri? requestedUri;
+    Object? requestedBody;
+
+    server.listen((request) async {
+      requestedUri = request.uri;
+      requestedBody = jsonDecode(await utf8.decoder.bind(request).join());
+      request.response
+        ..statusCode = HttpStatus.ok
+        ..headers.contentType = ContentType.json
+        ..write(
+          jsonEncode({
+            'success': true,
+            'message': 'Restaurant search results retrieved successfully.',
+            'data': [
+              {
+                'id': 9,
+                'name': 'Burger House',
+                'nameArabic': 'بيت البرجر',
+                'latitude': 24.71,
+                'longitude': 46.67,
+                'priceLevelId': 2,
+                'priceLevelName': 'Medium',
+                'hasThurayaStar': false,
+                'thurayaRatingAverage': 9.0,
+                'thurayaReviewCount': 1,
+                'userRatingAverage': 4.5,
+                'reviewCount': 12,
+                'mainPhotoUrl': null,
+                'primaryCategoryId': 5,
+                'primaryCategoryName': 'American',
+                'neighborhoodId': 4,
+                'neighborhoodNameAr': 'العليا',
+                'neighborhoodNameEn': 'Al Olaya',
+                'address': 'العليا، الرياض',
+                'placeType': 'restaurant',
+              },
+            ],
+            'errors': <String>[],
+            'statusCode': 200,
+          }),
+        );
+      await request.response.close();
+    });
+
+    final apiClient = ApiClient(baseUrl: 'http://127.0.0.1:${server.port}');
+    addTearDown(apiClient.close);
+    final service = RestaurantMapService(apiClient: apiClient);
+    final results = await service.search(
+      RestaurantSearchFilters(
+        searchText: 'برجر',
+        priceLevelIds: {2, 3},
+        categoryIds: {5, 8},
+        minimumUserRating: 4,
+        hasThurayaRating: true,
+      ),
+      const SupportedMapBounds(
+        southwestLatitude: 24.3,
+        southwestLongitude: 46.3,
+        northeastLatitude: 25.1,
+        northeastLongitude: 47.3,
+      ),
+    );
+
+    expect(requestedUri?.path, '/api/restaurants/search');
+    expect(requestedBody, {
+      'searchText': 'برجر',
+      'priceLevelIds': [2, 3],
+      'categoryIds': [5, 8],
+      'minimumUserRating': 4,
+      'hasThurayaRating': true,
+      'north': 25.1,
+      'south': 24.3,
+      'east': 47.3,
+      'west': 46.3,
+      'limit': 500,
+    });
+    expect(results.single.localizedName('ar'), 'بيت البرجر');
+    expect(results.single.thurayaRatingAverage, 9);
+    expect(results.single.localizedNeighborhood('en'), 'Al Olaya');
   });
 }

@@ -23,6 +23,8 @@ class ThurayaMap extends StatefulWidget {
     this.onMapCreated,
     this.locationService = const CurrentLocationService(),
     this.restaurantMapService,
+    this.restaurants,
+    this.fitRestaurants = false,
   });
 
   static const String customStyleAsset = 'assets/map/thuraya_map_style.json';
@@ -32,6 +34,8 @@ class ThurayaMap extends StatefulWidget {
   final MapCreatedCallback? onMapCreated;
   final CurrentLocationService locationService;
   final RestaurantMapService? restaurantMapService;
+  final List<RestaurantMapMarker>? restaurants;
+  final bool fitRestaurants;
 
   @override
   State<ThurayaMap> createState() => _ThurayaMapState();
@@ -63,6 +67,27 @@ class _ThurayaMapState extends State<ThurayaMap> {
     _ownsRestaurantMapService = widget.restaurantMapService == null;
     _restaurantMapService =
         widget.restaurantMapService ?? RestaurantMapService();
+  }
+
+  @override
+  void didUpdateWidget(covariant ThurayaMap oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if ((!identical(oldWidget.restaurants, widget.restaurants) ||
+            oldWidget.fitRestaurants != widget.fitRestaurants) &&
+        widget.restaurants != null &&
+        _isStyleLoaded &&
+        _isMarkerLayerReady &&
+        _mapController != null) {
+      final requestGeneration = ++_markerRequestGeneration;
+      unawaited(
+        _showControlledRestaurants(
+          controller: _mapController!,
+          markers: widget.restaurants!,
+          requestGeneration: requestGeneration,
+          fitCamera: widget.fitRestaurants,
+        ),
+      );
+    }
   }
 
   void _onMapCreated(MapLibreMapController controller) {
@@ -102,7 +127,18 @@ class _ThurayaMapState extends State<ThurayaMap> {
         return;
       }
       _isMarkerLayerReady = true;
-      _scheduleMarkerRefresh(immediate: true);
+      final controlledRestaurants = widget.restaurants;
+      if (controlledRestaurants == null) {
+        _scheduleMarkerRefresh(immediate: true);
+      } else {
+        final requestGeneration = ++_markerRequestGeneration;
+        await _showControlledRestaurants(
+          controller: controller,
+          markers: controlledRestaurants,
+          requestGeneration: requestGeneration,
+          fitCamera: widget.fitRestaurants,
+        );
+      }
     } catch (_) {
       if (mounted && _mapController == controller) {
         _showMapMessage(
@@ -113,11 +149,13 @@ class _ThurayaMapState extends State<ThurayaMap> {
   }
 
   void _onCameraMove(CameraPosition _) {
+    if (widget.restaurants != null) return;
     _markerDebounce?.cancel();
     _markerRequestGeneration++;
   }
 
   void _onCameraIdle() {
+    if (widget.restaurants != null) return;
     _scheduleMarkerRefresh();
   }
 
@@ -254,6 +292,61 @@ class _ThurayaMapState extends State<ThurayaMap> {
         // Keep the successful update if stale symbols disappeared already.
       }
     }
+  }
+
+  Future<void> _showControlledRestaurants({
+    required MapLibreMapController controller,
+    required List<RestaurantMapMarker> markers,
+    required int requestGeneration,
+    required bool fitCamera,
+  }) async {
+    await _replaceRestaurantMarkers(
+      controller: controller,
+      markers: markers,
+      requestGeneration: requestGeneration,
+    );
+    if (!fitCamera ||
+        markers.isEmpty ||
+        !mounted ||
+        requestGeneration != _markerRequestGeneration) {
+      return;
+    }
+
+    if (markers.length == 1) {
+      final restaurant = markers.single;
+      await controller.animateCamera(
+        CameraUpdate.newLatLngZoom(
+          LatLng(restaurant.latitude, restaurant.longitude),
+          14.5,
+        ),
+        duration: const Duration(milliseconds: 650),
+      );
+      return;
+    }
+
+    var south = markers.first.latitude;
+    var north = markers.first.latitude;
+    var west = markers.first.longitude;
+    var east = markers.first.longitude;
+    for (final restaurant in markers.skip(1)) {
+      south = min(south, restaurant.latitude);
+      north = max(north, restaurant.latitude);
+      west = min(west, restaurant.longitude);
+      east = max(east, restaurant.longitude);
+    }
+    await controller.animateCamera(
+      CameraUpdate.newLatLngBounds(
+        LatLngBounds(
+          southwest: LatLng(south, west),
+          northeast: LatLng(north, east),
+        ),
+        left: 48,
+        top: widget.padding.top + 36,
+        right: 48,
+        bottom: widget.padding.bottom + 48,
+      ),
+      duration: const Duration(milliseconds: 650),
+    );
   }
 
   void _onRestaurantMarkerTapped(

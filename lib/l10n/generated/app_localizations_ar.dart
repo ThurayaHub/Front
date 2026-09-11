@@ -141,6 +141,59 @@ class AppLocalizationsAr extends AppLocalizations {
   String get filterRestaurants => 'تصفية المطاعم';
 
   @override
+  String get searchFiltersTitle => 'بحث وفلاتر';
+
+  @override
+  String get priceFilter => 'السعر';
+
+  @override
+  String get categoryFilter => 'التصنيف';
+
+  @override
+  String get ratingFilter => 'تقييم المستخدمين';
+
+  @override
+  String get minimumRatingHint => 'الحد الأدنى للتقييم';
+
+  @override
+  String get hasThurayaRatingFilter => 'بتقييم ثريا';
+
+  @override
+  String get showResults => 'عرض النتائج';
+
+  @override
+  String get clearAll => 'مسح الكل';
+
+  @override
+  String get mapView => 'الخريطة';
+
+  @override
+  String get listView => 'القائمة';
+
+  @override
+  String restaurantResultsCount(int count) {
+    return '$count مطعم';
+  }
+
+  @override
+  String get noSearchResultsTitle => 'ما لقينا مطاعم تطابق بحثك';
+
+  @override
+  String get noSearchResultsSubtitle => 'جرّب تغيير البحث أو إزالة بعض الفلاتر';
+
+  @override
+  String get clearFilters => 'مسح الفلاتر';
+
+  @override
+  String get searchResultsError => 'تعذر تحميل نتائج البحث';
+
+  @override
+  String get filterOptionsError => 'تعذر تحميل خيارات الفلاتر';
+
+  @override
+  String get activeFilters => 'الفلاتر النشطة';
+
+  @override
   String get currentLocation => 'موقعي الحالي';
 
   @override

@@ -7,12 +7,19 @@ class RestaurantMapMarker {
     required this.longitude,
     this.placeType = RestaurantMapPlaceType.restaurant,
     required this.priceLevelId,
+    this.priceLevelName,
     required this.hasThurayaStar,
+    this.thurayaRatingAverage,
+    this.thurayaReviewCount = 0,
     required this.userRatingAverage,
     required this.reviewCount,
     required this.mainPhotoUrl,
     required this.primaryCategoryId,
     required this.primaryCategoryName,
+    this.neighborhoodId,
+    this.neighborhoodNameAr,
+    this.neighborhoodNameEn,
+    this.address = '',
   });
 
   final int id;
@@ -22,12 +29,19 @@ class RestaurantMapMarker {
   final double longitude;
   final RestaurantMapPlaceType placeType;
   final int priceLevelId;
+  final String? priceLevelName;
   final bool hasThurayaStar;
+  final double? thurayaRatingAverage;
+  final int thurayaReviewCount;
   final double? userRatingAverage;
   final int reviewCount;
   final String? mainPhotoUrl;
   final int? primaryCategoryId;
   final String? primaryCategoryName;
+  final int? neighborhoodId;
+  final String? neighborhoodNameAr;
+  final String? neighborhoodNameEn;
+  final String address;
 
   factory RestaurantMapMarker.fromJson(Map<String, dynamic> json) {
     return RestaurantMapMarker(
@@ -38,12 +52,19 @@ class RestaurantMapMarker {
       longitude: _requiredNumber(json, 'longitude').toDouble(),
       placeType: RestaurantMapPlaceType.fromJson(json['placeType']),
       priceLevelId: _requiredNumber(json, 'priceLevelId').toInt(),
+      priceLevelName: json['priceLevelName'] as String?,
       hasThurayaStar: json['hasThurayaStar'] == true,
+      thurayaRatingAverage: (json['thurayaRatingAverage'] as num?)?.toDouble(),
+      thurayaReviewCount: (json['thurayaReviewCount'] as num?)?.toInt() ?? 0,
       userRatingAverage: (json['userRatingAverage'] as num?)?.toDouble(),
       reviewCount: _requiredNumber(json, 'reviewCount').toInt(),
       mainPhotoUrl: json['mainPhotoUrl'] as String?,
       primaryCategoryId: (json['primaryCategoryId'] as num?)?.toInt(),
       primaryCategoryName: json['primaryCategoryName'] as String?,
+      neighborhoodId: (json['neighborhoodId'] as num?)?.toInt(),
+      neighborhoodNameAr: json['neighborhoodNameAr'] as String?,
+      neighborhoodNameEn: json['neighborhoodNameEn'] as String?,
+      address: json['address'] as String? ?? '',
     );
   }
 
@@ -53,6 +74,18 @@ class RestaurantMapMarker {
       return arabicName;
     }
     return name.trim();
+  }
+
+  String localizedNeighborhood(String languageCode) {
+    final primary = languageCode == 'ar'
+        ? neighborhoodNameAr
+        : neighborhoodNameEn;
+    final fallback = languageCode == 'ar'
+        ? neighborhoodNameEn
+        : neighborhoodNameAr;
+    final value = primary?.trim();
+    if (value != null && value.isNotEmpty) return value;
+    return fallback?.trim() ?? '';
   }
 
   static num _requiredNumber(Map<String, dynamic> json, String key) {

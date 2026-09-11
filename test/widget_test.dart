@@ -91,7 +91,7 @@ void main() {
     );
     expect(
       tester.getRect(find.byKey(const ValueKey('home-current-location'))),
-      const Rect.fromLTWH(326, 114, 44, 44),
+      const Rect.fromLTWH(326, 164, 44, 44),
     );
     expect(find.byIcon(Icons.my_location_rounded), findsOneWidget);
     expect(

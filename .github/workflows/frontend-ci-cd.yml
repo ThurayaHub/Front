@@ -1,0 +1,115 @@
+name: Frontend CI/CD
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: 3.44.7
+  API_BASE_URL: https://thuraya-test-api.onrender.com
+  FIREBASE_PROJECT_ID: thuraya-test-amr-202609
+
+jobs:
+  validate:
+    name: Analyze, test, and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test --reporter compact
+
+      - name: Build Android debug APK
+        run: flutter build apk --debug
+
+      - name: Build production web bundle
+        run: flutter build web --release --dart-define=API_BASE_URL=${{ env.API_BASE_URL }}
+
+      - name: Upload Android artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: thuraya-android-${{ github.sha }}
+          path: build/app/outputs/flutter-apk/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload web artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: thuraya-web-${{ github.sha }}
+          path: build/web
+          if-no-files-found: error
+          retention-days: 14
+
+  deploy:
+    name: Deploy Firebase Hosting
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: production
+      url: https://thuraya-test-amr-202609.web.app
+    concurrency:
+      group: frontend-production
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout deployment configuration
+        uses: actions/checkout@v4
+
+      - name: Download tested web bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: thuraya-web-${{ github.sha }}
+          path: build/web
+
+      - name: Deploy live site
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: ${{ env.FIREBASE_PROJECT_ID }}
+          channelId: live
+
+      - name: Verify live site
+        run: >-
+          curl --fail --silent --show-error
+          --retry 5 --retry-all-errors --retry-delay 5
+          https://thuraya-test-amr-202609.web.app/
+          --output /dev/null

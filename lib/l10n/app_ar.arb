@@ -55,6 +55,28 @@
   "restaurantReviewListUnavailable": "ملخص التقييمات متاح، لكن تفاصيل تقييمات المستخدمين غير متاحة من الخادم حالياً.",
   "searchRestaurant": "ابحث عن مطعم...",
   "filterRestaurants": "تصفية المطاعم",
+  "searchFiltersTitle": "بحث وفلاتر",
+  "priceFilter": "السعر",
+  "categoryFilter": "التصنيف",
+  "ratingFilter": "تقييم المستخدمين",
+  "minimumRatingHint": "الحد الأدنى للتقييم",
+  "hasThurayaRatingFilter": "بتقييم ثريا",
+  "showResults": "عرض النتائج",
+  "clearAll": "مسح الكل",
+  "mapView": "الخريطة",
+  "listView": "القائمة",
+  "restaurantResultsCount": "{count} مطعم",
+  "@restaurantResultsCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "noSearchResultsTitle": "ما لقينا مطاعم تطابق بحثك",
+  "noSearchResultsSubtitle": "جرّب تغيير البحث أو إزالة بعض الفلاتر",
+  "clearFilters": "مسح الفلاتر",
+  "searchResultsError": "تعذر تحميل نتائج البحث",
+  "filterOptionsError": "تعذر تحميل خيارات الفلاتر",
+  "activeFilters": "الفلاتر النشطة",
   "currentLocation": "موقعي الحالي",
   "locatingCurrentLocation": "جارٍ تحديد موقعك الحالي",
   "locationPermissionDenied": "تم رفض إذن الوصول إلى الموقع",

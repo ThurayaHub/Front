@@ -55,6 +55,28 @@
   "restaurantReviewListUnavailable": "The review summary is available, but individual user reviews are not currently provided by the server.",
   "searchRestaurant": "Search for a restaurant...",
   "filterRestaurants": "Filter restaurants",
+  "searchFiltersTitle": "Search and filters",
+  "priceFilter": "Price",
+  "categoryFilter": "Category",
+  "ratingFilter": "User rating",
+  "minimumRatingHint": "Minimum rating",
+  "hasThurayaRatingFilter": "Thuraya rated",
+  "showResults": "Show results",
+  "clearAll": "Clear all",
+  "mapView": "Map",
+  "listView": "List",
+  "restaurantResultsCount": "{count} restaurants",
+  "@restaurantResultsCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "noSearchResultsTitle": "We couldn't find matching restaurants",
+  "noSearchResultsSubtitle": "Try changing your search or removing some filters",
+  "clearFilters": "Clear filters",
+  "searchResultsError": "Search results could not be loaded",
+  "filterOptionsError": "Filter choices could not be loaded",
+  "activeFilters": "Active filters",
   "currentLocation": "Current location",
   "locatingCurrentLocation": "Finding your current location",
   "locationPermissionDenied": "Location permission was denied",

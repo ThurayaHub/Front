@@ -80,3 +80,23 @@ flutter analyze
 flutter test
 flutter run
 ```
+
+## CI/CD
+
+`.github/workflows/frontend-ci-cd.yml` runs on pull requests and pushes to
+`main`. It resolves dependencies, analyzes the project, runs the complete test
+suite, and builds both an Android debug APK and the production Flutter Web
+bundle. Successful non-PR runs retain both bundles as GitHub Actions artifacts
+for 14 days.
+
+After a successful `main` build, the tested web artifact is deployed to the
+live Firebase Hosting channel at `https://thuraya-test-amr-202609.web.app`.
+Configure the frontend GitHub repository with one Actions secret before the
+first deployment:
+
+- `FIREBASE_SERVICE_ACCOUNT`: the complete JSON key for a Firebase service
+  account that can deploy Hosting for project `thuraya-test-amr-202609`.
+
+Pull requests never deploy and do not receive the Firebase credential. The
+workflow pins Flutter `3.44.7`, matching this project's checked-in Flutter
+metadata and Dart `3.12.2` constraint.

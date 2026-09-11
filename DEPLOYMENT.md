@@ -67,4 +67,17 @@ Firebase Hosting supplies HTTPS, which browsers require for location access. Tes
 
 ## Redeploy after a code change
 
-Push backend changes to the connected GitHub branch and let Render auto-deploy. Then rerun the Firebase deployment script if the frontend changed.
+Both repositories now use GitHub Actions:
+
+- Backend pull requests and pushes must pass restore, Release build, tests,
+  publish, and Docker image validation. Render is configured with
+  `autoDeployTrigger: checksPass`, so it deploys `main` only after those checks
+  succeed.
+- Frontend pull requests and pushes must pass Flutter analysis, tests, Android
+  compilation, and the production web build. A successful push to `main`
+  deploys the exact tested web artifact to Firebase Hosting.
+
+Before the first frontend CI deployment, add a GitHub Actions repository secret
+named `FIREBASE_SERVICE_ACCOUNT` containing the complete Firebase service
+account JSON key. Keep the existing PowerShell deployment script for an
+authorized manual fallback.

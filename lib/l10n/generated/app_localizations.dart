@@ -344,6 +344,108 @@ abstract class AppLocalizations {
   /// **'Filter restaurants'**
   String get filterRestaurants;
 
+  /// No description provided for @searchFiltersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Search and filters'**
+  String get searchFiltersTitle;
+
+  /// No description provided for @priceFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Price'**
+  String get priceFilter;
+
+  /// No description provided for @categoryFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get categoryFilter;
+
+  /// No description provided for @ratingFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'User rating'**
+  String get ratingFilter;
+
+  /// No description provided for @minimumRatingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum rating'**
+  String get minimumRatingHint;
+
+  /// No description provided for @hasThurayaRatingFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Thuraya rated'**
+  String get hasThurayaRatingFilter;
+
+  /// No description provided for @showResults.
+  ///
+  /// In en, this message translates to:
+  /// **'Show results'**
+  String get showResults;
+
+  /// No description provided for @clearAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all'**
+  String get clearAll;
+
+  /// No description provided for @mapView.
+  ///
+  /// In en, this message translates to:
+  /// **'Map'**
+  String get mapView;
+
+  /// No description provided for @listView.
+  ///
+  /// In en, this message translates to:
+  /// **'List'**
+  String get listView;
+
+  /// No description provided for @restaurantResultsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} restaurants'**
+  String restaurantResultsCount(int count);
+
+  /// No description provided for @noSearchResultsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t find matching restaurants'**
+  String get noSearchResultsTitle;
+
+  /// No description provided for @noSearchResultsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Try changing your search or removing some filters'**
+  String get noSearchResultsSubtitle;
+
+  /// No description provided for @clearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filters'**
+  String get clearFilters;
+
+  /// No description provided for @searchResultsError.
+  ///
+  /// In en, this message translates to:
+  /// **'Search results could not be loaded'**
+  String get searchResultsError;
+
+  /// No description provided for @filterOptionsError.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter choices could not be loaded'**
+  String get filterOptionsError;
+
+  /// No description provided for @activeFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Active filters'**
+  String get activeFilters;
+
   /// No description provided for @currentLocation.
   ///
   /// In en, this message translates to:

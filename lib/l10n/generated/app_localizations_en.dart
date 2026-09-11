@@ -143,6 +143,60 @@ class AppLocalizationsEn extends AppLocalizations {
   String get filterRestaurants => 'Filter restaurants';
 
   @override
+  String get searchFiltersTitle => 'Search and filters';
+
+  @override
+  String get priceFilter => 'Price';
+
+  @override
+  String get categoryFilter => 'Category';
+
+  @override
+  String get ratingFilter => 'User rating';
+
+  @override
+  String get minimumRatingHint => 'Minimum rating';
+
+  @override
+  String get hasThurayaRatingFilter => 'Thuraya rated';
+
+  @override
+  String get showResults => 'Show results';
+
+  @override
+  String get clearAll => 'Clear all';
+
+  @override
+  String get mapView => 'Map';
+
+  @override
+  String get listView => 'List';
+
+  @override
+  String restaurantResultsCount(int count) {
+    return '$count restaurants';
+  }
+
+  @override
+  String get noSearchResultsTitle => 'We couldn\'t find matching restaurants';
+
+  @override
+  String get noSearchResultsSubtitle =>
+      'Try changing your search or removing some filters';
+
+  @override
+  String get clearFilters => 'Clear filters';
+
+  @override
+  String get searchResultsError => 'Search results could not be loaded';
+
+  @override
+  String get filterOptionsError => 'Filter choices could not be loaded';
+
+  @override
+  String get activeFilters => 'Active filters';
+
+  @override
   String get currentLocation => 'Current location';
 
   @override
