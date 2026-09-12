@@ -104,15 +104,37 @@ jobs:
       - name: Validate Firebase credentials
         env:
           FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT || secrets.FIREBASE_SERVICE_ACCOUNT_THURAYA_TEST_AMR_202609 }}
+          EXPECTED_FIREBASE_PROJECT_ID: ${{ env.FIREBASE_PROJECT_ID }}
         run: |
           if [ -z "$FIREBASE_SERVICE_ACCOUNT_JSON" ]; then
             echo "::error::Add FIREBASE_SERVICE_ACCOUNT to the repository's Actions secrets."
             exit 1
           fi
-          node -e "JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)"
+          node <<'NODE'
+          const credentials = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+          const expectedProjectId = process.env.EXPECTED_FIREBASE_PROJECT_ID;
+          const expectedEmailSuffix = `@${expectedProjectId}.iam.gserviceaccount.com`;
+
+          if (credentials.project_id !== expectedProjectId) {
+            throw new Error(
+              `Firebase secret belongs to ${credentials.project_id}, expected ${expectedProjectId}.`,
+            );
+          }
+
+          if (!credentials.client_email?.endsWith(expectedEmailSuffix)) {
+            throw new Error(
+              `Firebase service account must belong to ${expectedProjectId}.`,
+            );
+          }
+
+          console.log(`Validated Firebase service account for ${expectedProjectId}.`);
+          NODE
 
       - name: Deploy live site
         uses: FirebaseExtended/action-hosting-deploy@v0
+        env:
+          # Override any quota project inherited from older credentials.
+          GOOGLE_CLOUD_QUOTA_PROJECT: ${{ env.FIREBASE_PROJECT_ID }}
         with:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT || secrets.FIREBASE_SERVICE_ACCOUNT_THURAYA_TEST_AMR_202609 }}
           projectId: ${{ env.FIREBASE_PROJECT_ID }}

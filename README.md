@@ -102,8 +102,10 @@ first deployment:
 
 The conventional Firebase CLI secret name
 `FIREBASE_SERVICE_ACCOUNT_THURAYA_TEST_AMR_202609` is also accepted. The
-workflow validates that the selected secret is present and valid JSON before
-starting deployment.
+workflow validates that the selected secret is present, is valid JSON, and
+belongs to the expected Firebase project before starting deployment. It also
+sets `GOOGLE_CLOUD_QUOTA_PROJECT` explicitly so Firebase CLI requests cannot be
+charged to an unrelated project inherited from older credentials.
 
 Firebase Hosting sends Flutter web files with `max-age=0,must-revalidate`.
 Flutter uses stable filenames such as `main.dart.js`, so those files must not be

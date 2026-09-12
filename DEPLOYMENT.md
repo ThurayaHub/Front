@@ -84,6 +84,8 @@ authorized manual fallback.
 
 If Firebase CLI created the project-specific secret name
 `FIREBASE_SERVICE_ACCOUNT_THURAYA_TEST_AMR_202609`, the workflow accepts that
-name as well. After correcting the previous immutable JavaScript cache policy,
+name as well. The credential's `project_id` and `client_email` are validated,
+and the workflow explicitly uses `thuraya-test-amr-202609` as the Google Cloud
+quota project. After correcting the previous immutable JavaScript cache policy,
 existing testers might need one hard refresh or one site-data clear; subsequent
 deployments revalidate Flutter files automatically.
