@@ -101,16 +101,44 @@ jobs:
           name: thuraya-web-${{ github.sha }}
           path: build/web
 
+      - name: Validate Firebase credentials
+        env:
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT || secrets.FIREBASE_SERVICE_ACCOUNT_THURAYA_TEST_AMR_202609 }}
+        run: |
+          if [ -z "$FIREBASE_SERVICE_ACCOUNT_JSON" ]; then
+            echo "::error::Add FIREBASE_SERVICE_ACCOUNT to the repository's Actions secrets."
+            exit 1
+          fi
+          node -e "JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)"
+
       - name: Deploy live site
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT || secrets.FIREBASE_SERVICE_ACCOUNT_THURAYA_TEST_AMR_202609 }}
           projectId: ${{ env.FIREBASE_PROJECT_ID }}
           channelId: live
 
       - name: Verify live site
-        run: >-
-          curl --fail --silent --show-error
-          --retry 5 --retry-all-errors --retry-delay 5
-          https://thuraya-test-amr-202609.web.app/
-          --output /dev/null
+        shell: bash
+        run: |
+          expected_sha="$(sha256sum build/web/main.dart.js | awk '{print $1}')"
+
+          for attempt in {1..6}; do
+            remote_sha="$(
+              curl --fail --silent --show-error \
+                --header 'Cache-Control: no-cache' \
+                "https://thuraya-test-amr-202609.web.app/main.dart.js?commit=${GITHUB_SHA}" \
+              | sha256sum | awk '{print $1}'
+            )"
+
+            if [ "$remote_sha" = "$expected_sha" ]; then
+              echo "Verified deployed main.dart.js for commit ${GITHUB_SHA}."
+              exit 0
+            fi
+
+            echo "Deployment has not propagated yet (attempt ${attempt}/6)."
+            sleep 5
+          done
+
+          echo "::error::Firebase does not serve the web artifact built by this run."
+          exit 1

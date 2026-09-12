@@ -81,3 +81,9 @@ Before the first frontend CI deployment, add a GitHub Actions repository secret
 named `FIREBASE_SERVICE_ACCOUNT` containing the complete Firebase service
 account JSON key. Keep the existing PowerShell deployment script for an
 authorized manual fallback.
+
+If Firebase CLI created the project-specific secret name
+`FIREBASE_SERVICE_ACCOUNT_THURAYA_TEST_AMR_202609`, the workflow accepts that
+name as well. After correcting the previous immutable JavaScript cache policy,
+existing testers might need one hard refresh or one site-data clear; subsequent
+deployments revalidate Flutter files automatically.

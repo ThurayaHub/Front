@@ -100,6 +100,15 @@ first deployment:
 - `FIREBASE_SERVICE_ACCOUNT`: the complete JSON key for a Firebase service
   account that can deploy Hosting for project `thuraya-test-amr-202609`.
 
+The conventional Firebase CLI secret name
+`FIREBASE_SERVICE_ACCOUNT_THURAYA_TEST_AMR_202609` is also accepted. The
+workflow validates that the selected secret is present and valid JSON before
+starting deployment.
+
+Firebase Hosting sends Flutter web files with `max-age=0,must-revalidate`.
+Flutter uses stable filenames such as `main.dart.js`, so those files must not be
+marked immutable across deployments.
+
 Pull requests never deploy and do not receive the Firebase credential. The
 workflow pins Flutter `3.44.7`, matching this project's checked-in Flutter
 metadata and Dart `3.12.2` constraint.
