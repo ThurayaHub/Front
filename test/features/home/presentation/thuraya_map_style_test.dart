@@ -57,18 +57,41 @@ void main() {
     }
   });
 
-  test('hides basemap POIs and preserves non-Latin labels', () {
+  test('hides basemap POIs and renders geographic labels Arabic-first', () {
     for (final layerId in ['poi_r20', 'poi_r7', 'poi_r1', 'poi_transit']) {
       final layout = layers[layerId]!['layout'] as Map<String, dynamic>;
       expect(layout['visibility'], 'none');
     }
 
-    final majorRoadLayout =
-        layers['highway-name-major']!['layout'] as Map<String, dynamic>;
-    expect(
-      jsonEncode(majorRoadLayout['text-field']),
-      contains('name:nonlatin'),
-    );
+    final localizedLabels = layers.values.where((layer) {
+      if (layer['type'] != 'symbol') return false;
+      final layout = layer['layout'];
+      if (layout is! Map<String, dynamic>) return false;
+      return jsonEncode(layout['text-field']).contains('name:nonlatin');
+    });
+    expect(localizedLabels, isNotEmpty);
+
+    for (final layer in localizedLabels) {
+      final layout = layer['layout'] as Map<String, dynamic>;
+      final textField = jsonEncode(layout['text-field']);
+      expect(textField, contains('name:ar'));
+      expect(textField, isNot(contains('concat')));
+    }
+
+    final neighborhoodLayout =
+        layers['label_other']!['layout'] as Map<String, dynamic>;
+    expect(neighborhoodLayout['text-font'], ['Noto Sans Regular']);
+    expect(neighborhoodLayout['text-letter-spacing'], 0);
+    expect(neighborhoodLayout['text-transform'], 'none');
+    expect(neighborhoodLayout['text-size'], [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      8,
+      12,
+      12,
+      14,
+    ]);
   });
 }
 
