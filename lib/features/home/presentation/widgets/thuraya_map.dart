@@ -49,11 +49,14 @@ class _ThurayaMapState extends State<ThurayaMap> {
   late final RestaurantMapService _restaurantMapService;
   late final bool _ownsRestaurantMapService;
   Timer? _markerDebounce;
-  List<Symbol> _restaurantSymbols = const [];
+  Timer? _clusterLabelDebounce;
   Map<int, RestaurantMapMarker> _visibleRestaurantMarkers = const {};
+  List<_ClusterLabel> _clusterLabels = const [];
   RestaurantMapMarker? _selectedRestaurant;
   DateTime? _lastRestaurantMarkerTap;
+  late double _currentZoom;
   int _markerRequestGeneration = 0;
+  int _clusterLabelGeneration = 0;
   bool _isStyleLoaded = false;
   bool _isMarkerLayerReady = false;
   bool _hasShownMarkerError = false;
@@ -64,6 +67,7 @@ class _ThurayaMapState extends State<ThurayaMap> {
   @override
   void initState() {
     super.initState();
+    _currentZoom = widget.region.initialZoom;
     _ownsRestaurantMapService = widget.restaurantMapService == null;
     _restaurantMapService =
         widget.restaurantMapService ?? RestaurantMapService();
@@ -92,10 +96,8 @@ class _ThurayaMapState extends State<ThurayaMap> {
 
   void _onMapCreated(MapLibreMapController controller) {
     _mapController?.onFeatureTapped.remove(_onRestaurantMarkerTapped);
-    _mapController?.onSymbolTapped.remove(_onRestaurantSymbolTapped);
     _mapController = controller;
     controller.onFeatureTapped.add(_onRestaurantMarkerTapped);
-    controller.onSymbolTapped.add(_onRestaurantSymbolTapped);
     widget.onMapCreated?.call(controller);
     setState(() {});
   }
@@ -107,10 +109,12 @@ class _ThurayaMapState extends State<ThurayaMap> {
     }
     _isStyleLoaded = true;
     _isMarkerLayerReady = false;
-    _restaurantSymbols = const [];
+    _clusterLabelGeneration++;
+    _clusterLabelDebounce?.cancel();
     if (_visibleRestaurantMarkers.isNotEmpty || _selectedRestaurant != null) {
       setState(() {
         _visibleRestaurantMarkers = const {};
+        _clusterLabels = const [];
         _selectedRestaurant = null;
       });
     }
@@ -122,7 +126,6 @@ class _ThurayaMapState extends State<ThurayaMap> {
   ) async {
     try {
       await RestaurantMarkerLayer.install(controller);
-      await controller.setSymbolIconAllowOverlap(true);
       if (!mounted || _mapController != controller || !_isStyleLoaded) {
         return;
       }
@@ -139,7 +142,9 @@ class _ThurayaMapState extends State<ThurayaMap> {
           fitCamera: widget.fitRestaurants,
         );
       }
-    } catch (_) {
+    } catch (error, stackTrace) {
+      debugPrint('Unable to install restaurant marker layers: $error');
+      debugPrintStack(stackTrace: stackTrace);
       if (mounted && _mapController == controller) {
         _showMapMessage(
           AppLocalizations.of(context).restaurantMarkersUnavailable,
@@ -148,15 +153,24 @@ class _ThurayaMapState extends State<ThurayaMap> {
     }
   }
 
-  void _onCameraMove(CameraPosition _) {
+  void _onCameraMove(CameraPosition position) {
+    _currentZoom = position.zoom;
+    _clusterLabelGeneration++;
+    _clusterLabelDebounce?.cancel();
+    if (_clusterLabels.isNotEmpty && mounted) {
+      setState(() => _clusterLabels = const []);
+    }
     if (widget.restaurants != null) return;
     _markerDebounce?.cancel();
     _markerRequestGeneration++;
   }
 
   void _onCameraIdle() {
-    if (widget.restaurants != null) return;
-    _scheduleMarkerRefresh();
+    if (widget.restaurants == null) {
+      _scheduleMarkerRefresh();
+    } else {
+      _scheduleClusterLabelRefresh();
+    }
   }
 
   void _scheduleMarkerRefresh({bool immediate = false}) {
@@ -246,51 +260,128 @@ class _ThurayaMapState extends State<ThurayaMap> {
       Localizations.localeOf(context).languageCode,
     );
 
-    final newSymbols = markers.isEmpty
-        ? <Symbol>[]
-        : await controller.addSymbols(
-            [
-              for (final marker in markers)
-                SymbolOptions(
-                  geometry: LatLng(marker.latitude, marker.longitude),
-                  iconImage: RestaurantMarkerLayer.iconIdFor(marker.placeType),
-                  iconSize: 0.74,
-                  iconAnchor: 'center',
-                ),
-            ],
-            [
-              for (final marker in markers)
-                <String, dynamic>{'restaurantId': marker.id},
-            ],
-          );
-
     if (!mounted || requestGeneration != _markerRequestGeneration) {
-      if (newSymbols.isNotEmpty) {
-        try {
-          await controller.removeSymbols(newSymbols);
-        } catch (_) {
-          // A style reload may already have removed stale marker symbols.
-        }
-      }
       return;
     }
 
-    final oldSymbols = _restaurantSymbols;
-    _restaurantSymbols = newSymbols;
     final markersById = {for (final marker in markers) marker.id: marker};
     final selectedRestaurantId = _selectedRestaurant?.id;
+    final selectedRestaurant = selectedRestaurantId == null
+        ? null
+        : markersById[selectedRestaurantId];
     setState(() {
       _visibleRestaurantMarkers = markersById;
-      _selectedRestaurant = selectedRestaurantId == null
-          ? null
-          : markersById[selectedRestaurantId];
+      _selectedRestaurant = selectedRestaurant;
     });
-    if (oldSymbols.isNotEmpty) {
-      try {
-        await controller.removeSymbols(oldSymbols);
-      } catch (_) {
-        // Keep the successful update if stale symbols disappeared already.
+    await RestaurantMarkerLayer.updateSelected(
+      controller,
+      selectedRestaurant,
+      Localizations.localeOf(context).languageCode,
+    );
+    _scheduleClusterLabelRefresh(delay: const Duration(milliseconds: 850));
+  }
+
+  void _scheduleClusterLabelRefresh({
+    Duration delay = const Duration(milliseconds: 180),
+  }) {
+    if (!_isStyleLoaded || !_isMarkerLayerReady || _mapController == null) {
+      return;
+    }
+    _clusterLabelDebounce?.cancel();
+    final generation = ++_clusterLabelGeneration;
+    _clusterLabelDebounce = Timer(
+      delay,
+      () => _refreshClusterLabels(generation: generation),
+    );
+  }
+
+  Future<void> _refreshClusterLabels({
+    required int generation,
+    bool allowRetry = true,
+  }) async {
+    final controller = _mapController;
+    if (!mounted ||
+        controller == null ||
+        !_isMarkerLayerReady ||
+        generation != _clusterLabelGeneration) {
+      return;
+    }
+
+    try {
+      final mediaQuery = MediaQuery.of(context);
+      final size = mediaQuery.size;
+      final pixelRatio = mediaQuery.devicePixelRatio;
+      final features = await controller.querySourceFeatures(
+        RestaurantMarkerLayer.sourceId,
+        null,
+        const ['has', 'point_count'],
+      );
+      if (features.isEmpty &&
+          allowRetry &&
+          _visibleRestaurantMarkers.length > 1 &&
+          _currentZoom <= RestaurantMarkerLayer.clusterMaxZoom) {
+        _clusterLabelDebounce = Timer(
+          const Duration(milliseconds: 650),
+          () => _refreshClusterLabels(
+            generation: generation,
+            allowRetry: false,
+          ),
+        );
+        return;
       }
+      final clusters = <({int count, LatLng coordinates})>[];
+      for (final rawFeature in features) {
+        if (rawFeature is! Map) continue;
+        final feature = Map<String, dynamic>.from(rawFeature);
+        final rawProperties = feature['properties'];
+        final rawGeometry = feature['geometry'];
+        if (rawProperties is! Map || rawGeometry is! Map) continue;
+        final properties = Map<String, dynamic>.from(rawProperties);
+        final geometry = Map<String, dynamic>.from(rawGeometry);
+        final countValue = properties['point_count'];
+        final coordinateValues = geometry['coordinates'];
+        if (countValue is! num ||
+            coordinateValues is! List ||
+            coordinateValues.length < 2 ||
+            coordinateValues[0] is! num ||
+            coordinateValues[1] is! num) {
+          continue;
+        }
+        clusters.add((
+          count: countValue.toInt(),
+          coordinates: LatLng(
+            (coordinateValues[1] as num).toDouble(),
+            (coordinateValues[0] as num).toDouble(),
+          ),
+        ));
+      }
+      final points = await controller.toScreenLocationBatch(
+        clusters.map((cluster) => cluster.coordinates),
+      );
+      if (!mounted ||
+          controller != _mapController ||
+          generation != _clusterLabelGeneration) {
+        return;
+      }
+
+      final labels = <_ClusterLabel>[];
+      for (var index = 0; index < clusters.length; index++) {
+        final point = points[index];
+        final logicalPoint = Offset(point.x / pixelRatio, point.y / pixelRatio);
+        if (logicalPoint.dx < 0 ||
+            logicalPoint.dy < 0 ||
+            logicalPoint.dx > size.width ||
+            logicalPoint.dy > size.height) {
+          continue;
+        }
+        labels.add(
+          _ClusterLabel(count: clusters[index].count, position: logicalPoint),
+        );
+      }
+      setState(() => _clusterLabels = labels);
+    } catch (_) {
+      // Native circles still communicate density if a transient query races a
+      // style reload. The next idle frame will retry the count overlay.
     }
   }
 
@@ -351,7 +442,7 @@ class _ThurayaMapState extends State<ThurayaMap> {
 
   void _onRestaurantMarkerTapped(
     Point<double> _,
-    LatLng _,
+    LatLng coordinates,
     String featureId,
     String layerId,
     Annotation? _,
@@ -359,16 +450,28 @@ class _ThurayaMapState extends State<ThurayaMap> {
     if (!RestaurantMarkerLayer.contains(layerId)) {
       return;
     }
+    if (RestaurantMarkerLayer.isCluster(layerId)) {
+      _lastRestaurantMarkerTap = DateTime.now();
+      _dismissRestaurantPreview();
+      unawaited(_zoomIntoCluster(coordinates));
+      return;
+    }
     final restaurantId = int.tryParse(featureId);
     _selectRestaurant(restaurantId);
   }
 
-  void _onRestaurantSymbolTapped(Symbol symbol) {
-    final restaurantIdValue = symbol.data?['restaurantId'];
-    final restaurantId = restaurantIdValue is num
-        ? restaurantIdValue.toInt()
-        : null;
-    _selectRestaurant(restaurantId);
+  Future<void> _zoomIntoCluster(LatLng coordinates) async {
+    final controller = _mapController;
+    if (controller == null) return;
+
+    final nextZoom = min(
+      max(_currentZoom + 2, 12.5),
+      RestaurantMarkerLayer.individualFocusZoom,
+    );
+    await controller.animateCamera(
+      CameraUpdate.newLatLngZoom(coordinates, nextZoom),
+      duration: const Duration(milliseconds: 500),
+    );
   }
 
   void _selectRestaurant(int? restaurantId) {
@@ -381,11 +484,31 @@ class _ThurayaMapState extends State<ThurayaMap> {
 
     _lastRestaurantMarkerTap = DateTime.now();
     setState(() => _selectedRestaurant = restaurant);
+    final controller = _mapController;
+    if (controller != null && _isMarkerLayerReady) {
+      unawaited(
+        RestaurantMarkerLayer.updateSelected(
+          controller,
+          restaurant,
+          Localizations.localeOf(context).languageCode,
+        ),
+      );
+    }
   }
 
   void _dismissRestaurantPreview() {
     if (_selectedRestaurant != null) {
       setState(() => _selectedRestaurant = null);
+      final controller = _mapController;
+      if (controller != null && _isMarkerLayerReady) {
+        unawaited(
+          RestaurantMarkerLayer.updateSelected(
+            controller,
+            null,
+            Localizations.localeOf(context).languageCode,
+          ),
+        );
+      }
     }
   }
 
@@ -509,9 +632,9 @@ class _ThurayaMapState extends State<ThurayaMap> {
   @override
   void dispose() {
     _markerDebounce?.cancel();
+    _clusterLabelDebounce?.cancel();
     _markerRequestGeneration++;
     _mapController?.onFeatureTapped.remove(_onRestaurantMarkerTapped);
-    _mapController?.onSymbolTapped.remove(_onRestaurantSymbolTapped);
     if (_ownsRestaurantMapService) {
       _restaurantMapService.close();
     }
@@ -531,6 +654,7 @@ class _ThurayaMapState extends State<ThurayaMap> {
       children: [
         MapLibreMap(
           key: const ValueKey('home-map'),
+          annotationOrder: const [],
           styleString: ThurayaMap.customStyleAsset,
           initialCameraPosition: CameraPosition(
             target: LatLng(
@@ -571,6 +695,35 @@ class _ThurayaMapState extends State<ThurayaMap> {
           logoEnabled: false,
           attributionButtonPosition: AttributionButtonPosition.bottomLeft,
           attributionButtonMargins: Point(8, widget.padding.bottom + 8),
+        ),
+        IgnorePointer(
+          child: Stack(
+            children: [
+              for (final cluster in _clusterLabels)
+                Positioned(
+                  left: cluster.position.dx - 22,
+                  top: cluster.position.dy - 22,
+                  child: SizedBox.square(
+                    dimension: 44,
+                    child: Center(
+                      child: Text(
+                        cluster.count.toString(),
+                        maxLines: 1,
+                        style: const TextStyle(
+                          color: AppColors.onPrimary,
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w700,
+                          height: 1,
+                          shadows: [
+                            Shadow(color: Color(0x33000666), blurRadius: 1),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
         Positioned(
           top: locationButtonTop,
@@ -645,4 +798,11 @@ class _ThurayaMapState extends State<ThurayaMap> {
       ],
     );
   }
+}
+
+class _ClusterLabel {
+  const _ClusterLabel({required this.count, required this.position});
+
+  final int count;
+  final Offset position;
 }
