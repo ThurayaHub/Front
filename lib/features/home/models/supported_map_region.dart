@@ -11,6 +11,10 @@ class SupportedMapBounds {
   final double northeastLatitude;
   final double northeastLongitude;
 
+  double get latitudeSpan => northeastLatitude - southwestLatitude;
+
+  double get longitudeSpan => northeastLongitude - southwestLongitude;
+
   bool contains({required double latitude, required double longitude}) {
     return latitude >= southwestLatitude &&
         latitude <= northeastLatitude &&
@@ -45,6 +49,30 @@ class SupportedMapBounds {
       northeastLatitude: northeastLatitude,
       northeastLongitude: northeastLongitude,
     );
+  }
+
+  SupportedMapBounds expandedBy(
+    double fraction, {
+    SupportedMapBounds? constrainedTo,
+  }) {
+    assert(fraction >= 0);
+    final latitudePadding = latitudeSpan * fraction;
+    final longitudePadding = longitudeSpan * fraction;
+    final expanded = SupportedMapBounds(
+      southwestLatitude: (southwestLatitude - latitudePadding).clamp(-90, 90),
+      southwestLongitude: (southwestLongitude - longitudePadding).clamp(
+        -180,
+        180,
+      ),
+      northeastLatitude: (northeastLatitude + latitudePadding).clamp(-90, 90),
+      northeastLongitude: (northeastLongitude + longitudePadding).clamp(
+        -180,
+        180,
+      ),
+    );
+    return constrainedTo == null
+        ? expanded
+        : expanded.intersection(constrainedTo) ?? this;
   }
 }
 

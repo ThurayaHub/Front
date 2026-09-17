@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 import 'package:thuraya/core/routing/app_route_names.dart';
 import 'package:thuraya/core/theme/app_colors.dart';
-import 'package:thuraya/features/home/models/restaurant_map_bounds.dart';
 import 'package:thuraya/features/home/models/restaurant_map_marker.dart';
+import 'package:thuraya/features/home/models/restaurant_search_filters.dart';
 import 'package:thuraya/features/home/models/supported_map_region.dart';
 import 'package:thuraya/features/home/presentation/widgets/restaurant_map_preview.dart';
 import 'package:thuraya/features/home/presentation/widgets/restaurant_marker_layer.dart';
@@ -24,6 +24,7 @@ class ThurayaMap extends StatefulWidget {
     this.locationService = const CurrentLocationService(),
     this.restaurantMapService,
     this.restaurants,
+    this.onViewportChanged,
     this.fitRestaurants = false,
   });
 
@@ -35,6 +36,7 @@ class ThurayaMap extends StatefulWidget {
   final CurrentLocationService locationService;
   final RestaurantMapService? restaurantMapService;
   final List<RestaurantMapMarker>? restaurants;
+  final Future<void> Function(SupportedMapBounds bounds)? onViewportChanged;
   final bool fitRestaurants;
 
   @override
@@ -141,6 +143,9 @@ class _ThurayaMapState extends State<ThurayaMap> {
           requestGeneration: requestGeneration,
           fitCamera: widget.fitRestaurants,
         );
+        if (widget.onViewportChanged != null) {
+          _scheduleMarkerRefresh(immediate: true);
+        }
       }
     } catch (error, stackTrace) {
       debugPrint('Unable to install restaurant marker layers: $error');
@@ -160,13 +165,13 @@ class _ThurayaMapState extends State<ThurayaMap> {
     if (_clusterLabels.isNotEmpty && mounted) {
       setState(() => _clusterLabels = const []);
     }
-    if (widget.restaurants != null) return;
+    if (widget.restaurants != null && widget.onViewportChanged == null) return;
     _markerDebounce?.cancel();
     _markerRequestGeneration++;
   }
 
   void _onCameraIdle() {
-    if (widget.restaurants == null) {
+    if (widget.restaurants == null || widget.onViewportChanged != null) {
       _scheduleMarkerRefresh();
     } else {
       _scheduleClusterLabelRefresh();
@@ -216,13 +221,17 @@ class _ThurayaMapState extends State<ThurayaMap> {
         return;
       }
 
-      final markers = await _restaurantMapService.getMarkers(
-        RestaurantMapBounds(
-          north: supportedViewport.northeastLatitude,
-          south: supportedViewport.southwestLatitude,
-          east: supportedViewport.northeastLongitude,
-          west: supportedViewport.southwestLongitude,
-        ),
+      final onViewportChanged = widget.onViewportChanged;
+      if (onViewportChanged != null) {
+        await onViewportChanged(supportedViewport);
+        return;
+      }
+
+      final markers = await _restaurantMapService.loadViewport(
+        RestaurantSearchFilters(),
+        supportedViewport,
+        cacheExtent: widget.region.bounds,
+        includeListMetadata: false,
       );
       if (!mounted || requestGeneration != _markerRequestGeneration) {
         return;
@@ -322,10 +331,8 @@ class _ThurayaMapState extends State<ThurayaMap> {
           _currentZoom <= RestaurantMarkerLayer.clusterMaxZoom) {
         _clusterLabelDebounce = Timer(
           const Duration(milliseconds: 650),
-          () => _refreshClusterLabels(
-            generation: generation,
-            allowRetry: false,
-          ),
+          () =>
+              _refreshClusterLabels(generation: generation, allowRetry: false),
         );
         return;
       }

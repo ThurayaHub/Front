@@ -26,6 +26,18 @@ class RestaurantSearchFilters {
 
   bool get isActive => hasSearchText || hasFilters;
 
+  String get cacheSignature {
+    final prices = priceLevelIds.toList()..sort();
+    final categories = categoryIds.toList()..sort();
+    return [
+      searchText.trim().toLowerCase(),
+      prices.join(','),
+      categories.join(','),
+      minimumUserRating?.toString() ?? '-',
+      hasThurayaRating ? '1' : '0',
+    ].join('|');
+  }
+
   int get activeFilterCount =>
       priceLevelIds.length +
       categoryIds.length +

@@ -37,12 +37,14 @@ class RestaurantSearchController extends ChangeNotifier {
   bool hasLookupError = false;
   bool _initialized = false;
   int _requestGeneration = 0;
-  RestaurantSearchFilters? _inFlightFilters;
+  SupportedMapBounds? _currentViewport;
+  String? _inFlightRequestSignature;
+  bool _resultsIncludeListMetadata = false;
 
   Future<void> initialize() async {
     if (_initialized) return;
     _initialized = true;
-    await Future.wait([loadLookups(), search(force: true)]);
+    await loadLookups();
   }
 
   Future<void> loadLookups() async {
@@ -69,29 +71,59 @@ class RestaurantSearchController extends ChangeNotifier {
   Future<void> applyFilters(RestaurantSearchFilters value) async {
     final changed = value != filters;
     filters = value;
+    if (changed) {
+      _requestGeneration++;
+      _inFlightRequestSignature = null;
+      _resultsIncludeListMetadata = false;
+      hasSearchError = false;
+    }
     notifyListeners();
-    if (changed || hasSearchError) await search(force: true);
+    if ((changed || hasSearchError) && _currentViewport != null) {
+      await search(force: true);
+    }
+  }
+
+  Future<void> loadViewport(SupportedMapBounds bounds) async {
+    _currentViewport = bounds;
+    await search(force: true);
   }
 
   Future<void> search({bool force = false}) async {
-    if (isLoading && filters == _inFlightFilters) return;
+    final viewport = _currentViewport;
+    if (viewport == null) return;
+    final includeListMetadata = resultsView == RestaurantResultsView.list;
+    final requestSignature = [
+      filters.cacheSignature,
+      includeListMetadata ? 'summary' : 'marker',
+      viewport.southwestLatitude,
+      viewport.southwestLongitude,
+      viewport.northeastLatitude,
+      viewport.northeastLongitude,
+    ].join('|');
+    if (isLoading && requestSignature == _inFlightRequestSignature) return;
     if (isLoading && !force) return;
     final requestGeneration = ++_requestGeneration;
-    _inFlightFilters = filters;
+    _inFlightRequestSignature = requestSignature;
     isLoading = true;
     hasSearchError = false;
     notifyListeners();
     try {
-      final nextResults = await _searchGateway.search(filters, region.bounds);
+      final nextResults = await _searchGateway.loadViewport(
+        filters,
+        viewport,
+        cacheExtent: region.bounds,
+        includeListMetadata: includeListMetadata,
+      );
       if (requestGeneration != _requestGeneration) return;
       results = nextResults;
+      _resultsIncludeListMetadata = includeListMetadata;
       hasSearchError = false;
     } catch (_) {
       if (requestGeneration != _requestGeneration) return;
       hasSearchError = true;
     } finally {
       if (requestGeneration == _requestGeneration) {
-        _inFlightFilters = null;
+        _inFlightRequestSignature = null;
         isLoading = false;
         notifyListeners();
       }
@@ -104,6 +136,11 @@ class RestaurantSearchController extends ChangeNotifier {
     if (resultsView == value) return;
     resultsView = value;
     notifyListeners();
+    if (value == RestaurantResultsView.list &&
+        !_resultsIncludeListMetadata &&
+        _currentViewport != null) {
+      unawaited(search(force: true));
+    }
   }
 
   RestaurantLookupItemDto? priceLevelById(int id) {

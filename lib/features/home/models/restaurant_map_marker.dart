@@ -6,16 +6,16 @@ class RestaurantMapMarker {
     required this.latitude,
     required this.longitude,
     this.placeType = RestaurantMapPlaceType.restaurant,
-    required this.priceLevelId,
+    this.priceLevelId,
     this.priceLevelName,
     required this.hasThurayaStar,
     this.thurayaRatingAverage,
     this.thurayaReviewCount = 0,
-    required this.userRatingAverage,
-    required this.reviewCount,
-    required this.mainPhotoUrl,
-    required this.primaryCategoryId,
-    required this.primaryCategoryName,
+    this.userRatingAverage,
+    this.reviewCount = 0,
+    this.mainPhotoUrl,
+    this.primaryCategoryId,
+    this.primaryCategoryName,
     this.neighborhoodId,
     this.neighborhoodNameAr,
     this.neighborhoodNameEn,
@@ -28,7 +28,7 @@ class RestaurantMapMarker {
   final double latitude;
   final double longitude;
   final RestaurantMapPlaceType placeType;
-  final int priceLevelId;
+  final int? priceLevelId;
   final String? priceLevelName;
   final bool hasThurayaStar;
   final double? thurayaRatingAverage;
@@ -51,13 +51,13 @@ class RestaurantMapMarker {
       latitude: _requiredNumber(json, 'latitude').toDouble(),
       longitude: _requiredNumber(json, 'longitude').toDouble(),
       placeType: RestaurantMapPlaceType.fromJson(json['placeType']),
-      priceLevelId: _requiredNumber(json, 'priceLevelId').toInt(),
+      priceLevelId: (json['priceLevelId'] as num?)?.toInt(),
       priceLevelName: json['priceLevelName'] as String?,
       hasThurayaStar: json['hasThurayaStar'] == true,
       thurayaRatingAverage: (json['thurayaRatingAverage'] as num?)?.toDouble(),
       thurayaReviewCount: (json['thurayaReviewCount'] as num?)?.toInt() ?? 0,
       userRatingAverage: (json['userRatingAverage'] as num?)?.toDouble(),
-      reviewCount: _requiredNumber(json, 'reviewCount').toInt(),
+      reviewCount: (json['reviewCount'] as num?)?.toInt() ?? 0,
       mainPhotoUrl: json['mainPhotoUrl'] as String?,
       primaryCategoryId: (json['primaryCategoryId'] as num?)?.toInt(),
       primaryCategoryName: json['primaryCategoryName'] as String?,

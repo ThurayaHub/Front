@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:thuraya/core/network/api_client.dart';
-import 'package:thuraya/features/home/models/restaurant_map_bounds.dart';
 import 'package:thuraya/features/home/models/restaurant_map_marker.dart';
 import 'package:thuraya/features/home/models/restaurant_search_filters.dart';
 import 'package:thuraya/features/home/models/supported_map_region.dart';
@@ -53,11 +52,11 @@ void main() {
     final service = RestaurantMapService(apiClient: apiClient);
 
     final markers = await service.getMarkers(
-      const RestaurantMapBounds(
-        north: 24.8,
-        south: 24.6,
-        east: 46.8,
-        west: 46.5,
+      const SupportedMapBounds(
+        southwestLatitude: 24.6,
+        southwestLongitude: 46.5,
+        northeastLatitude: 24.8,
+        northeastLongitude: 46.8,
       ),
     );
 
@@ -67,7 +66,7 @@ void main() {
       'south': '24.6',
       'east': '46.8',
       'west': '46.5',
-      'limit': '200',
+      'limit': '500',
     });
     expect(markers, hasLength(1));
     final marker = markers.single;
@@ -113,11 +112,11 @@ void main() {
 
     expect(
       service.getMarkers(
-        const RestaurantMapBounds(
-          north: 24.8,
-          south: 24.6,
-          east: 46.8,
-          west: 46.5,
+        const SupportedMapBounds(
+          southwestLatitude: 24.6,
+          southwestLongitude: 46.5,
+          northeastLatitude: 24.8,
+          northeastLongitude: 46.8,
         ),
       ),
       throwsA(
@@ -129,6 +128,63 @@ void main() {
       ),
     );
   });
+
+  test(
+    'follows map page cursors and merges markers by restaurant ID',
+    () async {
+      final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      addTearDown(() => server.close(force: true));
+      final requestedAfterIds = <String?>[];
+
+      server.listen((request) async {
+        final afterId = request.uri.queryParameters['afterId'];
+        requestedAfterIds.add(afterId);
+        final isSecondPage = afterId == '7';
+        request.response
+          ..statusCode = HttpStatus.ok
+          ..headers.contentType = ContentType.json
+          ..write(
+            jsonEncode({
+              'success': true,
+              'message': 'Restaurant map markers retrieved successfully.',
+              'data': {
+                'items': [
+                  {
+                    'id': isSecondPage ? 8 : 7,
+                    'name': isSecondPage ? 'Second' : 'First',
+                    'nameArabic': null,
+                    'latitude': 24.7,
+                    'longitude': 46.7,
+                    'placeType': 'restaurant',
+                    'hasThurayaStar': false,
+                  },
+                ],
+                'nextAfterId': isSecondPage ? null : 7,
+              },
+              'errors': <String>[],
+              'statusCode': 200,
+            }),
+          );
+        await request.response.close();
+      });
+
+      final apiClient = ApiClient(baseUrl: 'http://127.0.0.1:${server.port}');
+      addTearDown(apiClient.close);
+      final service = RestaurantMapService(apiClient: apiClient);
+
+      final markers = await service.getMarkers(
+        const SupportedMapBounds(
+          southwestLatitude: 24.6,
+          southwestLongitude: 46.5,
+          northeastLatitude: 24.8,
+          northeastLongitude: 46.8,
+        ),
+      );
+
+      expect(requestedAfterIds, [null, '7']);
+      expect(markers.map((marker) => marker.id), [7, 8]);
+    },
+  );
 
   test('posts every optional discovery filter as typed JSON', () async {
     final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
@@ -212,5 +268,69 @@ void main() {
     expect(results.single.localizedName('ar'), 'بيت البرجر');
     expect(results.single.thurayaRatingAverage, 9);
     expect(results.single.localizedNeighborhood('en'), 'Al Olaya');
+  });
+
+  test('uses the lightweight filtered map route in map mode', () async {
+    final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+    addTearDown(() => server.close(force: true));
+    Uri? requestedUri;
+    Object? requestedBody;
+
+    server.listen((request) async {
+      requestedUri = request.uri;
+      requestedBody = jsonDecode(await utf8.decoder.bind(request).join());
+      request.response
+        ..statusCode = HttpStatus.ok
+        ..headers.contentType = ContentType.json
+        ..write(
+          jsonEncode({
+            'success': true,
+            'message': 'Restaurant map markers retrieved successfully.',
+            'data': {
+              'items': [
+                {
+                  'id': 9,
+                  'name': 'Burger House',
+                  'nameArabic': 'بيت البرجر',
+                  'latitude': 24.71,
+                  'longitude': 46.67,
+                  'placeType': 'restaurant',
+                  'hasThurayaStar': false,
+                },
+              ],
+              'nextAfterId': null,
+            },
+            'errors': <String>[],
+            'statusCode': 200,
+          }),
+        );
+      await request.response.close();
+    });
+
+    final apiClient = ApiClient(baseUrl: 'http://127.0.0.1:${server.port}');
+    addTearDown(apiClient.close);
+    final service = RestaurantMapService(apiClient: apiClient);
+    final filters = RestaurantSearchFilters(categoryIds: {5});
+    final results = await service.loadViewport(
+      filters,
+      const SupportedMapBounds(
+        southwestLatitude: 24.6,
+        southwestLongitude: 46.6,
+        northeastLatitude: 24.7,
+        northeastLongitude: 46.7,
+      ),
+      cacheExtent: const SupportedMapBounds(
+        southwestLatitude: 24.3,
+        southwestLongitude: 46.3,
+        northeastLatitude: 25.2,
+        northeastLongitude: 47.4,
+      ),
+      includeListMetadata: false,
+    );
+
+    expect(requestedUri?.path, '/api/restaurants/map/search');
+    expect((requestedBody as Map<String, dynamic>)['categoryIds'], [5]);
+    expect(results.single.id, 9);
+    expect(results.single.priceLevelId, isNull);
   });
 }

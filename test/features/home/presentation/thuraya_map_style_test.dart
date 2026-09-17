@@ -30,6 +30,23 @@ void main() {
     expect(layers.length, (style['layers'] as List<dynamic>).length);
   });
 
+  test('provides Arabic font files for native complex-text shaping', () {
+    final fontFaces = style['font-faces'] as Map<String, dynamic>;
+
+    for (final fontStack in ['Noto Sans Regular', 'Noto Sans Bold']) {
+      final faces = fontFaces[fontStack] as List<dynamic>;
+      expect(faces, hasLength(1));
+
+      final arabicFace = faces.single as Map<String, dynamic>;
+      expect(arabicFace['url'], startsWith('https://'));
+      expect(arabicFace['url'], endsWith('.ttf'));
+      expect(
+        arabicFace['unicode-range'],
+        containsAll(<String>['U+0600-06FF', 'U+0750-077F', 'U+08A0-08FF']),
+      );
+    }
+  });
+
   test('uses the Thuraya light palette without Bright road colors', () {
     expect(_paint(layers, 'background', 'background-color'), '#F7F8FA');
     expect(_paint(layers, 'highway-minor', 'line-color'), '#FFFFFF');

@@ -51,6 +51,7 @@ void main() {
         lookupGateway: const _PageLookupGateway(),
       );
       addTearDown(controller.dispose);
+      await controller.loadViewport(_viewport);
 
       await tester.pumpWidget(_TestApp(controller: controller));
       await tester.pumpAndSettle();
@@ -135,6 +136,7 @@ void main() {
       lookupGateway: const _PageLookupGateway(),
     );
     addTearDown(controller.dispose);
+    await controller.loadViewport(_viewport);
     await tester.pumpWidget(_TestApp(controller: controller));
     await tester.pumpAndSettle();
 
@@ -194,14 +196,23 @@ class _PageSearchGateway implements RestaurantSearchGateway {
   final List<RestaurantSearchFilters> requests = [];
 
   @override
-  Future<List<RestaurantMapMarker>> search(
+  Future<List<RestaurantMapMarker>> loadViewport(
     RestaurantSearchFilters filters,
-    SupportedMapBounds bounds,
-  ) async {
+    SupportedMapBounds bounds, {
+    required SupportedMapBounds cacheExtent,
+    required bool includeListMetadata,
+  }) async {
     requests.add(filters);
     return filters.searchText == '__empty__' ? const [] : const [_restaurant];
   }
 }
+
+const _viewport = SupportedMapBounds(
+  southwestLatitude: 24.6,
+  southwestLongitude: 46.5,
+  northeastLatitude: 24.8,
+  northeastLongitude: 46.8,
+);
 
 class _PageLookupGateway implements RestaurantLookupGateway {
   const _PageLookupGateway();

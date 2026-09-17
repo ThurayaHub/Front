@@ -16,6 +16,34 @@
   },
   "sprite": "https://tiles.openfreemap.org/sprites/ofm_f384/ofm",
   "glyphs": "https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf",
+  "font-faces": {
+    "Noto Sans Regular": [
+      {
+        "url": "https://cdn.jsdelivr.net/gh/notofonts/notofonts.github.io/fonts/NotoSansArabic/hinted/ttf/NotoSansArabic-Regular.ttf",
+        "unicode-range": [
+          "U+0600-06FF",
+          "U+0750-077F",
+          "U+0870-089F",
+          "U+08A0-08FF",
+          "U+FB50-FDFF",
+          "U+FE70-FEFF"
+        ]
+      }
+    ],
+    "Noto Sans Bold": [
+      {
+        "url": "https://cdn.jsdelivr.net/gh/notofonts/notofonts.github.io/fonts/NotoSansArabic/hinted/ttf/NotoSansArabic-Bold.ttf",
+        "unicode-range": [
+          "U+0600-06FF",
+          "U+0750-077F",
+          "U+0870-089F",
+          "U+08A0-08FF",
+          "U+FB50-FDFF",
+          "U+FE70-FEFF"
+        ]
+      }
+    ]
+  },
   "layers": [
     {
       "id": "background",

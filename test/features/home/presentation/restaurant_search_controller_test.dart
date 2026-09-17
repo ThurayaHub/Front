@@ -21,6 +21,7 @@ void main() {
       addTearDown(controller.dispose);
 
       await controller.initialize();
+      await controller.loadViewport(_viewport);
       final filters = RestaurantSearchFilters(
         searchText: 'burger',
         priceLevelIds: {2, 3},
@@ -30,12 +31,14 @@ void main() {
       );
       await controller.applyFilters(filters);
       controller.setResultsView(RestaurantResultsView.list);
+      await Future<void>.delayed(Duration.zero);
 
       expect(controller.filters, filters);
       expect(controller.results, const [_restaurant]);
       expect(controller.resultsView, RestaurantResultsView.list);
       expect(controller.filters.activeFilterCount, 5);
       expect(search.requests.last, filters);
+      expect(search.includeListMetadata.last, isTrue);
       expect(controller.priceLevelById(2)?.name, 'Medium');
       expect(controller.categoryById(5)?.name, 'American');
     },
@@ -52,9 +55,9 @@ void main() {
       );
       addTearDown(controller.dispose);
 
-      final first = controller.search(force: true);
+      final first = controller.loadViewport(_viewport);
       await Future<void>.delayed(Duration.zero);
-      await controller.search(force: true);
+      await controller.loadViewport(_viewport);
       expect(search.requests, hasLength(1));
 
       completer.complete(const [_restaurant]);
@@ -70,16 +73,27 @@ class _SearchGateway implements RestaurantSearchGateway {
   final List<RestaurantMapMarker> results;
   final Completer<List<RestaurantMapMarker>>? completer;
   final List<RestaurantSearchFilters> requests = [];
+  final List<bool> includeListMetadata = [];
 
   @override
-  Future<List<RestaurantMapMarker>> search(
+  Future<List<RestaurantMapMarker>> loadViewport(
     RestaurantSearchFilters filters,
-    SupportedMapBounds bounds,
-  ) {
+    SupportedMapBounds bounds, {
+    required SupportedMapBounds cacheExtent,
+    required bool includeListMetadata,
+  }) {
     requests.add(filters);
+    this.includeListMetadata.add(includeListMetadata);
     return completer?.future ?? Future.value(results);
   }
 }
+
+const _viewport = SupportedMapBounds(
+  southwestLatitude: 24.6,
+  southwestLongitude: 46.5,
+  northeastLatitude: 24.8,
+  northeastLongitude: 46.8,
+);
 
 class _LookupGateway implements RestaurantLookupGateway {
   const _LookupGateway();

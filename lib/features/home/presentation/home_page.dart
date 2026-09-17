@@ -104,7 +104,7 @@ class _HomePageState extends State<HomePage> {
                   ThurayaMap(
                     padding: EdgeInsets.only(top: controlsBottom, bottom: 90),
                     restaurants: _controller.results,
-                    fitRestaurants: _controller.filters.isActive,
+                    onViewportChanged: _controller.loadViewport,
                   ),
                   _RestaurantResultsList(
                     controller: _controller,

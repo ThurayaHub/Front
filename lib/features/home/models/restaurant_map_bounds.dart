@@ -12,13 +12,14 @@ class RestaurantMapBounds {
   final double east;
   final double west;
 
-  Map<String, String> toQueryParameters({required int limit}) {
-    return {
+  Map<String, String> toQueryParameters({required int limit, int? afterId}) {
+    return <String, String>{
       'north': north.toString(),
       'south': south.toString(),
       'east': east.toString(),
       'west': west.toString(),
       'limit': limit.toString(),
+      if (afterId != null) 'afterId': afterId.toString(),
     };
   }
 }
