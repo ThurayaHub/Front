@@ -13,6 +13,12 @@ abstract interface class RestaurantSearchGateway {
     required SupportedMapBounds cacheExtent,
     required bool includeListMetadata,
   });
+
+  Future<List<RestaurantMapMarker>> loadSuggestions(
+    RestaurantSearchFilters filters,
+    SupportedMapBounds bounds, {
+    int limit = 6,
+  });
 }
 
 class RestaurantMapService implements RestaurantSearchGateway {
@@ -136,10 +142,23 @@ class RestaurantMapService implements RestaurantSearchGateway {
   Future<List<RestaurantMapMarker>> search(
     RestaurantSearchFilters filters,
     SupportedMapBounds bounds,
-  ) async {
+  ) => _search(filters, bounds, limit: 500);
+
+  @override
+  Future<List<RestaurantMapMarker>> loadSuggestions(
+    RestaurantSearchFilters filters,
+    SupportedMapBounds bounds, {
+    int limit = 6,
+  }) => _search(filters, bounds, limit: limit);
+
+  Future<List<RestaurantMapMarker>> _search(
+    RestaurantSearchFilters filters,
+    SupportedMapBounds bounds, {
+    required int limit,
+  }) async {
     final data = await _apiClient.postResultData(
       '/api/restaurants/search',
-      body: filters.toJson(bounds, limit: 500),
+      body: filters.toJson(bounds, limit: limit),
     );
     if (data is! List) {
       throw const ApiException('The restaurant search response is invalid.');

@@ -10,6 +10,7 @@ import 'package:thuraya/core/theme/app_colors.dart';
 import 'package:thuraya/core/theme/app_text_styles.dart';
 import 'package:thuraya/core/widgets/thuraya_bottom_navigation_bar.dart';
 import 'package:thuraya/features/choose_restaurant/presentation/choose_restaurant_arabic_labels.dart';
+import 'package:thuraya/features/home/models/restaurant_map_marker.dart';
 import 'package:thuraya/features/home/models/restaurant_search_filters.dart';
 import 'package:thuraya/features/home/presentation/restaurant_search_controller.dart';
 import 'package:thuraya/features/home/presentation/widgets/restaurant_filter_sheet.dart';
@@ -27,9 +28,15 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  static const Duration _suggestionDebounceDuration = Duration(
+    milliseconds: 300,
+  );
+
   late final RestaurantSearchController _controller;
   late final bool _ownsController;
   late final TextEditingController _searchController;
+  Timer? _suggestionDebounce;
+  bool _isSearchFocused = false;
 
   @override
   void initState() {
@@ -44,12 +51,15 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
+    _suggestionDebounce?.cancel();
     _searchController.dispose();
     if (_ownsController) _controller.dispose();
     super.dispose();
   }
 
   Future<void> _submitSearch() async {
+    _suggestionDebounce?.cancel();
+    _controller.clearSuggestions();
     FocusScope.of(context).unfocus();
     await _controller.applyFilters(
       _controller.filters.copyWith(searchText: _searchController.text),
@@ -57,6 +67,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _openFilters() async {
+    _suggestionDebounce?.cancel();
+    _controller.clearSuggestions();
     FocusScope.of(context).unfocus();
     final filters = await showModalBottomSheet<RestaurantSearchFilters>(
       context: context,
@@ -77,8 +89,57 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _clearAll() async {
+    _suggestionDebounce?.cancel();
+    _controller.clearSuggestions();
     _searchController.clear();
     await _controller.clearAll();
+  }
+
+  void _onSearchChanged(String value) {
+    _suggestionDebounce?.cancel();
+    if (value.trim().isEmpty) {
+      _controller.clearSuggestions();
+      return;
+    }
+    _suggestionDebounce = Timer(_suggestionDebounceDuration, () {
+      if (!mounted) return;
+      unawaited(_controller.loadSuggestions(value));
+    });
+  }
+
+  void _onSearchFocusChanged(bool focused) {
+    if (_isSearchFocused != focused) {
+      setState(() => _isSearchFocused = focused);
+    }
+    if (focused && _searchController.text.trim().isNotEmpty) {
+      _onSearchChanged(_searchController.text);
+    } else if (!focused) {
+      _suggestionDebounce?.cancel();
+    }
+  }
+
+  Future<void> _selectSuggestion(RestaurantMapMarker suggestion) async {
+    _suggestionDebounce?.cancel();
+    final languageCode = Localizations.localeOf(context).languageCode;
+    final name = suggestion.localizedName(languageCode);
+    _searchController.value = TextEditingValue(
+      text: name,
+      selection: TextSelection.collapsed(offset: name.length),
+    );
+    _controller.clearSuggestions();
+    FocusScope.of(context).unfocus();
+    await _controller.applyFilters(
+      _controller.filters.copyWith(searchText: name),
+    );
+  }
+
+  Future<void> _clearSearchText() async {
+    _suggestionDebounce?.cancel();
+    _controller.clearSuggestions();
+    _searchController.clear();
+    await _controller.applyFilters(
+      _controller.filters.copyWith(searchText: ''),
+    );
   }
 
   @override
@@ -94,6 +155,11 @@ class _HomePageState extends State<HomePage> {
         builder: (context, _) {
           final hasActiveCriteria = _controller.filters.isActive;
           final controlsBottom = hasActiveCriteria ? 202.0 : 156.0;
+          final showSuggestions =
+              _isSearchFocused &&
+              _searchController.text.trim().isNotEmpty &&
+              (_controller.isLoadingSuggestions ||
+                  _controller.suggestions.isNotEmpty);
           return Stack(
             key: const ValueKey('home-page'),
             fit: StackFit.expand,
@@ -105,6 +171,7 @@ class _HomePageState extends State<HomePage> {
                     padding: EdgeInsets.only(top: controlsBottom, bottom: 90),
                     restaurants: _controller.results,
                     onViewportChanged: _controller.loadViewport,
+                    fitRestaurants: _controller.shouldFitSearchResults,
                   ),
                   _RestaurantResultsList(
                     controller: _controller,
@@ -129,16 +196,10 @@ class _HomePageState extends State<HomePage> {
                         children: [
                           _HomeSearchBar(
                             controller: _searchController,
-                            activeFilterCount:
-                                _controller.filters.activeFilterCount,
                             onSearch: _submitSearch,
-                            onFilterTap: _openFilters,
-                            onClearText: () async {
-                              _searchController.clear();
-                              await _controller.applyFilters(
-                                _controller.filters.copyWith(searchText: ''),
-                              );
-                            },
+                            onChanged: _onSearchChanged,
+                            onFocusChanged: _onSearchFocusChanged,
+                            onClearText: _clearSearchText,
                           ),
                           const SizedBox(height: AppSpacing.xs),
                           Row(
@@ -200,6 +261,33 @@ class _HomePageState extends State<HomePage> {
                     onRetry: () => _controller.search(force: true),
                   ),
                 ),
+              if (showSuggestions)
+                PositionedDirectional(
+                  top:
+                      MediaQuery.paddingOf(context).top +
+                      AppSpacing.screen +
+                      72,
+                  start: AppSpacing.screen,
+                  end: AppSpacing.screen,
+                  child: _RestaurantSuggestionDropdown(
+                    suggestions: _controller.suggestions,
+                    isLoading: _controller.isLoadingSuggestions,
+                    onSelected: _selectSuggestion,
+                  ),
+                ),
+              PositionedDirectional(
+                top: MediaQuery.paddingOf(context).top + AppSpacing.screen + 9,
+                end: AppSpacing.screen + 10,
+                child: _HomeFilterButton(
+                  activeFilterCount: _controller.filters.activeFilterCount,
+                  onTap: _openFilters,
+                ),
+              ),
+              PositionedDirectional(
+                top: MediaQuery.paddingOf(context).top + AppSpacing.screen + 9,
+                start: AppSpacing.screen + 8,
+                child: _HomeSearchSubmitButton(onTap: _submitSearch),
+              ),
             ],
           );
         },
@@ -211,16 +299,16 @@ class _HomePageState extends State<HomePage> {
 class _HomeSearchBar extends StatefulWidget {
   const _HomeSearchBar({
     required this.controller,
-    required this.activeFilterCount,
     required this.onSearch,
-    required this.onFilterTap,
+    required this.onChanged,
+    required this.onFocusChanged,
     required this.onClearText,
   });
 
   final TextEditingController controller;
-  final int activeFilterCount;
   final Future<void> Function() onSearch;
-  final VoidCallback onFilterTap;
+  final ValueChanged<String> onChanged;
+  final ValueChanged<bool> onFocusChanged;
   final Future<void> Function() onClearText;
 
   @override
@@ -228,9 +316,12 @@ class _HomeSearchBar extends StatefulWidget {
 }
 
 class _HomeSearchBarState extends State<_HomeSearchBar> {
+  late final FocusNode _focusNode;
+
   @override
   void initState() {
     super.initState();
+    _focusNode = FocusNode()..addListener(_onFocusChanged);
     widget.controller.addListener(_onTextChanged);
   }
 
@@ -245,9 +336,14 @@ class _HomeSearchBarState extends State<_HomeSearchBar> {
 
   void _onTextChanged() => setState(() {});
 
+  void _onFocusChanged() => widget.onFocusChanged(_focusNode.hasFocus);
+
   @override
   void dispose() {
     widget.controller.removeListener(_onTextChanged);
+    _focusNode
+      ..removeListener(_onFocusChanged)
+      ..dispose();
     super.dispose();
   }
 
@@ -278,22 +374,15 @@ class _HomeSearchBarState extends State<_HomeSearchBar> {
           ),
           child: Row(
             children: [
-              IconButton(
-                key: const ValueKey('home-search-submit'),
-                tooltip: localizations.searchRestaurant,
-                onPressed: widget.onSearch,
-                icon: SvgPicture.asset(
-                  AppAssets.homeSearch,
-                  width: 30,
-                  height: 18,
-                ),
-              ),
+              const SizedBox.square(dimension: 48),
               Expanded(
                 child: TextField(
                   key: const ValueKey('home-search-input'),
                   controller: widget.controller,
+                  focusNode: _focusNode,
                   textAlign: TextAlign.start,
                   textInputAction: TextInputAction.search,
+                  onChanged: widget.onChanged,
                   onSubmitted: (_) => widget.onSearch(),
                   onTapOutside: (_) => FocusScope.of(context).unfocus(),
                   style: AppTextStyles.homeSearchHint.copyWith(
@@ -324,59 +413,202 @@ class _HomeSearchBarState extends State<_HomeSearchBar> {
                     color: AppColors.textMuted,
                   ),
                 ),
-              Semantics(
-                button: true,
-                label: localizations.filterRestaurants,
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    IconButton(
-                      key: const ValueKey('home-filter'),
-                      onPressed: widget.onFilterTap,
-                      icon: SvgPicture.asset(
-                        AppAssets.homeFilter,
-                        width: 20,
-                        height: 15,
-                        colorFilter: ColorFilter.mode(
-                          widget.activeFilterCount > 0
-                              ? AppColors.primary
-                              : AppColors.textSecondary,
-                          BlendMode.srcIn,
-                        ),
-                      ),
-                    ),
-                    if (widget.activeFilterCount > 0)
-                      PositionedDirectional(
-                        top: 2,
-                        end: 0,
-                        child: Container(
-                          key: const ValueKey('home-filter-badge'),
-                          constraints: const BoxConstraints(
-                            minWidth: 20,
-                            minHeight: 20,
-                          ),
-                          padding: const EdgeInsets.symmetric(horizontal: 5),
-                          decoration: const BoxDecoration(
-                            color: AppColors.primary,
-                            shape: BoxShape.circle,
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            '${widget.activeFilterCount}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
+              const SizedBox.square(dimension: 48),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _HomeFilterButton extends StatelessWidget {
+  const _HomeFilterButton({
+    required this.activeFilterCount,
+    required this.onTap,
+  });
+
+  final int activeFilterCount;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    return Semantics(
+      button: true,
+      label: localizations.filterRestaurants,
+      child: GestureDetector(
+        key: const ValueKey('home-filter'),
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: SizedBox.square(
+          dimension: 48,
+          child: Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.center,
+            children: [
+              SvgPicture.asset(
+                AppAssets.homeFilter,
+                width: 20,
+                height: 15,
+                colorFilter: ColorFilter.mode(
+                  activeFilterCount > 0
+                      ? AppColors.primary
+                      : AppColors.textSecondary,
+                  BlendMode.srcIn,
+                ),
+              ),
+              if (activeFilterCount > 0)
+                PositionedDirectional(
+                  top: 0,
+                  end: -2,
+                  child: Container(
+                    key: const ValueKey('home-filter-badge'),
+                    constraints: const BoxConstraints(
+                      minWidth: 20,
+                      minHeight: 20,
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 5),
+                    decoration: const BoxDecoration(
+                      color: AppColors.primary,
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      '$activeFilterCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _HomeSearchSubmitButton extends StatelessWidget {
+  const _HomeSearchSubmitButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: AppLocalizations.of(context).searchRestaurant,
+      child: GestureDetector(
+        key: const ValueKey('home-search-submit'),
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: SizedBox.square(
+          dimension: 48,
+          child: Center(
+            child: SvgPicture.asset(
+              AppAssets.homeSearch,
+              width: 30,
+              height: 18,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RestaurantSuggestionDropdown extends StatelessWidget {
+  const _RestaurantSuggestionDropdown({
+    required this.suggestions,
+    required this.isLoading,
+    required this.onSelected,
+  });
+
+  final List<RestaurantMapMarker> suggestions;
+  final bool isLoading;
+  final ValueChanged<RestaurantMapMarker> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final languageCode = Localizations.localeOf(context).languageCode;
+    return Material(
+      key: const ValueKey('restaurant-suggestion-dropdown'),
+      color: AppColors.surface,
+      elevation: 8,
+      shadowColor: AppColors.shadow.withValues(alpha: 0.18),
+      borderRadius: BorderRadius.circular(18),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (isLoading)
+            const LinearProgressIndicator(
+              key: ValueKey('restaurant-suggestions-loading'),
+              minHeight: 2,
+              color: AppColors.primary,
+              backgroundColor: Colors.transparent,
+            ),
+          if (suggestions.isNotEmpty)
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 300),
+              child: ListView.separated(
+                key: const ValueKey('restaurant-suggestion-list'),
+                shrinkWrap: true,
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+                itemCount: suggestions.length,
+                separatorBuilder: (_, _) => const Divider(
+                  height: 1,
+                  indent: 56,
+                  endIndent: AppSpacing.md,
+                  color: AppColors.panelBorder,
+                ),
+                itemBuilder: (context, index) {
+                  final suggestion = suggestions[index];
+                  final neighborhood = suggestion.localizedNeighborhood(
+                    languageCode,
+                  );
+                  return ListTile(
+                    key: ValueKey('restaurant-suggestion-${suggestion.id}'),
+                    dense: true,
+                    leading: Icon(
+                      suggestion.placeType == RestaurantMapPlaceType.cafe
+                          ? Icons.local_cafe_outlined
+                          : Icons.restaurant_outlined,
+                      color: AppColors.primary,
+                    ),
+                    title: Text(
+                      suggestion.localizedName(languageCode),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.cardTitle.copyWith(
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    subtitle: neighborhood.isEmpty
+                        ? null
+                        : Text(
+                            neighborhood,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyles.cardMetadata.copyWith(
+                              color: AppColors.textMuted,
+                            ),
+                          ),
+                    trailing: const Icon(
+                      Icons.north_west_rounded,
+                      size: 18,
+                      color: AppColors.textMuted,
+                    ),
+                    onTap: () => onSelected(suggestion),
+                  );
+                },
+              ),
+            ),
+        ],
       ),
     );
   }

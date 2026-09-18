@@ -86,6 +86,13 @@ class _SearchGateway implements RestaurantSearchGateway {
     this.includeListMetadata.add(includeListMetadata);
     return completer?.future ?? Future.value(results);
   }
+
+  @override
+  Future<List<RestaurantMapMarker>> loadSuggestions(
+    RestaurantSearchFilters filters,
+    SupportedMapBounds bounds, {
+    int limit = 6,
+  }) => Future.value(results);
 }
 
 const _viewport = SupportedMapBounds(

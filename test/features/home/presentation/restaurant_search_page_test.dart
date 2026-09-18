@@ -159,6 +159,166 @@ void main() {
     expect(find.text('مسح الفلاتر'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('filter uses a topmost opaque hit target and opens in one tap', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final controller = RestaurantSearchController(
+      searchGateway: _PageSearchGateway(),
+      lookupGateway: const _PageLookupGateway(),
+    );
+    addTearDown(controller.dispose);
+    await controller.loadViewport(_viewport);
+    await tester.pumpWidget(_TestApp(controller: controller));
+    await tester.pumpAndSettle();
+
+    final filter = find.byKey(const ValueKey('home-filter'));
+    expect(filter, findsOneWidget);
+    expect(tester.getSize(filter), const Size.square(48));
+    final hitTarget = tester.widget<GestureDetector>(filter);
+    expect(hitTarget.behavior, HitTestBehavior.opaque);
+    expect(hitTarget.onTap, isNotNull);
+
+    await tester.tap(filter);
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('restaurant-filter-sheet')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('search button submits once and shows region-wide matches', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final search = _PageSearchGateway();
+    final controller = RestaurantSearchController(
+      searchGateway: search,
+      lookupGateway: const _PageLookupGateway(),
+    );
+    addTearDown(controller.dispose);
+    await controller.loadViewport(_viewport);
+    await tester.pumpWidget(_TestApp(controller: controller));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const ValueKey('home-search-input')),
+      'ثريا',
+    );
+    final searchButton = find.byKey(const ValueKey('home-search-submit'));
+    expect(searchButton, findsOneWidget);
+    expect(tester.getSize(searchButton), const Size.square(48));
+    final hitTarget = tester.widget<GestureDetector>(searchButton);
+    expect(hitTarget.behavior, HitTestBehavior.opaque);
+    expect(hitTarget.onTap, isNotNull);
+
+    final requestsBeforeTap = search.requests.length;
+    await tester.tap(searchButton);
+    await tester.pumpAndSettle();
+
+    expect(search.requests, hasLength(requestsBeforeTap + 1));
+    expect(search.requests.last.searchText, 'ثريا');
+    final requestedBounds = search.requestedBounds.last;
+    expect(
+      requestedBounds.southwestLatitude,
+      SupportedMapRegions.riyadh.bounds.southwestLatitude,
+    );
+    expect(
+      requestedBounds.southwestLongitude,
+      SupportedMapRegions.riyadh.bounds.southwestLongitude,
+    );
+    expect(
+      requestedBounds.northeastLatitude,
+      SupportedMapRegions.riyadh.bounds.northeastLatitude,
+    );
+    expect(
+      requestedBounds.northeastLongitude,
+      SupportedMapRegions.riyadh.bounds.northeastLongitude,
+    );
+
+    final map = tester.widget<ThurayaMap>(
+      find.ancestor(
+        of: find.byKey(const ValueKey('home-map')),
+        matching: find.byType(ThurayaMap),
+      ),
+    );
+    expect(map.restaurants, const [_thurayaRestaurant]);
+    expect(map.fitRestaurants, isTrue);
+  });
+
+  testWidgets('shows and updates restaurant suggestions while typing', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final search = _PageSearchGateway();
+    final controller = RestaurantSearchController(
+      searchGateway: search,
+      lookupGateway: const _PageLookupGateway(),
+    );
+    addTearDown(controller.dispose);
+    await controller.loadViewport(_viewport);
+    await tester.pumpWidget(_TestApp(controller: controller));
+    await tester.pumpAndSettle();
+
+    final searchInput = find.byKey(const ValueKey('home-search-input'));
+    await tester.enterText(searchInput, 'ث');
+    await tester.pump(const Duration(milliseconds: 299));
+    expect(search.suggestionRequests, isEmpty);
+    await tester.pump(const Duration(milliseconds: 1));
+    await tester.pumpAndSettle();
+
+    expect(search.suggestionRequests.last.searchText, 'ث');
+    expect(
+      find.byKey(const ValueKey('restaurant-suggestion-dropdown')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('restaurant-suggestion-10')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('restaurant-suggestion-11')),
+      findsOneWidget,
+    );
+
+    await tester.enterText(searchInput, 'ثري');
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pumpAndSettle();
+
+    expect(search.suggestionRequests.last.searchText, 'ثري');
+    expect(
+      find.byKey(const ValueKey('restaurant-suggestion-10')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('restaurant-suggestion-11')),
+      findsNothing,
+    );
+    expect(controller.filters.searchText, isEmpty);
+
+    await tester.tap(find.byKey(const ValueKey('restaurant-suggestion-10')));
+    await tester.pumpAndSettle();
+
+    expect(controller.filters.searchText, 'ثريا الرياض');
+    expect(
+      find.byKey(const ValueKey('restaurant-suggestion-dropdown')),
+      findsNothing,
+    );
+  });
 }
 
 class _TestApp extends StatelessWidget {
@@ -194,6 +354,8 @@ class _TestApp extends StatelessWidget {
 
 class _PageSearchGateway implements RestaurantSearchGateway {
   final List<RestaurantSearchFilters> requests = [];
+  final List<SupportedMapBounds> requestedBounds = [];
+  final List<RestaurantSearchFilters> suggestionRequests = [];
 
   @override
   Future<List<RestaurantMapMarker>> loadViewport(
@@ -203,7 +365,25 @@ class _PageSearchGateway implements RestaurantSearchGateway {
     required bool includeListMetadata,
   }) async {
     requests.add(filters);
-    return filters.searchText == '__empty__' ? const [] : const [_restaurant];
+    requestedBounds.add(bounds);
+    return switch (filters.searchText) {
+      '__empty__' => const [],
+      'ثريا' || 'ثريا الرياض' => const [_thurayaRestaurant],
+      _ => const [_restaurant],
+    };
+  }
+
+  @override
+  Future<List<RestaurantMapMarker>> loadSuggestions(
+    RestaurantSearchFilters filters,
+    SupportedMapBounds bounds, {
+    int limit = 6,
+  }) async {
+    suggestionRequests.add(filters);
+    return switch (filters.searchText) {
+      'ثري' => const [_thurayaRestaurant],
+      _ => const [_thurayaRestaurant, _secondSuggestion],
+    };
   }
 }
 
@@ -255,4 +435,27 @@ const _restaurant = RestaurantMapMarker(
   neighborhoodNameAr: 'العليا',
   neighborhoodNameEn: 'Al Olaya',
   address: 'العليا، الرياض',
+);
+
+const _thurayaRestaurant = RestaurantMapMarker(
+  id: 10,
+  name: 'Thuraya Riyadh',
+  nameArabic: 'ثريا الرياض',
+  latitude: 24.72,
+  longitude: 46.68,
+  hasThurayaStar: true,
+  neighborhoodNameAr: 'العليا',
+  neighborhoodNameEn: 'Al Olaya',
+);
+
+const _secondSuggestion = RestaurantMapMarker(
+  id: 11,
+  name: 'Thawb Cafe',
+  nameArabic: 'ثوب كافيه',
+  latitude: 24.73,
+  longitude: 46.69,
+  placeType: RestaurantMapPlaceType.cafe,
+  hasThurayaStar: false,
+  neighborhoodNameAr: 'الملقا',
+  neighborhoodNameEn: 'Al Malqa',
 );

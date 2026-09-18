@@ -64,7 +64,6 @@ class _ThurayaMapState extends State<ThurayaMap> {
   bool _hasShownMarkerError = false;
   bool _isOpeningRestaurantDetails = false;
   bool _isLocating = false;
-  bool _showCurrentLocation = false;
 
   @override
   void initState() {
@@ -569,13 +568,14 @@ class _ThurayaMapState extends State<ThurayaMap> {
         return;
       }
 
-      setState(() => _showCurrentLocation = true);
-      await _mapController?.animateCamera(
+      // Use one absolute, non-animated update. On iOS, animateCamera uses a
+      // fly-to transition that can be interrupted or advance only partway,
+      // making repeated taps appear necessary after the map has been panned.
+      await _mapController?.moveCamera(
         CameraUpdate.newLatLngZoom(
           LatLng(coordinates.latitude, coordinates.longitude),
           widget.region.currentLocationZoom,
         ),
-        duration: const Duration(milliseconds: 900),
       );
     } on CurrentLocationException catch (error) {
       if (mounted) {
@@ -697,7 +697,10 @@ class _ThurayaMapState extends State<ThurayaMap> {
           rotateGesturesEnabled: false,
           tiltGesturesEnabled: false,
           compassEnabled: false,
-          myLocationEnabled: _showCurrentLocation,
+          // The custom Thuraya location button below owns this interaction.
+          // Enabling MapLibre's native location UI creates a second location
+          // control/indicator on iOS.
+          myLocationEnabled: false,
           myLocationTrackingMode: MyLocationTrackingMode.none,
           logoEnabled: false,
           attributionButtonPosition: AttributionButtonPosition.bottomLeft,

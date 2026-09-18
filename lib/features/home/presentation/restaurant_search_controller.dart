@@ -29,17 +29,25 @@ class RestaurantSearchController extends ChangeNotifier {
   RestaurantSearchFilters filters = RestaurantSearchFilters();
   RestaurantResultsView resultsView = RestaurantResultsView.map;
   List<RestaurantMapMarker> results = const [];
+  List<RestaurantMapMarker> suggestions = const [];
   List<RestaurantLookupItemDto> priceLevels = const [];
   List<RestaurantLookupItemDto> categories = const [];
   bool isLoading = false;
+  bool isLoadingSuggestions = false;
   bool hasSearchError = false;
   bool isLoadingLookups = false;
   bool hasLookupError = false;
   bool _initialized = false;
   int _requestGeneration = 0;
+  int _suggestionRequestGeneration = 0;
   SupportedMapBounds? _currentViewport;
   String? _inFlightRequestSignature;
+  String? _resultsFilterSignature;
   bool _resultsIncludeListMetadata = false;
+
+  bool get shouldFitSearchResults =>
+      filters.hasSearchText &&
+      _resultsFilterSignature == filters.cacheSignature;
 
   Future<void> initialize() async {
     if (_initialized) return;
@@ -91,14 +99,15 @@ class RestaurantSearchController extends ChangeNotifier {
   Future<void> search({bool force = false}) async {
     final viewport = _currentViewport;
     if (viewport == null) return;
+    final searchBounds = filters.hasSearchText ? region.bounds : viewport;
     final includeListMetadata = resultsView == RestaurantResultsView.list;
     final requestSignature = [
       filters.cacheSignature,
       includeListMetadata ? 'summary' : 'marker',
-      viewport.southwestLatitude,
-      viewport.southwestLongitude,
-      viewport.northeastLatitude,
-      viewport.northeastLongitude,
+      searchBounds.southwestLatitude,
+      searchBounds.southwestLongitude,
+      searchBounds.northeastLatitude,
+      searchBounds.northeastLongitude,
     ].join('|');
     if (isLoading && requestSignature == _inFlightRequestSignature) return;
     if (isLoading && !force) return;
@@ -110,12 +119,13 @@ class RestaurantSearchController extends ChangeNotifier {
     try {
       final nextResults = await _searchGateway.loadViewport(
         filters,
-        viewport,
+        searchBounds,
         cacheExtent: region.bounds,
         includeListMetadata: includeListMetadata,
       );
       if (requestGeneration != _requestGeneration) return;
       results = nextResults;
+      _resultsFilterSignature = filters.cacheSignature;
       _resultsIncludeListMetadata = includeListMetadata;
       hasSearchError = false;
     } catch (_) {
@@ -131,6 +141,43 @@ class RestaurantSearchController extends ChangeNotifier {
   }
 
   Future<void> clearAll() => applyFilters(RestaurantSearchFilters());
+
+  Future<void> loadSuggestions(String searchText) async {
+    final query = searchText.trim();
+    if (query.isEmpty) {
+      clearSuggestions();
+      return;
+    }
+
+    final requestGeneration = ++_suggestionRequestGeneration;
+    suggestions = const [];
+    isLoadingSuggestions = true;
+    notifyListeners();
+    try {
+      final nextSuggestions = await _searchGateway.loadSuggestions(
+        filters.copyWith(searchText: query),
+        region.bounds,
+      );
+      if (requestGeneration != _suggestionRequestGeneration) return;
+      suggestions = nextSuggestions;
+    } catch (_) {
+      if (requestGeneration != _suggestionRequestGeneration) return;
+      suggestions = const [];
+    } finally {
+      if (requestGeneration == _suggestionRequestGeneration) {
+        isLoadingSuggestions = false;
+        notifyListeners();
+      }
+    }
+  }
+
+  void clearSuggestions() {
+    _suggestionRequestGeneration++;
+    if (suggestions.isEmpty && !isLoadingSuggestions) return;
+    suggestions = const [];
+    isLoadingSuggestions = false;
+    notifyListeners();
+  }
 
   void setResultsView(RestaurantResultsView value) {
     if (resultsView == value) return;
@@ -160,6 +207,7 @@ class RestaurantSearchController extends ChangeNotifier {
   @override
   void dispose() {
     _requestGeneration++;
+    _suggestionRequestGeneration++;
     if (_ownsSearchGateway && _searchGateway is RestaurantMapService) {
       _searchGateway.close();
     }
