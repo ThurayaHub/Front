@@ -113,14 +113,32 @@ abstract class AppLocalizations {
   /// No description provided for @trendingTitle.
   ///
   /// In en, this message translates to:
-  /// **'Trending now'**
+  /// **'Trending'**
   String get trendingTitle;
 
   /// No description provided for @trendingDescription.
   ///
   /// In en, this message translates to:
-  /// **'Discover the city\'s most popular destinations right now.'**
+  /// **'Trending restaurants'**
   String get trendingDescription;
+
+  /// No description provided for @trendingEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No trending restaurants right now'**
+  String get trendingEmpty;
+
+  /// No description provided for @trendingLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Trending restaurants cannot be loaded right now'**
+  String get trendingLoadError;
+
+  /// No description provided for @trendingRankLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Rank {rank}'**
+  String trendingRankLabel(int rank);
 
   /// No description provided for @activeNow.
   ///
@@ -637,6 +655,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Coffee'**
   String get wheelOptionCoffee;
+
+  /// No description provided for @wheelNetworkError.
+  ///
+  /// In en, this message translates to:
+  /// **'The wheel could not connect right now. Please try again.'**
+  String get wheelNetworkError;
+
+  /// No description provided for @wheelBadRequestError.
+  ///
+  /// In en, this message translates to:
+  /// **'The wheel request could not be completed. Check the options and try again.'**
+  String get wheelBadRequestError;
+
+  /// No description provided for @wheelForbiddenError.
+  ///
+  /// In en, this message translates to:
+  /// **'You do not have access to this wheel session.'**
+  String get wheelForbiddenError;
+
+  /// No description provided for @wheelNotFoundError.
+  ///
+  /// In en, this message translates to:
+  /// **'This wheel session is no longer available. Please try again.'**
+  String get wheelNotFoundError;
+
+  /// No description provided for @wheelInvalidResponseError.
+  ///
+  /// In en, this message translates to:
+  /// **'The wheel returned an unexpected result. Please try again.'**
+  String get wheelInvalidResponseError;
 
   /// No description provided for @chooseRestaurant.
   ///

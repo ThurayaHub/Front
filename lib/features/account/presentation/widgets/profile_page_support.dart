@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:thuraya/core/auth/auth_scope.dart';
 import 'package:thuraya/core/auth/authentication_guard.dart';
-import 'package:thuraya/core/constants/app_assets.dart';
 import 'package:thuraya/core/constants/app_spacing.dart';
-import 'package:thuraya/core/network/api_config.dart';
 import 'package:thuraya/core/routing/app_route_names.dart';
 import 'package:thuraya/core/theme/app_colors.dart';
 import 'package:thuraya/core/theme/app_text_styles.dart';
+import 'package:thuraya/core/widgets/restaurant_image.dart';
 import 'package:thuraya/l10n/generated/app_localizations.dart';
 
 Future<bool> runProtectedProfileAction(
@@ -229,44 +228,7 @@ class ProfileRestaurantImage extends StatelessWidget {
   final String? source;
 
   @override
-  Widget build(BuildContext context) {
-    final fallback = Image.asset(
-      AppAssets.restaurantDetailsCover,
-      fit: BoxFit.cover,
-      width: double.infinity,
-      height: double.infinity,
-    );
-    final value = source?.trim();
-    if (value == null || value.isEmpty) return fallback;
-    final url = value.startsWith('http://') || value.startsWith('https://')
-        ? value
-        : _absoluteApiUrl(value);
-    return Image.network(
-      url,
-      fit: BoxFit.cover,
-      width: double.infinity,
-      height: double.infinity,
-      errorBuilder: (_, _, _) => fallback,
-      loadingBuilder: (_, child, progress) => progress == null
-          ? child
-          : ColoredBox(
-              color: AppColors.panel,
-              child: Center(
-                child: SizedBox.square(
-                  dimension: 20,
-                  child: CircularProgressIndicator(
-                    value: progress.expectedTotalBytes == null
-                        ? null
-                        : progress.cumulativeBytesLoaded /
-                              progress.expectedTotalBytes!,
-                    strokeWidth: 2,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ),
-            ),
-    );
-  }
+  Widget build(BuildContext context) => RestaurantImage(source: source);
 }
 
 String profileInitials(String name) {
@@ -279,12 +241,4 @@ String profileInitials(String name) {
   String firstCharacter(String value) => String.fromCharCode(value.runes.first);
   if (parts.length == 1) return firstCharacter(parts.first);
   return '${firstCharacter(parts.first)}${firstCharacter(parts.last)}';
-}
-
-String _absoluteApiUrl(String value) {
-  final normalized = value.startsWith('/') ? value.substring(1) : value;
-  final base = ApiConfig.baseUrl.endsWith('/')
-      ? Uri.parse(ApiConfig.baseUrl)
-      : Uri.parse('${ApiConfig.baseUrl}/');
-  return base.resolve(normalized).toString();
 }

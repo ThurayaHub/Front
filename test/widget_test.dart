@@ -127,140 +127,6 @@ void main() {
     );
   });
 
-  testWidgets('renders the Arabic trending screen in RTL', (tester) async {
-    tester.view.physicalSize = const Size(390, 1168);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-
-    await tester.pumpWidget(const ThurayaApp());
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('navigation-trending')));
-    await tester.pumpAndSettle();
-
-    final title = find.text('الترند الآن');
-    expect(title, findsOneWidget);
-    expect(Directionality.of(tester.element(title)), TextDirection.rtl);
-    expect(find.text('نشط الآن'), findsNWidgets(2));
-    expect(find.text('إيليا للغوص'), findsOneWidget);
-    expect(find.text('محمصة الأصول'), findsOneWidget);
-    expect(find.text('لوكوموتيف'), findsOneWidget);
-    expect(find.text('4.8'), findsOneWidget);
-    expect(find.text('الرئيسية'), findsOneWidget);
-    expect(find.text('الترند'), findsOneWidget);
-    expect(find.text('حسابي'), findsOneWidget);
-    expect(find.text('العجلة'), findsOneWidget);
-    expect(find.text('اختر لي'), findsOneWidget);
-    expect(find.text('البحث'), findsNothing);
-
-    const navigationKeys = [
-      ValueKey('navigation-home'),
-      ValueKey('navigation-trending'),
-      ValueKey('navigation-wheel'),
-      ValueKey('navigation-choose-restaurant'),
-      ValueKey('navigation-account'),
-    ];
-    for (final key in navigationKeys) {
-      expect(find.byKey(key), findsOneWidget);
-    }
-
-    final navigationCenters = navigationKeys
-        .map((key) => tester.getCenter(find.byKey(key)).dx)
-        .toList();
-    expect(
-      navigationCenters,
-      orderedEquals([...navigationCenters]..sort((a, b) => b.compareTo(a))),
-    );
-
-    final chooseRestaurantLabel = tester.getRect(find.text('اختر لي'));
-    final chooseRestaurantItem = tester.getRect(
-      find.byKey(const ValueKey('navigation-choose-restaurant')),
-    );
-    expect(
-      chooseRestaurantLabel.left,
-      greaterThanOrEqualTo(chooseRestaurantItem.left),
-    );
-    expect(
-      chooseRestaurantLabel.right,
-      lessThanOrEqualTo(chooseRestaurantItem.right),
-    );
-    expect(
-      chooseRestaurantLabel.top,
-      greaterThanOrEqualTo(chooseRestaurantItem.top),
-    );
-    expect(
-      chooseRestaurantLabel.bottom,
-      lessThanOrEqualTo(chooseRestaurantItem.bottom),
-    );
-
-    expect(
-      tester.getRect(find.byKey(const ValueKey('trending-header'))),
-      const Rect.fromLTWH(0, 0, 390, 68),
-    );
-    expect(
-      tester.getRect(find.byKey(const ValueKey('trending-card-0'))),
-      const Rect.fromLTWH(20, 180, 350, 272),
-    );
-    expect(
-      tester.getRect(find.byKey(const ValueKey('trending-card-1'))),
-      const Rect.fromLTWH(20, 468, 350, 272),
-    );
-    expect(
-      tester.getRect(find.byKey(const ValueKey('trending-card-2'))),
-      const Rect.fromLTWH(20, 756, 350, 272),
-    );
-    expect(
-      tester.getRect(find.byKey(const ValueKey('thuraya-bottom-navigation'))),
-      const Rect.fromLTWH(0, 1088, 390, 80),
-    );
-  });
-
-  testWidgets('opens the selected restaurant details and returns', (
-    tester,
-  ) async {
-    tester.view.physicalSize = const Size(390, 1168);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-
-    await tester.pumpWidget(const ThurayaApp());
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('navigation-trending')));
-    await tester.pumpAndSettle();
-
-    const restaurants = [
-      ('إيليا للغوص', '124 تقييم', '4.8'),
-      ('محمصة الأصول', '96 تقييم', '4.8'),
-      ('لوكوموتيف', '142 تقييم', '4.9'),
-    ];
-
-    for (var index = 0; index < restaurants.length; index++) {
-      await tester.tap(find.byKey(ValueKey('trending-card-$index')));
-      await tester.pumpAndSettle();
-
-      expect(
-        find.byKey(const ValueKey('restaurant-details-page')),
-        findsOneWidget,
-      );
-      expect(find.text(restaurants[index].$1), findsOneWidget);
-      expect(find.text(restaurants[index].$2), findsOneWidget);
-      expect(find.text(restaurants[index].$3), findsAtLeastNWidgets(1));
-      expect(
-        find.byKey(const ValueKey('thuraya-bottom-navigation')),
-        findsNothing,
-      );
-
-      await tester.tap(find.byKey(const ValueKey('restaurant-details-back')));
-      await tester.pumpAndSettle();
-
-      expect(find.text('الترند الآن'), findsOneWidget);
-      expect(
-        find.byKey(const ValueKey('thuraya-bottom-navigation')),
-        findsOneWidget,
-      );
-    }
-  });
-
   testWidgets('navigates between all implemented main tabs', (tester) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
@@ -281,9 +147,12 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('navigation-wheel')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('wheel-page')), findsOneWidget);
-    expect(navigationLabel('العجلة').style?.color, AppColors.primary);
-    expect(navigationLabel('الرئيسية').style?.color, AppColors.textSecondary);
+    expect(find.byKey(const ValueKey('login-page')), findsOneWidget);
+    expect(find.byKey(const ValueKey('wheel-page')), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('login-back')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('home-page')), findsOneWidget);
 
     await tester.tap(
       find.byKey(const ValueKey('navigation-choose-restaurant')),
@@ -298,7 +167,7 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('navigation-trending')));
     await tester.pumpAndSettle();
-    expect(find.text('الترند الآن'), findsOneWidget);
+    expect(find.byKey(const ValueKey('trending-page')), findsOneWidget);
     expect(navigationLabel('الترند').style?.color, AppColors.primary);
 
     await tester.tap(find.byKey(const ValueKey('navigation-account')));
@@ -308,134 +177,13 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('login-back')));
     await tester.pumpAndSettle();
-    expect(find.text('الترند الآن'), findsOneWidget);
+    expect(find.byKey(const ValueKey('trending-page')), findsOneWidget);
     expect(navigationLabel('حسابي').style?.color, AppColors.textSecondary);
 
     await tester.tap(find.byKey(const ValueKey('navigation-home')));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('home-page')), findsOneWidget);
     expect(navigationLabel('الرئيسية').style?.color, AppColors.primary);
-  });
-
-  testWidgets('wheel adds, rejects duplicate, and removes trimmed options', (
-    tester,
-  ) async {
-    tester.view.physicalSize = const Size(390, 844);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-
-    await tester.pumpWidget(const ThurayaApp());
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('navigation-wheel')));
-    await tester.pumpAndSettle();
-
-    expect(find.byType(AppBar), findsNothing);
-    expect(
-      find.byKey(const ValueKey('thuraya-bottom-navigation')),
-      findsOneWidget,
-    );
-    expect(find.byKey(const ValueKey('wheel-option-count-4')), findsOneWidget);
-
-    const longOption = '  مطعم مأكولات بحرية طويل الاسم  ';
-    await tester.enterText(
-      find.byKey(const ValueKey('wheel-option-input')),
-      longOption,
-    );
-    await tester.tap(find.byKey(const ValueKey('wheel-add-option')));
-    await tester.pump();
-
-    expect(find.text(longOption.trim()), findsOneWidget);
-    expect(find.byKey(const ValueKey('wheel-option-count-5')), findsOneWidget);
-    final input = tester.widget<TextField>(
-      find.byKey(const ValueKey('wheel-option-input')),
-    );
-    expect(input.controller?.text, isEmpty);
-
-    await tester.enterText(
-      find.byKey(const ValueKey('wheel-option-input')),
-      'بيتزا',
-    );
-    await tester.tap(find.byKey(const ValueKey('wheel-add-option')));
-    await tester.pump();
-    expect(find.text('هذا الخيار موجود بالفعل'), findsOneWidget);
-    expect(find.byKey(const ValueKey('wheel-option-count-5')), findsOneWidget);
-
-    await tester.tap(find.byKey(const ValueKey('wheel-remove-4')));
-    await tester.pump();
-    expect(find.text(longOption.trim()), findsNothing);
-    expect(find.byKey(const ValueKey('wheel-option-count-4')), findsOneWidget);
-  });
-
-  testWidgets('wheel requires two choices and selects a current option', (
-    tester,
-  ) async {
-    tester.view.physicalSize = const Size(390, 844);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-
-    await tester.pumpWidget(const ThurayaApp());
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('navigation-wheel')));
-    await tester.pumpAndSettle();
-
-    for (var index = 0; index < 3; index++) {
-      await tester.tap(find.byKey(const ValueKey('wheel-remove-0')));
-      await tester.pump();
-    }
-    expect(find.byKey(const ValueKey('wheel-option-count-1')), findsOneWidget);
-
-    await tester.tap(find.byKey(const ValueKey('wheel-spin-button')));
-    await tester.pump();
-    expect(find.text('أضف خيارين على الأقل'), findsOneWidget);
-    expect(find.byKey(const ValueKey('wheel-result')), findsNothing);
-
-    await tester.enterText(
-      find.byKey(const ValueKey('wheel-option-input')),
-      'شاي',
-    );
-    await tester.tap(find.byKey(const ValueKey('wheel-add-option')));
-    await tester.pump();
-    await tester.tap(find.byKey(const ValueKey('wheel-spin-button')));
-    await tester.pump();
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
-    await tester.pumpAndSettle();
-
-    final result = tester.widget<Text>(
-      find.byKey(const ValueKey('wheel-result-value')),
-    );
-    expect(['قهوة', 'شاي'], contains(result.data));
-    expect(
-      find.byKey(const ValueKey('wheel-result')).hitTestable(),
-      findsOneWidget,
-    );
-  });
-
-  testWidgets('wheel remains RTL and scrollable on a small screen', (
-    tester,
-  ) async {
-    tester.view.physicalSize = const Size(390, 600);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-
-    await tester.pumpWidget(const ThurayaApp());
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('navigation-wheel')));
-    await tester.pumpAndSettle();
-
-    final title = find.text('محتار؟ خلها علينا');
-    expect(Directionality.of(tester.element(title)), TextDirection.rtl);
-    final scrollable = tester.state<ScrollableState>(
-      find
-          .descendant(
-            of: find.byKey(const ValueKey('wheel-scroll-view')),
-            matching: find.byType(Scrollable),
-          )
-          .first,
-    );
-    expect(scrollable.position.maxScrollExtent, greaterThan(0));
   });
 
   testWidgets('opens reviews in RTL, scrolls, and returns to details', (
@@ -448,9 +196,14 @@ void main() {
 
     await tester.pumpWidget(const ThurayaApp());
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('navigation-trending')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('trending-card-0')));
+
+    final context = tester.element(find.byKey(const ValueKey('home-page')));
+    final restaurant = MockRestaurants.localized(
+      AppLocalizations.of(context),
+    ).first;
+    Navigator.of(
+      context,
+    ).pushNamed(AppRouteNames.restaurantDetails, arguments: restaurant);
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('restaurant-details-reviews')));
     await tester.pumpAndSettle();

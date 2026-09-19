@@ -1,15 +1,21 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:thuraya/core/auth/authentication_guard.dart';
 import 'package:thuraya/core/constants/app_spacing.dart';
 import 'package:thuraya/core/theme/app_colors.dart';
 import 'package:thuraya/core/theme/app_text_styles.dart';
 import 'package:thuraya/core/widgets/thuraya_bottom_navigation_bar.dart';
+import 'package:thuraya/features/wheel/models/wheel_models.dart';
 import 'package:thuraya/features/wheel/presentation/widgets/dynamic_wheel.dart';
+import 'package:thuraya/features/wheel/presentation/wheel_controller.dart';
+import 'package:thuraya/features/wheel/services/wheel_service.dart';
 import 'package:thuraya/l10n/generated/app_localizations.dart';
 
 class WheelPage extends StatefulWidget {
-  const WheelPage({super.key});
+  const WheelPage({super.key, this.gateway});
+
+  final WheelGateway? gateway;
 
   @override
   State<WheelPage> createState() => _WheelPageState();
@@ -19,9 +25,8 @@ class _WheelPageState extends State<WheelPage>
     with SingleTickerProviderStateMixin {
   final _optionController = TextEditingController();
   final _scrollController = ScrollController();
-  final _random = math.Random();
-  final List<String> _options = [];
 
+  late final WheelController _wheelController;
   late final AnimationController _spinController;
   Animation<double>? _rotationAnimation;
   double _rotation = 0;
@@ -33,6 +38,8 @@ class _WheelPageState extends State<WheelPage>
   @override
   void initState() {
     super.initState();
+    _wheelController = WheelController(gateway: widget.gateway)
+      ..addListener(_handleWheelChanged);
     _spinController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 3600),
@@ -45,25 +52,56 @@ class _WheelPageState extends State<WheelPage>
     if (_initialOptionsLoaded) return;
 
     final localizations = AppLocalizations.of(context);
-    _options.addAll([
+    final initialOptions = [
       localizations.wheelOptionBurger,
       localizations.wheelOptionPizza,
       localizations.wheelOptionSushi,
       localizations.wheelOptionCoffee,
-    ]);
+    ];
     _initialOptionsLoaded = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _initializeWheel(initialOptions);
+    });
   }
 
   @override
   void dispose() {
     _spinController.dispose();
+    _wheelController
+      ..removeListener(_handleWheelChanged)
+      ..dispose();
     _optionController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
 
-  void _addOption() {
-    if (_isSpinning) return;
+  void _handleWheelChanged() {
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _initializeWheel(List<String> initialOptions) async {
+    try {
+      await AuthenticationGuard.requireAuthentication<void>(
+        context,
+        () => _wheelController.initialize(initialOptions),
+      );
+    } catch (_) {
+      // The controller and the shared authentication flow expose retry UI.
+    }
+  }
+
+  Future<void> _retryInitialization() async {
+    final localizations = AppLocalizations.of(context);
+    await _initializeWheel([
+      localizations.wheelOptionBurger,
+      localizations.wheelOptionPizza,
+      localizations.wheelOptionSushi,
+      localizations.wheelOptionCoffee,
+    ]);
+  }
+
+  Future<void> _addOption() async {
+    if (_isSpinning || _wheelController.isMutating) return;
 
     final localizations = AppLocalizations.of(context);
     final option = _optionController.text.trim();
@@ -72,16 +110,25 @@ class _WheelPageState extends State<WheelPage>
       return;
     }
 
-    final isDuplicate = _options.any(
-      (existing) => existing.toLowerCase() == option.toLowerCase(),
+    final isDuplicate = _wheelController.activeOptions.any(
+      (existing) => existing.text.toLowerCase() == option.toLowerCase(),
     );
     if (isDuplicate) {
       setState(() => _validationMessage = localizations.duplicateWheelOption);
       return;
     }
 
+    bool? added;
+    try {
+      added = await AuthenticationGuard.requireAuthentication<bool>(
+        context,
+        () => _wheelController.addOption(option),
+      );
+    } catch (_) {
+      return;
+    }
+    if (!mounted || added != true) return;
     setState(() {
-      _options.add(option);
       _optionController.clear();
       _selectedOption = null;
       _validationMessage = null;
@@ -89,21 +136,12 @@ class _WheelPageState extends State<WheelPage>
     FocusScope.of(context).unfocus();
   }
 
-  void _removeOption(int index) {
-    if (_isSpinning) return;
-
-    setState(() {
-      _options.removeAt(index);
-      _selectedOption = null;
-      _validationMessage = null;
-    });
-  }
-
   Future<void> _spin() async {
-    if (_isSpinning) return;
+    if (_isSpinning || _wheelController.isMutating) return;
 
     final localizations = AppLocalizations.of(context);
-    if (_options.length < 2) {
+    final options = _wheelController.activeOptions;
+    if (options.length < 2) {
       setState(() {
         _validationMessage = localizations.minimumWheelOptions;
         _selectedOption = null;
@@ -112,20 +150,39 @@ class _WheelPageState extends State<WheelPage>
     }
 
     FocusScope.of(context).unfocus();
-    final winnerIndex = _random.nextInt(_options.length);
-    final sweep = math.pi * 2 / _options.length;
+    setState(() {
+      _isSpinning = true;
+      _selectedOption = null;
+      _validationMessage = null;
+    });
+    WheelSpinSelection? selection;
+    try {
+      selection =
+          await AuthenticationGuard.requireAuthentication<WheelSpinSelection?>(
+            context,
+            _wheelController.spin,
+          );
+    } catch (_) {
+      if (mounted) setState(() => _isSpinning = false);
+      return;
+    }
+    if (!mounted) return;
+    if (selection == null) {
+      setState(() => _isSpinning = false);
+      return;
+    }
+    final resolvedSelection = selection;
+
+    final winnerIndex = resolvedSelection.optionIndex;
+    final sweep = math.pi * 2 / options.length;
     final desiredRotation = _normalizeAngle(-(winnerIndex + 0.5) * sweep);
     final currentRotation = _normalizeAngle(_rotation);
     final alignmentRotation = _normalizeAngle(
       desiredRotation - currentRotation,
     );
-    final endRotation =
-        _rotation + (5 + _random.nextInt(3)) * math.pi * 2 + alignmentRotation;
+    final endRotation = _rotation + 6 * math.pi * 2 + alignmentRotation;
 
     setState(() {
-      _isSpinning = true;
-      _selectedOption = null;
-      _validationMessage = null;
       _rotationAnimation = Tween<double>(begin: _rotation, end: endRotation)
           .animate(
             CurvedAnimation(
@@ -140,7 +197,7 @@ class _WheelPageState extends State<WheelPage>
 
     setState(() {
       _rotation = endRotation;
-      _selectedOption = _options[winnerIndex];
+      _selectedOption = resolvedSelection.result.selectedOption.text;
       _isSpinning = false;
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -158,9 +215,24 @@ class _WheelPageState extends State<WheelPage>
     return (angle % fullTurn + fullTurn) % fullTurn;
   }
 
+  String _errorMessage(AppLocalizations localizations) {
+    return switch (_wheelController.error) {
+      WheelErrorKind.badRequest => localizations.wheelBadRequestError,
+      WheelErrorKind.forbidden => localizations.wheelForbiddenError,
+      WheelErrorKind.notFound => localizations.wheelNotFoundError,
+      WheelErrorKind.invalidResponse => localizations.wheelInvalidResponseError,
+      _ => localizations.wheelNetworkError,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
+    final options = _wheelController.activeOptions;
+    final controlsEnabled =
+        _wheelController.status == WheelLoadStatus.ready &&
+        !_isSpinning &&
+        !_wheelController.isMutating;
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
@@ -199,7 +271,7 @@ class _WheelPageState extends State<WheelPage>
               TextField(
                 key: const ValueKey('wheel-option-input'),
                 controller: _optionController,
-                enabled: !_isSpinning,
+                enabled: controlsEnabled,
                 textInputAction: TextInputAction.done,
                 textAlign: TextAlign.right,
                 maxLength: 40,
@@ -222,7 +294,7 @@ class _WheelPageState extends State<WheelPage>
                   suffixIcon: IconButton(
                     key: const ValueKey('wheel-add-option'),
                     tooltip: localizations.addWheelOption,
-                    onPressed: _isSpinning ? null : _addOption,
+                    onPressed: controlsEnabled ? _addOption : null,
                     icon: const Icon(Icons.add_rounded),
                     color: AppColors.primary,
                   ),
@@ -239,7 +311,29 @@ class _WheelPageState extends State<WheelPage>
                   ),
                 ),
               ),
-              if (_options.isNotEmpty) ...[
+              if (_wheelController.status == WheelLoadStatus.loading) ...[
+                const SizedBox(height: AppSpacing.sm),
+                const LinearProgressIndicator(
+                  key: ValueKey('wheel-loading'),
+                  color: AppColors.primary,
+                ),
+              ],
+              if (_wheelController.status == WheelLoadStatus.error) ...[
+                const SizedBox(height: AppSpacing.sm),
+                _WheelError(
+                  message: _errorMessage(localizations),
+                  retryLabel: localizations.retry,
+                  onRetry: _retryInitialization,
+                ),
+              ] else if (_wheelController.error != null) ...[
+                const SizedBox(height: AppSpacing.sm),
+                _WheelError(
+                  message: _errorMessage(localizations),
+                  retryLabel: null,
+                  onRetry: null,
+                ),
+              ],
+              if (options.isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.sm),
                 Wrap(
                   key: const ValueKey('wheel-options'),
@@ -247,27 +341,18 @@ class _WheelPageState extends State<WheelPage>
                   spacing: AppSpacing.xs,
                   runSpacing: AppSpacing.xs,
                   children: [
-                    for (var index = 0; index < _options.length; index++)
+                    for (var index = 0; index < options.length; index++)
                       InputChip(
                         key: ValueKey('wheel-option-$index'),
                         label: ConstrainedBox(
                           constraints: const BoxConstraints(maxWidth: 132),
                           child: Text(
-                            _options[index],
+                            options[index].text,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         labelStyle: AppTextStyles.detailsAwardTitle,
-                        deleteIcon: Icon(
-                          Icons.close_rounded,
-                          key: ValueKey('wheel-remove-$index'),
-                          size: 16,
-                        ),
-                        deleteIconColor: AppColors.textSecondary,
-                        onDeleted: _isSpinning
-                            ? null
-                            : () => _removeOption(index),
                         backgroundColor: AppColors.panel,
                         side: const BorderSide(color: AppColors.panelBorder),
                         shape: const StadiumBorder(),
@@ -296,7 +381,9 @@ class _WheelPageState extends State<WheelPage>
                     child: AnimatedBuilder(
                       animation: _spinController,
                       builder: (context, child) => DynamicWheel(
-                        options: List.unmodifiable(_options),
+                        options: options
+                            .map((option) => option.text)
+                            .toList(growable: false),
                         rotation: _rotationAnimation?.value ?? _rotation,
                         size: wheelSize,
                       ),
@@ -311,7 +398,7 @@ class _WheelPageState extends State<WheelPage>
                   height: 48,
                   child: FilledButton.icon(
                     key: const ValueKey('wheel-spin-button'),
-                    onPressed: _isSpinning ? null : _spin,
+                    onPressed: controlsEnabled ? _spin : null,
                     icon: _isSpinning
                         ? const SizedBox(
                             width: 16,
@@ -382,6 +469,42 @@ class _WheelPageState extends State<WheelPage>
           ),
         ),
       ),
+    );
+  }
+}
+
+class _WheelError extends StatelessWidget {
+  const _WheelError({
+    required this.message,
+    required this.retryLabel,
+    required this.onRetry,
+  });
+
+  final String message;
+  final String? retryLabel;
+  final VoidCallback? onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      key: const ValueKey('wheel-error'),
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Flexible(
+          child: Text(
+            message,
+            textAlign: TextAlign.center,
+            style: AppTextStyles.detailsCaption.copyWith(
+              color: AppColors.error,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        if (retryLabel != null && onRetry != null) ...[
+          const SizedBox(width: AppSpacing.xs),
+          TextButton(onPressed: onRetry, child: Text(retryLabel!)),
+        ],
+      ],
     );
   }
 }

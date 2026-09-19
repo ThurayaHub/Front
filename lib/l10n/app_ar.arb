@@ -2,8 +2,18 @@
   "@@locale": "ar",
   "appTitle": "ثريا",
   "back": "رجوع",
-  "trendingTitle": "الترند الآن",
-  "trendingDescription": "اكتشف الوجهات الأكثر رواجاً في المدينة هذه اللحظة.",
+  "trendingTitle": "الترند",
+  "trendingDescription": "المطاعم الأكثر رواجاً",
+  "trendingEmpty": "لا توجد مطاعم في الترند حالياً",
+  "trendingLoadError": "تعذر تحميل مطاعم الترند حالياً",
+  "trendingRankLabel": "المرتبة {rank}",
+  "@trendingRankLabel": {
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      }
+    }
+  },
   "activeNow": "نشط الآن",
   "trendingRestaurantOneName": "إيليا للغوص",
   "trendingRestaurantOneDetails": "مأكولات بحرية • العليا",
@@ -123,6 +133,11 @@
   "wheelOptionPizza": "بيتزا",
   "wheelOptionSushi": "سوشي",
   "wheelOptionCoffee": "قهوة",
+  "wheelNetworkError": "تعذر الاتصال بالعجلة حالياً. حاول مرة أخرى.",
+  "wheelBadRequestError": "تعذر إكمال طلب العجلة. تحقق من الخيارات وحاول مرة أخرى.",
+  "wheelForbiddenError": "ليس لديك صلاحية للوصول إلى جلسة العجلة هذه.",
+  "wheelNotFoundError": "جلسة العجلة هذه لم تعد متاحة. حاول مرة أخرى.",
+  "wheelInvalidResponseError": "أعادت العجلة نتيجة غير متوقعة. حاول مرة أخرى.",
   "chooseRestaurant": "اختر لي مطعم",
   "chooseRestaurantNavigation": "اختر لي",
   "account": "حسابي",

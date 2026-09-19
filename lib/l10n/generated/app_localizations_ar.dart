@@ -15,11 +15,21 @@ class AppLocalizationsAr extends AppLocalizations {
   String get back => 'رجوع';
 
   @override
-  String get trendingTitle => 'الترند الآن';
+  String get trendingTitle => 'الترند';
 
   @override
-  String get trendingDescription =>
-      'اكتشف الوجهات الأكثر رواجاً في المدينة هذه اللحظة.';
+  String get trendingDescription => 'المطاعم الأكثر رواجاً';
+
+  @override
+  String get trendingEmpty => 'لا توجد مطاعم في الترند حالياً';
+
+  @override
+  String get trendingLoadError => 'تعذر تحميل مطاعم الترند حالياً';
+
+  @override
+  String trendingRankLabel(int rank) {
+    return 'المرتبة $rank';
+  }
 
   @override
   String get activeNow => 'نشط الآن';
@@ -295,6 +305,25 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get wheelOptionCoffee => 'قهوة';
+
+  @override
+  String get wheelNetworkError => 'تعذر الاتصال بالعجلة حالياً. حاول مرة أخرى.';
+
+  @override
+  String get wheelBadRequestError =>
+      'تعذر إكمال طلب العجلة. تحقق من الخيارات وحاول مرة أخرى.';
+
+  @override
+  String get wheelForbiddenError =>
+      'ليس لديك صلاحية للوصول إلى جلسة العجلة هذه.';
+
+  @override
+  String get wheelNotFoundError =>
+      'جلسة العجلة هذه لم تعد متاحة. حاول مرة أخرى.';
+
+  @override
+  String get wheelInvalidResponseError =>
+      'أعادت العجلة نتيجة غير متوقعة. حاول مرة أخرى.';
 
   @override
   String get chooseRestaurant => 'اختر لي مطعم';

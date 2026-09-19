@@ -99,7 +99,8 @@ class ThurayaBottomNavigationBar extends StatelessWidget {
   ) async {
     if (tab == selectedTab) return;
 
-    if (tab == ThurayaNavigationTab.account) {
+    if (tab == ThurayaNavigationTab.account ||
+        tab == ThurayaNavigationTab.wheel) {
       await AuthenticationGuard.requireAuthentication<void>(context, () async {
         if (context.mounted) _navigateToTab(context, tab);
       });

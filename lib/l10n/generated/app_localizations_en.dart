@@ -15,11 +15,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get back => 'Back';
 
   @override
-  String get trendingTitle => 'Trending now';
+  String get trendingTitle => 'Trending';
 
   @override
-  String get trendingDescription =>
-      'Discover the city\'s most popular destinations right now.';
+  String get trendingDescription => 'Trending restaurants';
+
+  @override
+  String get trendingEmpty => 'No trending restaurants right now';
+
+  @override
+  String get trendingLoadError =>
+      'Trending restaurants cannot be loaded right now';
+
+  @override
+  String trendingRankLabel(int rank) {
+    return 'Rank $rank';
+  }
 
   @override
   String get activeNow => 'Active now';
@@ -300,6 +311,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get wheelOptionCoffee => 'Coffee';
+
+  @override
+  String get wheelNetworkError =>
+      'The wheel could not connect right now. Please try again.';
+
+  @override
+  String get wheelBadRequestError =>
+      'The wheel request could not be completed. Check the options and try again.';
+
+  @override
+  String get wheelForbiddenError =>
+      'You do not have access to this wheel session.';
+
+  @override
+  String get wheelNotFoundError =>
+      'This wheel session is no longer available. Please try again.';
+
+  @override
+  String get wheelInvalidResponseError =>
+      'The wheel returned an unexpected result. Please try again.';
 
   @override
   String get chooseRestaurant => 'Choose a restaurant';

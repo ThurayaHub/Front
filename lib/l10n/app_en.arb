@@ -2,8 +2,18 @@
   "@@locale": "en",
   "appTitle": "Thuraya",
   "back": "Back",
-  "trendingTitle": "Trending now",
-  "trendingDescription": "Discover the city's most popular destinations right now.",
+  "trendingTitle": "Trending",
+  "trendingDescription": "Trending restaurants",
+  "trendingEmpty": "No trending restaurants right now",
+  "trendingLoadError": "Trending restaurants cannot be loaded right now",
+  "trendingRankLabel": "Rank {rank}",
+  "@trendingRankLabel": {
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      }
+    }
+  },
   "activeNow": "Active now",
   "trendingRestaurantOneName": "Ilia Diving",
   "trendingRestaurantOneDetails": "Seafood • Al Olaya",
@@ -123,6 +133,11 @@
   "wheelOptionPizza": "Pizza",
   "wheelOptionSushi": "Sushi",
   "wheelOptionCoffee": "Coffee",
+  "wheelNetworkError": "The wheel could not connect right now. Please try again.",
+  "wheelBadRequestError": "The wheel request could not be completed. Check the options and try again.",
+  "wheelForbiddenError": "You do not have access to this wheel session.",
+  "wheelNotFoundError": "This wheel session is no longer available. Please try again.",
+  "wheelInvalidResponseError": "The wheel returned an unexpected result. Please try again.",
   "chooseRestaurant": "Choose a restaurant",
   "chooseRestaurantNavigation": "Choose for me",
   "account": "Account",
