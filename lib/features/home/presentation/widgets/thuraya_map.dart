@@ -12,6 +12,7 @@ import 'package:thuraya/features/home/presentation/widgets/restaurant_map_previe
 import 'package:thuraya/features/home/presentation/widgets/restaurant_marker_layer.dart';
 import 'package:thuraya/features/home/services/current_location_service.dart';
 import 'package:thuraya/features/home/services/restaurant_map_service.dart';
+import 'package:thuraya/features/home/services/thuraya_map_style_loader.dart';
 import 'package:thuraya/features/restaurant_details/models/restaurant_details_dto.dart';
 import 'package:thuraya/l10n/generated/app_localizations.dart';
 
@@ -64,10 +65,14 @@ class _ThurayaMapState extends State<ThurayaMap> {
   bool _hasShownMarkerError = false;
   bool _isOpeningRestaurantDetails = false;
   bool _isLocating = false;
+  late final Future<String> _mapStyle;
 
   @override
   void initState() {
     super.initState();
+    _mapStyle = ThurayaMapStyleLoader.loadForCurrentPlatform(
+      styleAsset: ThurayaMap.customStyleAsset,
+    );
     _currentZoom = widget.region.initialZoom;
     _ownsRestaurantMapService = widget.restaurantMapService == null;
     _restaurantMapService =
@@ -659,52 +664,74 @@ class _ThurayaMapState extends State<ThurayaMap> {
     return Stack(
       fit: StackFit.expand,
       children: [
-        MapLibreMap(
-          key: const ValueKey('home-map'),
-          annotationOrder: const [],
-          styleString: ThurayaMap.customStyleAsset,
-          initialCameraPosition: CameraPosition(
-            target: LatLng(
-              widget.region.centerLatitude,
-              widget.region.centerLongitude,
-            ),
-            zoom: widget.region.initialZoom,
-          ),
-          cameraTargetBounds: CameraTargetBounds(
-            LatLngBounds(
-              southwest: LatLng(
-                regionBounds.southwestLatitude,
-                regionBounds.southwestLongitude,
+        FutureBuilder<String>(
+          future: _mapStyle,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState != ConnectionState.done) {
+              return const ColoredBox(color: AppColors.background);
+            }
+
+            if (snapshot.hasError) {
+              FlutterError.reportError(
+                FlutterErrorDetails(
+                  exception: snapshot.error!,
+                  stack: snapshot.stackTrace,
+                  library: 'Thuraya map style loader',
+                  context: ErrorDescription(
+                    'while preparing bundled Arabic map fonts',
+                  ),
+                ),
+              );
+            }
+
+            return MapLibreMap(
+              key: const ValueKey('home-map'),
+              annotationOrder: const [],
+              styleString: snapshot.data ?? ThurayaMap.customStyleAsset,
+              initialCameraPosition: CameraPosition(
+                target: LatLng(
+                  widget.region.centerLatitude,
+                  widget.region.centerLongitude,
+                ),
+                zoom: widget.region.initialZoom,
               ),
-              northeast: LatLng(
-                regionBounds.northeastLatitude,
-                regionBounds.northeastLongitude,
+              cameraTargetBounds: CameraTargetBounds(
+                LatLngBounds(
+                  southwest: LatLng(
+                    regionBounds.southwestLatitude,
+                    regionBounds.southwestLongitude,
+                  ),
+                  northeast: LatLng(
+                    regionBounds.northeastLatitude,
+                    regionBounds.northeastLongitude,
+                  ),
+                ),
               ),
-            ),
-          ),
-          minMaxZoomPreference: MinMaxZoomPreference(
-            widget.region.minimumZoom,
-            widget.region.maximumZoom,
-          ),
-          onMapCreated: _onMapCreated,
-          onStyleLoadedCallback: _onStyleLoaded,
-          onCameraMove: _onCameraMove,
-          onCameraIdle: _onCameraIdle,
-          onMapClick: _onMapTapped,
-          scrollGesturesEnabled: true,
-          zoomGesturesEnabled: true,
-          doubleClickZoomEnabled: true,
-          rotateGesturesEnabled: false,
-          tiltGesturesEnabled: false,
-          compassEnabled: false,
-          // The custom Thuraya location button below owns this interaction.
-          // Enabling MapLibre's native location UI creates a second location
-          // control/indicator on iOS.
-          myLocationEnabled: false,
-          myLocationTrackingMode: MyLocationTrackingMode.none,
-          logoEnabled: false,
-          attributionButtonPosition: AttributionButtonPosition.bottomLeft,
-          attributionButtonMargins: Point(8, widget.padding.bottom + 8),
+              minMaxZoomPreference: MinMaxZoomPreference(
+                widget.region.minimumZoom,
+                widget.region.maximumZoom,
+              ),
+              onMapCreated: _onMapCreated,
+              onStyleLoadedCallback: _onStyleLoaded,
+              onCameraMove: _onCameraMove,
+              onCameraIdle: _onCameraIdle,
+              onMapClick: _onMapTapped,
+              scrollGesturesEnabled: true,
+              zoomGesturesEnabled: true,
+              doubleClickZoomEnabled: true,
+              rotateGesturesEnabled: false,
+              tiltGesturesEnabled: false,
+              compassEnabled: false,
+              // The custom Thuraya location button below owns this interaction.
+              // Enabling MapLibre's native location UI creates a second
+              // location control/indicator on iOS.
+              myLocationEnabled: false,
+              myLocationTrackingMode: MyLocationTrackingMode.none,
+              logoEnabled: false,
+              attributionButtonPosition: AttributionButtonPosition.bottomLeft,
+              attributionButtonMargins: Point(8, widget.padding.bottom + 8),
+            );
+          },
         ),
         IgnorePointer(
           child: Stack(
