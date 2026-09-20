@@ -3,6 +3,7 @@ import 'package:thuraya/features/restaurants/models/restaurant_review.dart';
 
 class RestaurantReviewsData {
   const RestaurantReviewsData({
+    required this.restaurantId,
     required this.restaurantName,
     required this.rating,
     required this.reviewCount,
@@ -12,6 +13,7 @@ class RestaurantReviewsData {
 
   factory RestaurantReviewsData.fromRestaurant(Restaurant restaurant) {
     return RestaurantReviewsData(
+      restaurantId: restaurant.id,
       restaurantName: restaurant.name,
       rating: restaurant.rating,
       reviewCount: restaurant.reviewCount,
@@ -20,6 +22,7 @@ class RestaurantReviewsData {
     );
   }
 
+  final int restaurantId;
   final String restaurantName;
   final double rating;
   final int reviewCount;

@@ -8,6 +8,7 @@ import 'package:thuraya/core/auth/auth_session_controller.dart';
 import 'package:thuraya/core/auth/auth_session_store.dart';
 import 'package:thuraya/core/auth/models/auth_models.dart';
 import 'package:thuraya/core/network/api_client.dart';
+import 'package:thuraya/core/routing/app_route_names.dart';
 import 'package:thuraya/core/routing/app_router.dart';
 import 'package:thuraya/core/theme/app_theme.dart';
 import 'package:thuraya/features/restaurant_details/models/restaurant_details_dto.dart';
@@ -15,6 +16,9 @@ import 'package:thuraya/features/restaurant_details/presentation/restaurant_deta
 import 'package:thuraya/features/restaurant_details/services/restaurant_details_service.dart';
 import 'package:thuraya/features/restaurant_details/services/restaurant_external_actions.dart';
 import 'package:thuraya/features/restaurant_reviews/services/restaurant_review_service.dart';
+import 'package:thuraya/features/restaurant_reviews/models/restaurant_reviews_data.dart';
+import 'package:thuraya/features/restaurant_reviews/presentation/restaurant_reviews_page.dart';
+import 'package:thuraya/features/restaurants/models/restaurant_review.dart';
 import 'package:thuraya/l10n/generated/app_localizations.dart';
 
 import '../../../fixtures/restaurant_details_fixture.dart';
@@ -151,20 +155,30 @@ void main() {
     expect(actions.sharedRestaurantId, 42);
   });
 
-  testWidgets('real review summary opens an honest unavailable-list state', (
+  testWidgets('real review summary opens the API-backed review list', (
     tester,
   ) async {
-    await tester.pumpWidget(_testPreloadedApp());
+    final reviewService = _ReviewListService([
+      RestaurantReview(
+        id: 1,
+        restaurantId: 42,
+        reviewerName: 'محمد',
+        stars: 5,
+        comment: 'ممتاز',
+        createdAtUtc: DateTime.utc(2026, 9, 12),
+      ),
+    ]);
+    await tester.pumpWidget(
+      _testPreloadedApp(reviewService: reviewService),
+    );
     await tester.pump();
 
     await tester.tap(find.byKey(const ValueKey('restaurant-details-reviews')));
     await tester.pumpAndSettle();
 
-    expect(
-      find.byKey(const ValueKey('restaurant-reviews-unavailable')),
-      findsOneWidget,
-    );
+    expect(find.byKey(const ValueKey('review-card-1')), findsOneWidget);
     expect(find.text('8 تقييم'), findsOneWidget);
+    expect(reviewService.requests, [42]);
   });
 
   testWidgets(
@@ -354,7 +368,20 @@ Widget _testPreloadedApp({
         GlobalCupertinoLocalizations.delegate,
       ],
       theme: AppTheme.light,
-      onGenerateRoute: AppRouter.onGenerateRoute,
+      onGenerateRoute: (settings) {
+        if (settings.name == AppRouteNames.restaurantReviews &&
+            settings.arguments is RestaurantReviewsData &&
+            reviewService != null) {
+          return MaterialPageRoute<void>(
+            builder: (_) => RestaurantReviewsPage.fromData(
+              data: settings.arguments! as RestaurantReviewsData,
+              reviewService: reviewService,
+            ),
+            settings: settings,
+          );
+        }
+        return AppRouter.onGenerateRoute(settings);
+      },
       home: RestaurantDetailsPage.fromDetails(
         details: details ?? _detailsDto,
         detailsService: detailsService,
@@ -442,6 +469,19 @@ class _TestReviewService extends RestaurantReviewService {
     required String comment,
   }) async {
     submissions.add((restaurantId, stars, comment));
+  }
+}
+
+class _ReviewListService extends RestaurantReviewService {
+  _ReviewListService(this.reviews);
+
+  final List<RestaurantReview> reviews;
+  final List<int> requests = [];
+
+  @override
+  Future<List<RestaurantReview>> getReviews(int restaurantId) async {
+    requests.add(restaurantId);
+    return reviews;
   }
 }
 

@@ -344,17 +344,29 @@ abstract class AppLocalizations {
   /// **'No reviews yet'**
   String get noReviewsYet;
 
-  /// No description provided for @restaurantReviewListUnavailable.
+  /// No description provided for @loadingReviews.
   ///
   /// In en, this message translates to:
-  /// **'The review summary is available, but individual user reviews are not currently provided by the server.'**
-  String get restaurantReviewListUnavailable;
+  /// **'Loading reviews...'**
+  String get loadingReviews;
+
+  /// No description provided for @reviewsLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviews could not be loaded.'**
+  String get reviewsLoadError;
 
   /// No description provided for @searchRestaurant.
   ///
   /// In en, this message translates to:
   /// **'Search for a restaurant...'**
   String get searchRestaurant;
+
+  /// No description provided for @closeSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Close search'**
+  String get closeSearch;
 
   /// No description provided for @filterRestaurants.
   ///
@@ -632,29 +644,17 @@ abstract class AppLocalizations {
   /// **'Your choice is'**
   String get yourWheelChoice;
 
-  /// No description provided for @wheelOptionBurger.
+  /// No description provided for @wheelEmptyState.
   ///
   /// In en, this message translates to:
-  /// **'Burger'**
-  String get wheelOptionBurger;
+  /// **'Add your options and start spinning'**
+  String get wheelEmptyState;
 
-  /// No description provided for @wheelOptionPizza.
+  /// No description provided for @removeWheelOption.
   ///
   /// In en, this message translates to:
-  /// **'Pizza'**
-  String get wheelOptionPizza;
-
-  /// No description provided for @wheelOptionSushi.
-  ///
-  /// In en, this message translates to:
-  /// **'Sushi'**
-  String get wheelOptionSushi;
-
-  /// No description provided for @wheelOptionCoffee.
-  ///
-  /// In en, this message translates to:
-  /// **'Coffee'**
-  String get wheelOptionCoffee;
+  /// **'Remove option'**
+  String get removeWheelOption;
 
   /// No description provided for @wheelNetworkError.
   ///

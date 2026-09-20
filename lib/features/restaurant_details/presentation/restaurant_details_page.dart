@@ -248,6 +248,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
     final legacy = widget.restaurant;
     final data = legacy == null
         ? RestaurantReviewsData(
+            restaurantId: _restaurantId!,
             restaurantName: restaurant.name,
             rating: restaurant.userRating!,
             reviewCount: restaurant.reviewCount,

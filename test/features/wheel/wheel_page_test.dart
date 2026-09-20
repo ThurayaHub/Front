@@ -46,8 +46,12 @@ void main() {
 
     expect(find.byKey(const ValueKey('wheel-page')), findsOneWidget);
     expect(gateway.createCalls, 1);
-    expect(gateway.options, hasLength(4));
-    expect(find.byKey(const ValueKey('wheel-option-count-4')), findsOneWidget);
+    expect(gateway.options, isEmpty);
+    expect(find.byKey(const ValueKey('wheel-empty-state')), findsOneWidget);
+    expect(find.text('برجر'), findsNothing);
+    expect(find.text('بيتزا'), findsNothing);
+    expect(find.text('سوشي'), findsNothing);
+    expect(find.text('قهوة'), findsNothing);
 
     await tester.enterText(
       find.byKey(const ValueKey('wheel-option-input')),
@@ -56,7 +60,14 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('wheel-add-option')));
     await tester.pumpAndSettle();
     expect(gateway.options.last.text, 'شاي');
-    expect(gateway.options.last.id, 104);
+    expect(gateway.options.last.id, 100);
+
+    await tester.enterText(
+      find.byKey(const ValueKey('wheel-option-input')),
+      'قهوة',
+    );
+    await tester.tap(find.byKey(const ValueKey('wheel-add-option')));
+    await tester.pumpAndSettle();
 
     gateway.spinCompleter = Completer();
     final spinButton = find.byKey(const ValueKey('wheel-spin-button'));
@@ -84,7 +95,7 @@ void main() {
     final normalized =
         (wheel.rotation % (2 * math.pi) + 2 * math.pi) % (2 * math.pi);
     final expected =
-        (-(1.5) * (2 * math.pi / 5) % (2 * math.pi) + 2 * math.pi) %
+        (-(1.5) * (2 * math.pi / 2) % (2 * math.pi) + 2 * math.pi) %
         (2 * math.pi);
     expect(normalized, closeTo(expected, 0.0001));
   });
@@ -112,12 +123,38 @@ void main() {
     });
   }
 
+  testWidgets('removes an option through its chip and redraws the wheel', (
+    tester,
+  ) async {
+    final auth = _authController();
+    await auth.loginWithPhone('+966500000000');
+    final gateway = _PageWheelGateway(initialOptions: const ['برجر', 'بيتزا']);
+    await tester.pumpWidget(
+      _pageApp(auth, gateway, locale: const Locale('ar')),
+    );
+    await tester.pumpAndSettle();
+
+    final burgerChip = find.byKey(const ValueKey('wheel-option-100'));
+    await tester.tap(
+      find.descendant(
+        of: burgerChip,
+        matching: find.byIcon(Icons.close_rounded),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(gateway.removeCalls, 1);
+    expect(gateway.options.first.isActive, isFalse);
+    expect(find.byKey(const ValueKey('wheel-option-count-1')), findsOneWidget);
+    expect(find.byKey(const ValueKey('wheel-option-100')), findsNothing);
+  });
+
   testWidgets('shows a localized backend error and keeps wheel options', (
     tester,
   ) async {
     final auth = _authController();
     await auth.loginWithPhone('+966500000000');
-    final gateway = _PageWheelGateway()
+    final gateway = _PageWheelGateway(initialOptions: const ['أ', 'ب'])
       ..spinError = const ApiException('Forbidden', statusCode: 403);
     await tester.pumpWidget(
       _pageApp(auth, gateway, locale: const Locale('ar')),
@@ -134,7 +171,7 @@ void main() {
       find.text('ليس لديك صلاحية للوصول إلى جلسة العجلة هذه.'),
       findsOneWidget,
     );
-    expect(find.byKey(const ValueKey('wheel-option-count-4')), findsOneWidget);
+    expect(find.byKey(const ValueKey('wheel-option-count-2')), findsOneWidget);
     expect(find.byKey(const ValueKey('wheel-result')), findsNothing);
   });
 }
@@ -191,7 +228,16 @@ const _delegates = [
 ];
 
 class _PageWheelGateway implements WheelGateway {
+  _PageWheelGateway({List<String> initialOptions = const []}) {
+    for (final text in initialOptions) {
+      options.add(WheelOptionDto(id: nextId++, text: text, isActive: true));
+    }
+    sessionExists = initialOptions.isNotEmpty;
+  }
+
+  bool sessionExists = false;
   int createCalls = 0;
+  int removeCalls = 0;
   int spinCalls = 0;
   int nextId = 100;
   Completer<WheelSpinResultDto>? spinCompleter;
@@ -201,6 +247,15 @@ class _PageWheelGateway implements WheelGateway {
   @override
   Future<WheelSessionDto> createSession({String? name}) async {
     createCalls++;
+    sessionExists = true;
+    return _session();
+  }
+
+  @override
+  Future<WheelSessionDto> getCurrentSession() async {
+    if (!sessionExists) {
+      throw const ApiException('Not found', statusCode: 404);
+    }
     return _session();
   }
 
@@ -212,6 +267,19 @@ class _PageWheelGateway implements WheelGateway {
     final option = WheelOptionDto(id: nextId++, text: text, isActive: true);
     options.add(option);
     return option;
+  }
+
+  @override
+  Future<WheelOptionDto> removeOption(int wheelSessionId, int optionId) async {
+    removeCalls++;
+    final index = options.indexWhere((option) => option.id == optionId);
+    final removed = WheelOptionDto(
+      id: options[index].id,
+      text: options[index].text,
+      isActive: false,
+    );
+    options[index] = removed;
+    return removed;
   }
 
   @override

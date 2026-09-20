@@ -7,7 +7,7 @@ import 'package:thuraya/features/restaurant_reviews/presentation/create_restaura
 import 'package:thuraya/l10n/generated/app_localizations.dart';
 
 void main() {
-  testWidgets('requires a whole-star rating and a non-empty comment', (
+  testWidgets('requires a whole-star rating and allows an empty comment', (
     tester,
   ) async {
     int? submittedStars;
@@ -25,20 +25,13 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('review-star-4')));
     await tester.pump();
     expect(find.text('جيد جداً'), findsOneWidget);
-    expect(tester.widget<FilledButton>(submit).onPressed, isNull);
-
-    await tester.enterText(
-      find.byKey(const ValueKey('review-comment-field')),
-      '  تجربة جميلة  ',
-    );
-    await tester.pump();
     expect(tester.widget<FilledButton>(submit).onPressed, isNotNull);
 
     await tester.tap(submit);
     await tester.pumpAndSettle();
 
     expect(submittedStars, 4);
-    expect(submittedComment, '  تجربة جميلة  ');
+    expect(submittedComment, '');
   });
 
   testWidgets('keeps form state and shows a friendly duplicate error', (

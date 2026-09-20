@@ -14,6 +14,7 @@ import 'package:thuraya/features/home/services/current_location_service.dart';
 import 'package:thuraya/features/home/services/restaurant_map_service.dart';
 import 'package:thuraya/features/home/services/thuraya_map_style_loader.dart';
 import 'package:thuraya/features/restaurant_details/models/restaurant_details_dto.dart';
+import 'package:thuraya/features/restaurant_details/services/restaurant_details_service.dart';
 import 'package:thuraya/l10n/generated/app_localizations.dart';
 
 class ThurayaMap extends StatefulWidget {
@@ -24,7 +25,10 @@ class ThurayaMap extends StatefulWidget {
     this.onMapCreated,
     this.locationService = const CurrentLocationService(),
     this.restaurantMapService,
+    this.restaurantDetailsService,
     this.restaurants,
+    this.selectedRestaurant,
+    this.onSelectedRestaurantChanged,
     this.onViewportChanged,
     this.fitRestaurants = false,
   });
@@ -36,7 +40,10 @@ class ThurayaMap extends StatefulWidget {
   final MapCreatedCallback? onMapCreated;
   final CurrentLocationService locationService;
   final RestaurantMapService? restaurantMapService;
+  final RestaurantDetailsService? restaurantDetailsService;
   final List<RestaurantMapMarker>? restaurants;
+  final RestaurantMapMarker? selectedRestaurant;
+  final ValueChanged<RestaurantMapMarker?>? onSelectedRestaurantChanged;
   final Future<void> Function(SupportedMapBounds bounds)? onViewportChanged;
   final bool fitRestaurants;
 
@@ -77,11 +84,20 @@ class _ThurayaMapState extends State<ThurayaMap> {
     _ownsRestaurantMapService = widget.restaurantMapService == null;
     _restaurantMapService =
         widget.restaurantMapService ?? RestaurantMapService();
+    _selectedRestaurant = widget.selectedRestaurant;
   }
 
   @override
   void didUpdateWidget(covariant ThurayaMap oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.selectedRestaurant?.id != widget.selectedRestaurant?.id) {
+      unawaited(
+        _applyExternalSelection(
+          widget.selectedRestaurant,
+          moveCamera: widget.selectedRestaurant != null,
+        ),
+      );
+    }
     if ((!identical(oldWidget.restaurants, widget.restaurants) ||
             oldWidget.fitRestaurants != widget.fitRestaurants) &&
         widget.restaurants != null &&
@@ -117,13 +133,11 @@ class _ThurayaMapState extends State<ThurayaMap> {
     _isMarkerLayerReady = false;
     _clusterLabelGeneration++;
     _clusterLabelDebounce?.cancel();
-    if (_visibleRestaurantMarkers.isNotEmpty || _selectedRestaurant != null) {
-      setState(() {
-        _visibleRestaurantMarkers = const {};
-        _clusterLabels = const [];
-        _selectedRestaurant = null;
-      });
-    }
+    setState(() {
+      _visibleRestaurantMarkers = const {};
+      _clusterLabels = const [];
+      _selectedRestaurant = widget.selectedRestaurant;
+    });
     unawaited(_initializeRestaurantMarkerLayer(controller));
   }
 
@@ -278,10 +292,14 @@ class _ThurayaMapState extends State<ThurayaMap> {
     }
 
     final markersById = {for (final marker in markers) marker.id: marker};
-    final selectedRestaurantId = _selectedRestaurant?.id;
-    final selectedRestaurant = selectedRestaurantId == null
-        ? null
-        : markersById[selectedRestaurantId];
+    final controlledSelection = widget.selectedRestaurant;
+    final selectedRestaurantId =
+        controlledSelection?.id ?? _selectedRestaurant?.id;
+    final selectedRestaurant =
+        controlledSelection ??
+        (selectedRestaurantId == null
+            ? null
+            : markersById[selectedRestaurantId]);
     setState(() {
       _visibleRestaurantMarkers = markersById;
       _selectedRestaurant = selectedRestaurant;
@@ -495,6 +513,7 @@ class _ThurayaMapState extends State<ThurayaMap> {
 
     _lastRestaurantMarkerTap = DateTime.now();
     setState(() => _selectedRestaurant = restaurant);
+    widget.onSelectedRestaurantChanged?.call(restaurant);
     final controller = _mapController;
     if (controller != null && _isMarkerLayerReady) {
       unawaited(
@@ -507,9 +526,36 @@ class _ThurayaMapState extends State<ThurayaMap> {
     }
   }
 
+  Future<void> _applyExternalSelection(
+    RestaurantMapMarker? restaurant, {
+    required bool moveCamera,
+  }) async {
+    if (!mounted) return;
+    setState(() => _selectedRestaurant = restaurant);
+
+    final controller = _mapController;
+    if (controller != null && _isMarkerLayerReady) {
+      await RestaurantMarkerLayer.updateSelected(
+        controller,
+        restaurant,
+        Localizations.localeOf(context).languageCode,
+      );
+    }
+    if (restaurant != null && moveCamera && controller != null) {
+      await controller.animateCamera(
+        CameraUpdate.newLatLngZoom(
+          LatLng(restaurant.latitude, restaurant.longitude),
+          14.5,
+        ),
+        duration: const Duration(milliseconds: 650),
+      );
+    }
+  }
+
   void _dismissRestaurantPreview() {
     if (_selectedRestaurant != null) {
       setState(() => _selectedRestaurant = null);
+      widget.onSelectedRestaurantChanged?.call(null);
       final controller = _mapController;
       if (controller != null && _isMarkerLayerReady) {
         unawaited(
@@ -827,6 +873,7 @@ class _ThurayaMapState extends State<ThurayaMap> {
                       'restaurant-preview-${_selectedRestaurant!.id}',
                     ),
                     restaurant: _selectedRestaurant!,
+                    detailsService: widget.restaurantDetailsService,
                     onTap: _openSelectedRestaurantDetails,
                     onClose: _dismissRestaurantPreview,
                   ),

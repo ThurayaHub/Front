@@ -26,15 +26,17 @@ class WheelController extends ChangeNotifier {
   WheelSessionDto? session;
   WheelErrorKind? error;
   bool isAdding = false;
+  final Set<int> removingOptionIds = {};
   bool isRequestingSpin = false;
 
   List<WheelOptionDto> get activeOptions => List.unmodifiable(
     session?.options.where((option) => option.isActive) ?? const [],
   );
 
-  bool get isMutating => isAdding || isRequestingSpin;
+  bool get isMutating =>
+      isAdding || removingOptionIds.isNotEmpty || isRequestingSpin;
 
-  Future<void> initialize(List<String> initialOptions) async {
+  Future<void> initialize() async {
     if (status == WheelLoadStatus.loading || status == WheelLoadStatus.ready) {
       return;
     }
@@ -43,15 +45,11 @@ class WheelController extends ChangeNotifier {
     _notify();
 
     try {
-      session ??= await _gateway.createSession();
-      for (final text in initialOptions) {
-        final alreadyAdded = session!.options.any(
-          (option) => option.isActive && option.text == text,
-        );
-        if (!alreadyAdded) {
-          final option = await _gateway.addOption(session!.id, text);
-          _replaceSessionOptions([...session!.options, option]);
-        }
+      try {
+        session = await _gateway.getCurrentSession();
+      } on ApiException catch (exception) {
+        if (exception.statusCode != 404) rethrow;
+        session = await _gateway.createSession();
       }
       status = WheelLoadStatus.ready;
     } on AuthenticationRequiredException {
@@ -64,6 +62,31 @@ class WheelController extends ChangeNotifier {
       status = WheelLoadStatus.error;
     }
     _notify();
+  }
+
+  Future<bool> removeOption(int optionId) async {
+    final currentSession = session;
+    if (currentSession == null || isMutating) return false;
+    removingOptionIds.add(optionId);
+    error = null;
+    _notify();
+    try {
+      final removed = await _gateway.removeOption(currentSession.id, optionId);
+      _replaceSessionOptions([
+        for (final option in currentSession.options)
+          if (option.id == optionId) removed else option,
+      ]);
+      return true;
+    } on AuthenticationRequiredException {
+      error = WheelErrorKind.network;
+      rethrow;
+    } catch (exception) {
+      error = _classify(exception);
+      return false;
+    } finally {
+      removingOptionIds.remove(optionId);
+      _notify();
+    }
   }
 
   Future<bool> addOption(String text) async {

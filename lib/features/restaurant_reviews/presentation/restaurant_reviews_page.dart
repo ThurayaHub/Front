@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:thuraya/core/constants/app_assets.dart';
@@ -5,25 +7,90 @@ import 'package:thuraya/core/constants/app_spacing.dart';
 import 'package:thuraya/core/theme/app_colors.dart';
 import 'package:thuraya/core/theme/app_text_styles.dart';
 import 'package:thuraya/core/widgets/rating_stars.dart';
+import 'package:thuraya/core/widgets/thuraya_loading_indicator.dart';
 import 'package:thuraya/features/restaurant_reviews/models/restaurant_reviews_data.dart';
+import 'package:thuraya/features/restaurant_reviews/services/restaurant_review_service.dart';
 import 'package:thuraya/features/restaurants/models/restaurant.dart';
 import 'package:thuraya/features/restaurants/models/restaurant_review.dart';
 import 'package:thuraya/l10n/generated/app_localizations.dart';
 
-class RestaurantReviewsPage extends StatelessWidget {
-  RestaurantReviewsPage({super.key, required Restaurant restaurant})
-    : data = RestaurantReviewsData.fromRestaurant(restaurant);
+class RestaurantReviewsPage extends StatefulWidget {
+  RestaurantReviewsPage({
+    super.key,
+    required Restaurant restaurant,
+    this.reviewService,
+  }) : data = RestaurantReviewsData.fromRestaurant(restaurant);
 
-  const RestaurantReviewsPage.fromData({super.key, required this.data});
+  const RestaurantReviewsPage.fromData({
+    super.key,
+    required this.data,
+    this.reviewService,
+  });
 
   final RestaurantReviewsData data;
+  final RestaurantReviewService? reviewService;
+
+  @override
+  State<RestaurantReviewsPage> createState() => _RestaurantReviewsPageState();
+}
+
+enum _ReviewListStatus { loading, ready, error }
+
+class _RestaurantReviewsPageState extends State<RestaurantReviewsPage> {
+  late final RestaurantReviewService _reviewService;
+  late final bool _ownsReviewService;
+  late List<RestaurantReview> _reviews;
+  late _ReviewListStatus _status;
+
+  @override
+  void initState() {
+    super.initState();
+    _ownsReviewService = widget.reviewService == null;
+    _reviewService = widget.reviewService ?? RestaurantReviewService();
+    _reviews = widget.data.reviews
+        .where((review) => review.isPublished)
+        .toList(growable: false);
+    _status = widget.data.hasReviewList
+        ? _ReviewListStatus.ready
+        : _ReviewListStatus.loading;
+    if (!widget.data.hasReviewList) {
+      unawaited(_loadReviews());
+    }
+  }
+
+  @override
+  void dispose() {
+    if (_ownsReviewService) _reviewService.close();
+    super.dispose();
+  }
+
+  Future<void> _loadReviews({bool showLoading = true}) async {
+    if (showLoading && mounted) {
+      setState(() => _status = _ReviewListStatus.loading);
+    }
+    try {
+      final reviews = await _reviewService.getReviews(widget.data.restaurantId);
+      if (!mounted) return;
+      setState(() {
+        _reviews = reviews
+            .where((review) => review.isPublished)
+            .toList(growable: false);
+        _status = _ReviewListStatus.ready;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _status = _ReviewListStatus.error);
+    }
+  }
+
+  Future<void> _refresh() async {
+    if (widget.data.hasReviewList) return;
+    await _loadReviews(showLoading: false);
+  }
 
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
-    final reviews = data.reviews
-        .where((review) => review.isPublished)
-        .toList(growable: false);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -34,37 +101,63 @@ class RestaurantReviewsPage extends StatelessWidget {
             backLabel: localizations.back,
           ),
           Expanded(
-            child: ListView(
-              key: const ValueKey('restaurant-reviews-list'),
-              padding: const EdgeInsetsDirectional.fromSTEB(
-                AppSpacing.screen,
-                AppSpacing.lg,
-                AppSpacing.screen,
-                40,
+            child: RefreshIndicator(
+              onRefresh: _refresh,
+              child: ListView.builder(
+                key: const ValueKey('restaurant-reviews-list'),
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsetsDirectional.fromSTEB(
+                  AppSpacing.screen,
+                  AppSpacing.lg,
+                  AppSpacing.screen,
+                  40,
+                ),
+                itemCount:
+                    _status == _ReviewListStatus.ready && _reviews.isNotEmpty
+                    ? _reviews.length + 1
+                    : 1,
+                itemBuilder: (context, index) {
+                  if (index == 0) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          widget.data.restaurantName,
+                          textAlign: TextAlign.start,
+                          style: AppTextStyles.cardTitle,
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        _RatingSummary(
+                          rating: widget.data.rating,
+                          reviewCount: widget.data.reviewCount,
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        switch (_status) {
+                          _ReviewListStatus.loading => _ReviewsLoading(
+                            semanticLabel: localizations.loadingReviews,
+                          ),
+                          _ReviewListStatus.error => _ReviewListError(
+                            onRetry: _loadReviews,
+                          ),
+                          _ReviewListStatus.ready when _reviews.isEmpty =>
+                            const _EmptyReviews(),
+                          _ReviewListStatus.ready => const SizedBox.shrink(),
+                        },
+                      ],
+                    );
+                  }
+
+                  final reviewIndex = index - 1;
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      bottom: reviewIndex == _reviews.length - 1
+                          ? 0
+                          : AppSpacing.sm,
+                    ),
+                    child: _ReviewCard(review: _reviews[reviewIndex]),
+                  );
+                },
               ),
-              children: [
-                Text(
-                  data.restaurantName,
-                  textAlign: TextAlign.right,
-                  style: AppTextStyles.cardTitle,
-                ),
-                const SizedBox(height: AppSpacing.md),
-                _RatingSummary(
-                  rating: data.rating,
-                  reviewCount: data.reviewCount,
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                if (!data.hasReviewList)
-                  const _ReviewListUnavailable()
-                else if (reviews.isEmpty)
-                  const _EmptyReviews()
-                else
-                  for (var index = 0; index < reviews.length; index++) ...[
-                    _ReviewCard(review: reviews[index]),
-                    if (index != reviews.length - 1)
-                      const SizedBox(height: AppSpacing.sm),
-                  ],
-              ],
             ),
           ),
         ],
@@ -227,57 +320,38 @@ class _ReviewCard extends StatelessWidget {
                   review.reviewerName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.right,
+                  textAlign: TextAlign.start,
                   style: AppTextStyles.reviewName,
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
-              Directionality(
-                textDirection: TextDirection.ltr,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(_formatRating(rating), style: AppTextStyles.rating),
-                    const SizedBox(width: AppSpacing.xxs),
-                    const RatingStars(
-                      rating: 1,
-                      maxStars: 1,
-                      starSize: 16,
-                      spacing: 0,
-                    ),
-                  ],
-                ),
+              Text(
+                formattedDate,
+                textAlign: TextAlign.end,
+                style: AppTextStyles.reviewDate,
               ),
             ],
           ),
           const SizedBox(height: AppSpacing.xs),
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: RatingStars(rating: rating),
+          Directionality(
+            textDirection: TextDirection.ltr,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [RatingStars(rating: rating)],
+            ),
           ),
           if (comment != null && comment.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.sm),
             Text(
               comment,
-              textAlign: TextAlign.right,
+              key: ValueKey('review-comment-${review.id}'),
+              textAlign: TextAlign.start,
               style: AppTextStyles.detailsBody,
             ),
           ],
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            formattedDate,
-            textAlign: TextAlign.right,
-            style: AppTextStyles.reviewDate,
-          ),
         ],
       ),
     );
-  }
-
-  String _formatRating(double rating) {
-    return rating == rating.roundToDouble()
-        ? rating.toStringAsFixed(0)
-        : rating.toStringAsFixed(1);
   }
 }
 
@@ -307,29 +381,57 @@ class _EmptyReviews extends StatelessWidget {
   }
 }
 
-class _ReviewListUnavailable extends StatelessWidget {
-  const _ReviewListUnavailable();
+class _ReviewsLoading extends StatelessWidget {
+  const _ReviewsLoading({required this.semanticLabel});
+
+  final String semanticLabel;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      key: const ValueKey('restaurant-reviews-unavailable'),
+      key: const ValueKey('restaurant-reviews-loading'),
       height: 220,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            Icons.rate_review_outlined,
-            color: AppColors.textMuted,
-            size: 34,
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            AppLocalizations.of(context).restaurantReviewListUnavailable,
-            textAlign: TextAlign.center,
-            style: AppTextStyles.screenSubtitle,
-          ),
-        ],
+      child: Center(
+        child: ThurayaLoadingIndicator(size: 82, semanticLabel: semanticLabel),
+      ),
+    );
+  }
+}
+
+class _ReviewListError extends StatelessWidget {
+  const _ReviewListError({required this.onRetry});
+
+  final Future<void> Function() onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    return SizedBox(
+      key: const ValueKey('restaurant-reviews-error'),
+      height: 220,
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.rate_review_outlined,
+              color: AppColors.textMuted,
+              size: 34,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              localizations.reviewsLoadError,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.screenSubtitle,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            TextButton(
+              key: const ValueKey('restaurant-reviews-retry'),
+              onPressed: onRetry,
+              child: Text(localizations.retry),
+            ),
+          ],
+        ),
       ),
     );
   }

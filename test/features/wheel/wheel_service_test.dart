@@ -16,7 +16,9 @@ void main() {
         final path = request.url.path;
         final method = request.method;
         Object data;
-        if (method == 'POST' && path == '/api/wheels') {
+        if (method == 'GET' && path == '/api/wheels/current') {
+          data = _sessionJson(options: [_optionJson(90, 'قهوة', true)]);
+        } else if (method == 'POST' && path == '/api/wheels') {
           expect(jsonDecode(request.body), {'name': null});
           data = _sessionJson(options: const []);
         } else if (method == 'GET' && path == '/api/wheels/31') {
@@ -24,6 +26,9 @@ void main() {
         } else if (method == 'POST' && path == '/api/wheels/31/options') {
           expect(jsonDecode(request.body), {'text': 'قهوة'});
           data = _optionJson(90, 'قهوة', true);
+        } else if (method == 'DELETE' &&
+            path == '/api/wheels/31/options/90') {
+          data = _optionJson(90, 'قهوة', false);
         } else if (method == 'POST' && path == '/api/wheels/31/spin') {
           data = {
             'id': 801,
@@ -48,17 +53,21 @@ void main() {
         ),
       );
 
+      final current = await service.getCurrentSession();
       final created = await service.createSession();
       final added = await service.addOption(created.id, 'قهوة');
       final loaded = await service.getSession(created.id);
+      final removed = await service.removeOption(created.id, added.id);
       final spin = await service.spin(created.id);
 
+      expect(current.options.single.id, 90);
       expect(created.id, 31);
       expect(added.id, 90);
       expect(loaded.options.single.id, 90);
+      expect(removed.isActive, isFalse);
       expect(spin.id, 801);
       expect(spin.selectedOption.id, 90);
-      expect(requests, hasLength(4));
+      expect(requests, hasLength(6));
       expect(
         requests.every(
           (request) => request.headers['Authorization'] == 'Bearer jwt-token',

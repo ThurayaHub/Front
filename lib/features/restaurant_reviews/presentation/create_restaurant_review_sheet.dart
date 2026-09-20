@@ -32,8 +32,7 @@ class _CreateRestaurantReviewSheetState
   bool _isSubmitting = false;
   String? _errorMessage;
 
-  bool get _canSubmit =>
-      !_isSubmitting && _stars > 0 && _commentController.text.trim().isNotEmpty;
+  bool get _canSubmit => !_isSubmitting && _stars > 0;
 
   @override
   void dispose() {

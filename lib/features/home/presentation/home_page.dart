@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:thuraya/core/constants/app_assets.dart';
 import 'package:thuraya/core/constants/app_spacing.dart';
-import 'package:thuraya/core/routing/app_route_names.dart';
 import 'package:thuraya/core/theme/app_colors.dart';
 import 'package:thuraya/core/theme/app_text_styles.dart';
 import 'package:thuraya/core/widgets/thuraya_bottom_navigation_bar.dart';
@@ -16,12 +15,14 @@ import 'package:thuraya/features/home/presentation/restaurant_search_controller.
 import 'package:thuraya/features/home/presentation/widgets/restaurant_filter_sheet.dart';
 import 'package:thuraya/features/home/presentation/widgets/restaurant_search_result_card.dart';
 import 'package:thuraya/features/home/presentation/widgets/thuraya_map.dart';
+import 'package:thuraya/features/restaurant_details/services/restaurant_details_service.dart';
 import 'package:thuraya/l10n/generated/app_localizations.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key, this.controller});
+  const HomePage({super.key, this.controller, this.restaurantDetailsService});
 
   final RestaurantSearchController? controller;
+  final RestaurantDetailsService? restaurantDetailsService;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -35,8 +36,10 @@ class _HomePageState extends State<HomePage> {
   late final RestaurantSearchController _controller;
   late final bool _ownsController;
   late final TextEditingController _searchController;
+  late final ScrollController _suggestionScrollController;
   Timer? _suggestionDebounce;
-  bool _isSearchFocused = false;
+  bool _isSearchOpen = false;
+  RestaurantMapMarker? _selectedSearchRestaurant;
 
   @override
   void initState() {
@@ -46,18 +49,21 @@ class _HomePageState extends State<HomePage> {
     _searchController = TextEditingController(
       text: _controller.filters.searchText,
     );
+    _suggestionScrollController = ScrollController();
     unawaited(_controller.initialize());
   }
 
   @override
   void dispose() {
     _suggestionDebounce?.cancel();
+    _suggestionScrollController.dispose();
     _searchController.dispose();
     if (_ownsController) _controller.dispose();
     super.dispose();
   }
 
   Future<void> _submitSearch() async {
+    _openSearch();
     _suggestionDebounce?.cancel();
     _controller.clearSuggestions();
     FocusScope.of(context).unfocus();
@@ -96,6 +102,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _onSearchChanged(String value) {
+    _openSearch();
     _suggestionDebounce?.cancel();
     if (value.trim().isEmpty) {
       _controller.clearSuggestions();
@@ -108,8 +115,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _onSearchFocusChanged(bool focused) {
-    if (_isSearchFocused != focused) {
-      setState(() => _isSearchFocused = focused);
+    if (focused) {
+      _openSearch();
     }
     if (focused && _searchController.text.trim().isNotEmpty) {
       _onSearchChanged(_searchController.text);
@@ -118,179 +125,214 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> _selectSuggestion(RestaurantMapMarker suggestion) async {
-    _suggestionDebounce?.cancel();
-    final languageCode = Localizations.localeOf(context).languageCode;
-    final name = suggestion.localizedName(languageCode);
-    _searchController.value = TextEditingValue(
-      text: name,
-      selection: TextSelection.collapsed(offset: name.length),
-    );
-    _controller.clearSuggestions();
-    FocusScope.of(context).unfocus();
-    await _controller.applyFilters(
-      _controller.filters.copyWith(searchText: name),
-    );
+  void _openSearch() {
+    if (!_isSearchOpen && mounted) {
+      setState(() => _isSearchOpen = true);
+    }
   }
 
-  Future<void> _clearSearchText() async {
+  Future<void> _closeSearch() async {
     _suggestionDebounce?.cancel();
     _controller.clearSuggestions();
+    FocusScope.of(context).unfocus();
     _searchController.clear();
+    if (mounted) {
+      setState(() {
+        _isSearchOpen = false;
+        _selectedSearchRestaurant = null;
+      });
+    }
     await _controller.applyFilters(
       _controller.filters.copyWith(searchText: ''),
     );
   }
 
+  void _selectSearchResult(RestaurantMapMarker restaurant) {
+    _suggestionDebounce?.cancel();
+    FocusScope.of(context).unfocus();
+    setState(() => _selectedSearchRestaurant = restaurant);
+    _controller.setResultsView(RestaurantResultsView.map);
+  }
+
+  void _onMapSelectionChanged(RestaurantMapMarker? restaurant) {
+    if (_selectedSearchRestaurant?.id == restaurant?.id) return;
+    setState(() => _selectedSearchRestaurant = restaurant);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      extendBody: true,
-      backgroundColor: AppColors.panel,
-      bottomNavigationBar: const ThurayaBottomNavigationBar(
-        selectedTab: ThurayaNavigationTab.home,
-      ),
-      body: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, _) {
-          final hasActiveCriteria = _controller.filters.isActive;
-          final controlsBottom = hasActiveCriteria ? 202.0 : 156.0;
-          final showSuggestions =
-              _isSearchFocused &&
-              _searchController.text.trim().isNotEmpty &&
-              (_controller.isLoadingSuggestions ||
-                  _controller.suggestions.isNotEmpty);
-          return Stack(
-            key: const ValueKey('home-page'),
-            fit: StackFit.expand,
-            children: [
-              IndexedStack(
-                index: _controller.resultsView.index,
-                children: [
-                  ThurayaMap(
-                    padding: EdgeInsets.only(top: controlsBottom, bottom: 90),
-                    restaurants: _controller.results,
-                    onViewportChanged: _controller.loadViewport,
-                    fitRestaurants: _controller.shouldFitSearchResults,
-                  ),
-                  _RestaurantResultsList(
-                    controller: _controller,
-                    topPadding: controlsBottom + 8,
-                  ),
-                ],
-              ),
-              Positioned.fill(
-                child: SafeArea(
-                  bottom: false,
-                  child: Padding(
-                    padding: const EdgeInsetsDirectional.fromSTEB(
-                      AppSpacing.screen,
-                      AppSpacing.screen,
-                      AppSpacing.screen,
-                      0,
+    return PopScope(
+      canPop: !_isSearchOpen && _selectedSearchRestaurant == null,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        if (_selectedSearchRestaurant != null) {
+          setState(() => _selectedSearchRestaurant = null);
+        } else if (_isSearchOpen) {
+          unawaited(_closeSearch());
+        }
+      },
+      child: Scaffold(
+        extendBody: true,
+        backgroundColor: AppColors.panel,
+        bottomNavigationBar: const ThurayaBottomNavigationBar(
+          selectedTab: ThurayaNavigationTab.home,
+        ),
+        body: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, _) {
+            final hasActiveCriteria = _controller.filters.isActive;
+            final controlsBottom = hasActiveCriteria ? 202.0 : 156.0;
+            final showSuggestions =
+                _isSearchOpen &&
+                _searchController.text.trim().isNotEmpty &&
+                (_controller.isLoadingSuggestions ||
+                    _controller.suggestions.isNotEmpty);
+            return Stack(
+              key: const ValueKey('home-page'),
+              fit: StackFit.expand,
+              children: [
+                IndexedStack(
+                  index: _controller.resultsView.index,
+                  children: [
+                    ThurayaMap(
+                      padding: EdgeInsets.only(top: controlsBottom, bottom: 90),
+                      restaurants: _controller.results,
+                      selectedRestaurant: _selectedSearchRestaurant,
+                      onSelectedRestaurantChanged: _onMapSelectionChanged,
+                      restaurantDetailsService: widget.restaurantDetailsService,
+                      onViewportChanged: _controller.loadViewport,
+                      fitRestaurants: _controller.shouldFitSearchResults,
                     ),
-                    child: Align(
-                      alignment: Alignment.topCenter,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _HomeSearchBar(
-                            controller: _searchController,
-                            onSearch: _submitSearch,
-                            onChanged: _onSearchChanged,
-                            onFocusChanged: _onSearchFocusChanged,
-                            onClearText: _clearSearchText,
-                          ),
-                          const SizedBox(height: AppSpacing.xs),
-                          Row(
-                            children: [
-                              _ResultCountPill(
-                                count: _controller.results.length,
-                              ),
-                              const Spacer(),
-                              _ResultsViewSwitch(controller: _controller),
-                            ],
-                          ),
-                          if (hasActiveCriteria) ...[
-                            const SizedBox(height: AppSpacing.xs),
-                            _ActiveFilterStrip(
-                              controller: _controller,
-                              onClearAll: _clearAll,
+                    _RestaurantResultsList(
+                      controller: _controller,
+                      topPadding: controlsBottom + 8,
+                      onSelected: _selectSearchResult,
+                    ),
+                  ],
+                ),
+                Positioned.fill(
+                  child: SafeArea(
+                    bottom: false,
+                    child: Padding(
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                        AppSpacing.screen,
+                        AppSpacing.screen,
+                        AppSpacing.screen,
+                        0,
+                      ),
+                      child: Align(
+                        alignment: Alignment.topCenter,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _HomeSearchBar(
+                              controller: _searchController,
+                              onSearch: _submitSearch,
+                              onChanged: _onSearchChanged,
+                              onFocusChanged: _onSearchFocusChanged,
+                              onOpen: _openSearch,
+                              onClose: _closeSearch,
+                              isSearchOpen: _isSearchOpen,
                             ),
+                            const SizedBox(height: AppSpacing.xs),
+                            Row(
+                              children: [
+                                _ResultCountPill(
+                                  count: _controller.results.length,
+                                ),
+                                const Spacer(),
+                                _ResultsViewSwitch(controller: _controller),
+                              ],
+                            ),
+                            if (hasActiveCriteria) ...[
+                              const SizedBox(height: AppSpacing.xs),
+                              _ActiveFilterStrip(
+                                controller: _controller,
+                                onClearAll: _clearAll,
+                              ),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              if (_controller.isLoading)
-                PositionedDirectional(
-                  top: MediaQuery.paddingOf(context).top + controlsBottom - 3,
-                  start: AppSpacing.screen,
-                  end: AppSpacing.screen,
-                  child: const ClipRRect(
-                    borderRadius: BorderRadius.all(Radius.circular(99)),
-                    child: LinearProgressIndicator(
-                      key: ValueKey('restaurant-search-loading'),
-                      minHeight: 3,
-                      color: AppColors.primary,
-                      backgroundColor: Colors.transparent,
+                if (_controller.isLoading)
+                  PositionedDirectional(
+                    top: MediaQuery.paddingOf(context).top + controlsBottom - 3,
+                    start: AppSpacing.screen,
+                    end: AppSpacing.screen,
+                    child: const ClipRRect(
+                      borderRadius: BorderRadius.all(Radius.circular(99)),
+                      child: LinearProgressIndicator(
+                        key: ValueKey('restaurant-search-loading'),
+                        minHeight: 3,
+                        color: AppColors.primary,
+                        backgroundColor: Colors.transparent,
+                      ),
                     ),
                   ),
-                ),
-              if (!_controller.isLoading &&
-                  _controller.results.isEmpty &&
-                  !_controller.hasSearchError)
-                _EmptyResultsOverlay(
-                  topPadding: controlsBottom,
-                  showClear: _controller.filters.isActive,
-                  onClear: _clearAll,
-                ),
-              if (_controller.hasSearchError && _controller.results.isEmpty)
-                _SearchErrorOverlay(
-                  topPadding: controlsBottom,
-                  onRetry: () => _controller.search(force: true),
-                ),
-              if (_controller.hasSearchError && _controller.results.isNotEmpty)
-                PositionedDirectional(
-                  top: MediaQuery.paddingOf(context).top + controlsBottom + 6,
-                  start: AppSpacing.screen,
-                  end: AppSpacing.screen,
-                  child: _CompactErrorBanner(
+                if (!_controller.isLoading &&
+                    _controller.results.isEmpty &&
+                    !_controller.hasSearchError)
+                  _EmptyResultsOverlay(
+                    topPadding: controlsBottom,
+                    showClear: _controller.filters.isActive,
+                    onClear: _clearAll,
+                  ),
+                if (_controller.hasSearchError && _controller.results.isEmpty)
+                  _SearchErrorOverlay(
+                    topPadding: controlsBottom,
                     onRetry: () => _controller.search(force: true),
                   ),
-                ),
-              if (showSuggestions)
+                if (_controller.hasSearchError &&
+                    _controller.results.isNotEmpty)
+                  PositionedDirectional(
+                    top: MediaQuery.paddingOf(context).top + controlsBottom + 6,
+                    start: AppSpacing.screen,
+                    end: AppSpacing.screen,
+                    child: _CompactErrorBanner(
+                      onRetry: () => _controller.search(force: true),
+                    ),
+                  ),
+                if (showSuggestions)
+                  PositionedDirectional(
+                    top:
+                        MediaQuery.paddingOf(context).top +
+                        AppSpacing.screen +
+                        72,
+                    start: AppSpacing.screen,
+                    end: AppSpacing.screen,
+                    child: Offstage(
+                      offstage: _selectedSearchRestaurant != null,
+                      child: _RestaurantSuggestionDropdown(
+                        suggestions: _controller.suggestions,
+                        isLoading: _controller.isLoadingSuggestions,
+                        scrollController: _suggestionScrollController,
+                        selectedRestaurantId: _selectedSearchRestaurant?.id,
+                        onSelected: _selectSearchResult,
+                      ),
+                    ),
+                  ),
                 PositionedDirectional(
                   top:
-                      MediaQuery.paddingOf(context).top +
-                      AppSpacing.screen +
-                      72,
-                  start: AppSpacing.screen,
-                  end: AppSpacing.screen,
-                  child: _RestaurantSuggestionDropdown(
-                    suggestions: _controller.suggestions,
-                    isLoading: _controller.isLoadingSuggestions,
-                    onSelected: _selectSuggestion,
+                      MediaQuery.paddingOf(context).top + AppSpacing.screen + 9,
+                  end: AppSpacing.screen + 10,
+                  child: _HomeFilterButton(
+                    activeFilterCount: _controller.filters.activeFilterCount,
+                    onTap: _openFilters,
                   ),
                 ),
-              PositionedDirectional(
-                top: MediaQuery.paddingOf(context).top + AppSpacing.screen + 9,
-                end: AppSpacing.screen + 10,
-                child: _HomeFilterButton(
-                  activeFilterCount: _controller.filters.activeFilterCount,
-                  onTap: _openFilters,
+                PositionedDirectional(
+                  top:
+                      MediaQuery.paddingOf(context).top + AppSpacing.screen + 9,
+                  start: AppSpacing.screen + 8,
+                  child: _HomeSearchSubmitButton(onTap: _submitSearch),
                 ),
-              ),
-              PositionedDirectional(
-                top: MediaQuery.paddingOf(context).top + AppSpacing.screen + 9,
-                start: AppSpacing.screen + 8,
-                child: _HomeSearchSubmitButton(onTap: _submitSearch),
-              ),
-            ],
-          );
-        },
+              ],
+            );
+          },
+        ),
       ),
     );
   }
@@ -302,14 +344,18 @@ class _HomeSearchBar extends StatefulWidget {
     required this.onSearch,
     required this.onChanged,
     required this.onFocusChanged,
-    required this.onClearText,
+    required this.onOpen,
+    required this.onClose,
+    required this.isSearchOpen,
   });
 
   final TextEditingController controller;
   final Future<void> Function() onSearch;
   final ValueChanged<String> onChanged;
   final ValueChanged<bool> onFocusChanged;
-  final Future<void> Function() onClearText;
+  final VoidCallback onOpen;
+  final Future<void> Function() onClose;
+  final bool isSearchOpen;
 
   @override
   State<_HomeSearchBar> createState() => _HomeSearchBarState();
@@ -382,6 +428,7 @@ class _HomeSearchBarState extends State<_HomeSearchBar> {
                   focusNode: _focusNode,
                   textAlign: TextAlign.start,
                   textInputAction: TextInputAction.search,
+                  onTap: widget.onOpen,
                   onChanged: widget.onChanged,
                   onSubmitted: (_) => widget.onSearch(),
                   onTapOutside: (_) => FocusScope.of(context).unfocus(),
@@ -402,11 +449,11 @@ class _HomeSearchBarState extends State<_HomeSearchBar> {
                   ),
                 ),
               ),
-              if (widget.controller.text.isNotEmpty)
+              if (widget.isSearchOpen)
                 IconButton(
-                  key: const ValueKey('home-search-clear'),
-                  tooltip: localizations.clearAll,
-                  onPressed: widget.onClearText,
+                  key: const ValueKey('home-search-close'),
+                  tooltip: localizations.closeSearch,
+                  onPressed: widget.onClose,
                   icon: const Icon(
                     Icons.close_rounded,
                     size: 20,
@@ -525,11 +572,15 @@ class _RestaurantSuggestionDropdown extends StatelessWidget {
   const _RestaurantSuggestionDropdown({
     required this.suggestions,
     required this.isLoading,
+    required this.scrollController,
+    required this.selectedRestaurantId,
     required this.onSelected,
   });
 
   final List<RestaurantMapMarker> suggestions;
   final bool isLoading;
+  final ScrollController scrollController;
+  final int? selectedRestaurantId;
   final ValueChanged<RestaurantMapMarker> onSelected;
 
   @override
@@ -557,6 +608,9 @@ class _RestaurantSuggestionDropdown extends StatelessWidget {
               constraints: const BoxConstraints(maxHeight: 300),
               child: ListView.separated(
                 key: const ValueKey('restaurant-suggestion-list'),
+                controller: scrollController,
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
                 shrinkWrap: true,
                 padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
                 itemCount: suggestions.length,
@@ -603,6 +657,7 @@ class _RestaurantSuggestionDropdown extends StatelessWidget {
                       size: 18,
                       color: AppColors.textMuted,
                     ),
+                    selected: selectedRestaurantId == suggestion.id,
                     onTap: () => onSelected(suggestion),
                   );
                 },
@@ -861,10 +916,12 @@ class _RestaurantResultsList extends StatelessWidget {
   const _RestaurantResultsList({
     required this.controller,
     required this.topPadding,
+    required this.onSelected,
   });
 
   final RestaurantSearchController controller;
   final double topPadding;
+  final ValueChanged<RestaurantMapMarker> onSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -885,10 +942,7 @@ class _RestaurantResultsList extends StatelessWidget {
           final restaurant = controller.results[index];
           return RestaurantSearchResultCard(
             restaurant: restaurant,
-            onTap: () => Navigator.of(context).pushNamed(
-              AppRouteNames.restaurantDetails,
-              arguments: restaurant.id,
-            ),
+            onTap: () => onSelected(restaurant),
           );
         },
       ),

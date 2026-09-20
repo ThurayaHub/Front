@@ -4,9 +4,13 @@ import 'package:thuraya/features/wheel/models/wheel_models.dart';
 abstract interface class WheelGateway {
   Future<WheelSessionDto> createSession({String? name});
 
+  Future<WheelSessionDto> getCurrentSession();
+
   Future<WheelSessionDto> getSession(int wheelSessionId);
 
   Future<WheelOptionDto> addOption(int wheelSessionId, String text);
+
+  Future<WheelOptionDto> removeOption(int wheelSessionId, int optionId);
 
   Future<WheelSpinResultDto> spin(int wheelSessionId);
 }
@@ -35,10 +39,27 @@ class WheelService implements WheelGateway {
   }
 
   @override
+  Future<WheelSessionDto> getCurrentSession() async {
+    final data = await _apiClient.getResultData('/api/wheels/current');
+    return WheelSessionDto.fromJson(_object(data, 'wheel session'));
+  }
+
+  @override
   Future<WheelOptionDto> addOption(int wheelSessionId, String text) async {
     final data = await _apiClient.postResultData(
       '/api/wheels/$wheelSessionId/options',
       body: <String, Object?>{'text': text},
+    );
+    return WheelOptionDto.fromJson(_object(data, 'wheel option'));
+  }
+
+  @override
+  Future<WheelOptionDto> removeOption(
+    int wheelSessionId,
+    int optionId,
+  ) async {
+    final data = await _apiClient.deleteResultData(
+      '/api/wheels/$wheelSessionId/options/$optionId',
     );
     return WheelOptionDto.fromJson(_object(data, 'wheel option'));
   }

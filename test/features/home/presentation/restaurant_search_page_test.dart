@@ -14,7 +14,11 @@ import 'package:thuraya/features/home/presentation/home_page.dart';
 import 'package:thuraya/features/home/presentation/restaurant_search_controller.dart';
 import 'package:thuraya/features/home/presentation/widgets/thuraya_map.dart';
 import 'package:thuraya/features/home/services/restaurant_map_service.dart';
+import 'package:thuraya/features/restaurant_details/models/restaurant_details_dto.dart';
+import 'package:thuraya/features/restaurant_details/services/restaurant_details_service.dart';
 import 'package:thuraya/l10n/generated/app_localizations.dart';
+
+import '../../../fixtures/restaurant_details_fixture.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -101,8 +105,15 @@ void main() {
 
       await tester.tap(find.byKey(const ValueKey('restaurant-result-9')));
       await tester.pumpAndSettle();
-      expect(find.text('details-9'), findsOneWidget);
-      Navigator.of(tester.element(find.text('details-9'))).pop();
+      expect(controller.resultsView, RestaurantResultsView.map);
+      expect(_selectedMapRestaurant(tester)?.id, 9);
+      expect(
+        find.byKey(const ValueKey('restaurant-preview-9')),
+        findsOneWidget,
+      );
+      await tester.tap(find.byKey(const ValueKey('restaurant-preview-close')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('results-list-view')));
       await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey('restaurant-result-9')), findsOneWidget);
       expect(controller.resultsView, RestaurantResultsView.list);
@@ -313,7 +324,142 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('restaurant-suggestion-10')));
     await tester.pumpAndSettle();
 
-    expect(controller.filters.searchText, 'ثريا الرياض');
+    expect(_selectedMapRestaurant(tester)?.id, 10);
+    expect(find.byKey(const ValueKey('restaurant-preview-10')), findsOneWidget);
+    expect(controller.filters.searchText, isEmpty);
+    expect(
+      tester
+          .widget<TextField>(
+            find.byKey(
+              const ValueKey('home-search-input'),
+              skipOffstage: false,
+            ),
+          )
+          .controller!
+          .text,
+      'ثري',
+    );
+
+    await tester.tap(find.byKey(const ValueKey('restaurant-preview-close')));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('restaurant-suggestion-dropdown')),
+      findsOneWidget,
+    );
+    expect(tester.widget<TextField>(searchInput).controller!.text, 'ثري');
+  });
+
+  testWidgets(
+    'scrolling and hiding the keyboard keep search results and position',
+    (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final controller = RestaurantSearchController(
+        searchGateway: _PageSearchGateway(),
+        lookupGateway: const _PageLookupGateway(),
+      );
+      addTearDown(controller.dispose);
+      await controller.loadViewport(_viewport);
+      await tester.pumpWidget(_TestApp(controller: controller));
+      await tester.pumpAndSettle();
+
+      final input = find.byKey(const ValueKey('home-search-input'));
+      await tester.enterText(input, 'many');
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pumpAndSettle();
+
+      final list = find.byKey(const ValueKey('restaurant-suggestion-list'));
+      expect(list, findsOneWidget);
+      await tester.drag(list, const Offset(0, -180));
+      await tester.pumpAndSettle();
+      final scrollable = tester.state<ScrollableState>(
+        find.descendant(of: list, matching: find.byType(Scrollable)),
+      );
+      final offsetBeforeDetails = scrollable.position.pixels;
+
+      expect(offsetBeforeDetails, greaterThan(0));
+      expect(find.byKey(const ValueKey('home-search-close')), findsOneWidget);
+      expect(tester.widget<TextField>(input).controller!.text, 'many');
+      expect(
+        find.byKey(const ValueKey('restaurant-suggestion-dropdown')),
+        findsOneWidget,
+      );
+
+      tester.testTextInput.hide();
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('restaurant-suggestion-dropdown')),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.byKey(const ValueKey('restaurant-suggestion-105')));
+      await tester.pumpAndSettle();
+      expect(_selectedMapRestaurant(tester)?.id, 105);
+      expect(
+        find.byKey(const ValueKey('restaurant-preview-105')),
+        findsOneWidget,
+      );
+
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      final restoredScrollable = tester.state<ScrollableState>(
+        find.descendant(of: list, matching: find.byType(Scrollable)),
+      );
+      expect(restoredScrollable.position.pixels, offsetBeforeDetails);
+      expect(tester.widget<TextField>(input).controller!.text, 'many');
+      expect(
+        find.byKey(const ValueKey('restaurant-suggestion-dropdown')),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets('explicit close and back are the only search exit paths', (
+    tester,
+  ) async {
+    final controller = RestaurantSearchController(
+      searchGateway: _PageSearchGateway(),
+      lookupGateway: const _PageLookupGateway(),
+    );
+    addTearDown(controller.dispose);
+    await controller.loadViewport(_viewport);
+    await tester.pumpWidget(_TestApp(controller: controller));
+    await tester.pumpAndSettle();
+
+    final input = find.byKey(const ValueKey('home-search-input'));
+    await tester.enterText(input, 'ثري');
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('restaurant-suggestion-10')));
+    await tester.pumpAndSettle();
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('restaurant-suggestion-dropdown')),
+      findsOneWidget,
+    );
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('restaurant-suggestion-dropdown')),
+      findsNothing,
+    );
+    expect(tester.widget<TextField>(input).controller!.text, isEmpty);
+
+    await tester.tap(input);
+    await tester.enterText(input, 'ثري');
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('home-search-close')));
+    await tester.pumpAndSettle();
+
+    expect(tester.widget<TextField>(input).controller!.text, isEmpty);
     expect(
       find.byKey(const ValueKey('restaurant-suggestion-dropdown')),
       findsNothing,
@@ -322,9 +468,11 @@ void main() {
 }
 
 class _TestApp extends StatelessWidget {
-  const _TestApp({required this.controller});
+  _TestApp({required this.controller});
 
   final RestaurantSearchController controller;
+  final RestaurantDetailsService restaurantDetailsService =
+      _SearchPreviewDetailsService();
 
   @override
   Widget build(BuildContext context) {
@@ -338,7 +486,10 @@ class _TestApp extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: AppLocalizations.supportedLocales,
-      home: HomePage(controller: controller),
+      home: HomePage(
+        controller: controller,
+        restaurantDetailsService: restaurantDetailsService,
+      ),
       onGenerateRoute: (settings) {
         if (settings.name == AppRouteNames.restaurantDetails) {
           return MaterialPageRoute<void>(
@@ -349,6 +500,27 @@ class _TestApp extends StatelessWidget {
         return null;
       },
     );
+  }
+}
+
+RestaurantMapMarker? _selectedMapRestaurant(WidgetTester tester) {
+  return tester
+      .widget<ThurayaMap>(
+        find.ancestor(
+          of: find.byKey(const ValueKey('home-map')),
+          matching: find.byType(ThurayaMap),
+        ),
+      )
+      .selectedRestaurant;
+}
+
+class _SearchPreviewDetailsService extends RestaurantDetailsService {
+  @override
+  Future<RestaurantDetailsDto> getDetails(int restaurantId) async {
+    return RestaurantDetailsDto.fromJson({
+      ...restaurantDetailsData,
+      'id': restaurantId,
+    });
   }
 }
 
@@ -381,6 +553,17 @@ class _PageSearchGateway implements RestaurantSearchGateway {
   }) async {
     suggestionRequests.add(filters);
     return switch (filters.searchText) {
+      'many' => List.generate(
+        12,
+        (index) => RestaurantMapMarker(
+          id: 100 + index,
+          name: 'Restaurant $index',
+          nameArabic: 'مطعم $index',
+          latitude: 24.70 + index * 0.001,
+          longitude: 46.60 + index * 0.001,
+          hasThurayaStar: false,
+        ),
+      ),
       'ثري' => const [_thurayaRestaurant],
       _ => const [_thurayaRestaurant, _secondSuggestion],
     };

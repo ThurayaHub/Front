@@ -65,6 +65,28 @@ void main() {
       expect(controller.results, const [_restaurant]);
     },
   );
+
+  test(
+    'ignores an older suggestion response after the query changes',
+    () async {
+      final search = _DeferredSuggestionGateway();
+      final controller = RestaurantSearchController(
+        searchGateway: search,
+        lookupGateway: const _LookupGateway(),
+      );
+      addTearDown(controller.dispose);
+
+      final oldRequest = controller.loadSuggestions('bur');
+      final newRequest = controller.loadSuggestions('burger');
+      search.complete('burger', const [_restaurant]);
+      await newRequest;
+      search.complete('bur', const []);
+      await oldRequest;
+
+      expect(controller.suggestions, const [_restaurant]);
+      expect(controller.isLoadingSuggestions, isFalse);
+    },
+  );
 }
 
 class _SearchGateway implements RestaurantSearchGateway {
@@ -93,6 +115,31 @@ class _SearchGateway implements RestaurantSearchGateway {
     SupportedMapBounds bounds, {
     int limit = 6,
   }) => Future.value(results);
+}
+
+class _DeferredSuggestionGateway implements RestaurantSearchGateway {
+  final Map<String, Completer<List<RestaurantMapMarker>>> _requests = {};
+
+  void complete(String query, List<RestaurantMapMarker> results) {
+    _requests[query]!.complete(results);
+  }
+
+  @override
+  Future<List<RestaurantMapMarker>> loadSuggestions(
+    RestaurantSearchFilters filters,
+    SupportedMapBounds bounds, {
+    int limit = 6,
+  }) {
+    return (_requests[filters.searchText] ??= Completer()).future;
+  }
+
+  @override
+  Future<List<RestaurantMapMarker>> loadViewport(
+    RestaurantSearchFilters filters,
+    SupportedMapBounds bounds, {
+    required SupportedMapBounds cacheExtent,
+    required bool includeListMetadata,
+  }) async => const [];
 }
 
 const _viewport = SupportedMapBounds(

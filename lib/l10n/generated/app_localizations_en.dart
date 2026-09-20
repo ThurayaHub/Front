@@ -144,11 +144,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noReviewsYet => 'No reviews yet';
 
   @override
-  String get restaurantReviewListUnavailable =>
-      'The review summary is available, but individual user reviews are not currently provided by the server.';
+  String get loadingReviews => 'Loading reviews...';
+
+  @override
+  String get reviewsLoadError => 'Reviews could not be loaded.';
 
   @override
   String get searchRestaurant => 'Search for a restaurant...';
+
+  @override
+  String get closeSearch => 'Close search';
 
   @override
   String get filterRestaurants => 'Filter restaurants';
@@ -301,16 +306,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get yourWheelChoice => 'Your choice is';
 
   @override
-  String get wheelOptionBurger => 'Burger';
+  String get wheelEmptyState => 'Add your options and start spinning';
 
   @override
-  String get wheelOptionPizza => 'Pizza';
-
-  @override
-  String get wheelOptionSushi => 'Sushi';
-
-  @override
-  String get wheelOptionCoffee => 'Coffee';
+  String get removeWheelOption => 'Remove option';
 
   @override
   String get wheelNetworkError =>

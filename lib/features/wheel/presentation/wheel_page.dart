@@ -32,7 +32,7 @@ class _WheelPageState extends State<WheelPage>
   double _rotation = 0;
   String? _selectedOption;
   String? _validationMessage;
-  bool _initialOptionsLoaded = false;
+  bool _initialized = false;
   bool _isSpinning = false;
 
   @override
@@ -49,18 +49,11 @@ class _WheelPageState extends State<WheelPage>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_initialOptionsLoaded) return;
+    if (_initialized) return;
 
-    final localizations = AppLocalizations.of(context);
-    final initialOptions = [
-      localizations.wheelOptionBurger,
-      localizations.wheelOptionPizza,
-      localizations.wheelOptionSushi,
-      localizations.wheelOptionCoffee,
-    ];
-    _initialOptionsLoaded = true;
+    _initialized = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _initializeWheel(initialOptions);
+      if (mounted) _initializeWheel();
     });
   }
 
@@ -79,11 +72,11 @@ class _WheelPageState extends State<WheelPage>
     if (mounted) setState(() {});
   }
 
-  Future<void> _initializeWheel(List<String> initialOptions) async {
+  Future<void> _initializeWheel() async {
     try {
       await AuthenticationGuard.requireAuthentication<void>(
         context,
-        () => _wheelController.initialize(initialOptions),
+        _wheelController.initialize,
       );
     } catch (_) {
       // The controller and the shared authentication flow expose retry UI.
@@ -91,13 +84,26 @@ class _WheelPageState extends State<WheelPage>
   }
 
   Future<void> _retryInitialization() async {
-    final localizations = AppLocalizations.of(context);
-    await _initializeWheel([
-      localizations.wheelOptionBurger,
-      localizations.wheelOptionPizza,
-      localizations.wheelOptionSushi,
-      localizations.wheelOptionCoffee,
-    ]);
+    await _initializeWheel();
+  }
+
+  Future<void> _removeOption(WheelOptionDto option) async {
+    if (_isSpinning || _wheelController.isMutating) return;
+
+    bool? removed;
+    try {
+      removed = await AuthenticationGuard.requireAuthentication<bool>(
+        context,
+        () => _wheelController.removeOption(option.id),
+      );
+    } catch (_) {
+      return;
+    }
+    if (!mounted || removed != true) return;
+    setState(() {
+      _selectedOption = null;
+      _validationMessage = null;
+    });
   }
 
   Future<void> _addOption() async {
@@ -341,13 +347,13 @@ class _WheelPageState extends State<WheelPage>
                   spacing: AppSpacing.xs,
                   runSpacing: AppSpacing.xs,
                   children: [
-                    for (var index = 0; index < options.length; index++)
+                    for (final option in options)
                       InputChip(
-                        key: ValueKey('wheel-option-$index'),
+                        key: ValueKey('wheel-option-${option.id}'),
                         label: ConstrainedBox(
                           constraints: const BoxConstraints(maxWidth: 132),
                           child: Text(
-                            options[index].text,
+                            option.text,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -357,6 +363,12 @@ class _WheelPageState extends State<WheelPage>
                         side: const BorderSide(color: AppColors.panelBorder),
                         shape: const StadiumBorder(),
                         visualDensity: VisualDensity.compact,
+                        deleteIcon: const Icon(Icons.close_rounded, size: 18),
+                        deleteButtonTooltipMessage:
+                            localizations.removeWheelOption,
+                        onDeleted: controlsEnabled
+                            ? () => _removeOption(option)
+                            : null,
                       ),
                   ],
                 ),
@@ -374,23 +386,36 @@ class _WheelPageState extends State<WheelPage>
                 ),
               ],
               const SizedBox(height: AppSpacing.lg),
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final wheelSize = math.min(320.0, constraints.maxWidth);
-                  return Center(
-                    child: AnimatedBuilder(
-                      animation: _spinController,
-                      builder: (context, child) => DynamicWheel(
-                        options: options
-                            .map((option) => option.text)
-                            .toList(growable: false),
-                        rotation: _rotationAnimation?.value ?? _rotation,
-                        size: wheelSize,
-                      ),
+              if (options.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
+                  child: Text(
+                    localizations.wheelEmptyState,
+                    key: const ValueKey('wheel-empty-state'),
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.cardTitle.copyWith(
+                      color: AppColors.textMuted,
                     ),
-                  );
-                },
-              ),
+                  ),
+                )
+              else
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final wheelSize = math.min(320.0, constraints.maxWidth);
+                    return Center(
+                      child: AnimatedBuilder(
+                        animation: _spinController,
+                        builder: (context, child) => DynamicWheel(
+                          options: options
+                              .map((option) => option.text)
+                              .toList(growable: false),
+                          rotation: _rotationAnimation?.value ?? _rotation,
+                          size: wheelSize,
+                        ),
+                      ),
+                    );
+                  },
+                ),
               const SizedBox(height: AppSpacing.xl),
               Center(
                 child: SizedBox(

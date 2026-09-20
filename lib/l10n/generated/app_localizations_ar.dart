@@ -141,11 +141,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get noReviewsYet => 'لا توجد تقييمات حتى الآن';
 
   @override
-  String get restaurantReviewListUnavailable =>
-      'ملخص التقييمات متاح، لكن تفاصيل تقييمات المستخدمين غير متاحة من الخادم حالياً.';
+  String get loadingReviews => 'جارٍ تحميل التقييمات...';
+
+  @override
+  String get reviewsLoadError => 'تعذر تحميل التقييمات.';
 
   @override
   String get searchRestaurant => 'ابحث عن مطعم...';
+
+  @override
+  String get closeSearch => 'إغلاق البحث';
 
   @override
   String get filterRestaurants => 'تصفية المطاعم';
@@ -295,16 +300,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get yourWheelChoice => 'اختيارك هو';
 
   @override
-  String get wheelOptionBurger => 'برجر';
+  String get wheelEmptyState => 'أضف خياراتك وابدأ اللف';
 
   @override
-  String get wheelOptionPizza => 'بيتزا';
-
-  @override
-  String get wheelOptionSushi => 'سوشي';
-
-  @override
-  String get wheelOptionCoffee => 'قهوة';
+  String get removeWheelOption => 'إزالة الخيار';
 
   @override
   String get wheelNetworkError => 'تعذر الاتصال بالعجلة حالياً. حاول مرة أخرى.';

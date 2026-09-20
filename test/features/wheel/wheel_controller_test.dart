@@ -7,13 +7,13 @@ import 'package:thuraya/features/wheel/presentation/wheel_controller.dart';
 import 'package:thuraya/features/wheel/services/wheel_service.dart';
 
 void main() {
-  test(
-    'creates a session, stores backend option IDs, and maps winner by ID',
-    () async {
+  test('creates an empty session and maps the backend winner by ID', () async {
       final gateway = _WheelGateway();
       final controller = WheelController(gateway: gateway);
 
-      await controller.initialize(['برجر', 'بيتزا']);
+      await controller.initialize();
+      await controller.addOption('برجر');
+      await controller.addOption('بيتزا');
       final added = await controller.addOption('قهوة');
       final selection = await controller.spin();
 
@@ -28,13 +28,40 @@ void main() {
       expect(selection?.optionIndex, 1);
       expect(gateway.createCalls, 1);
       expect(gateway.spinCalls, 1);
-    },
-  );
+    });
+
+  test('restores the current backend session without creating another', () async {
+    final gateway = _WheelGateway(currentSessionExists: true)
+      ..options.add(
+        const WheelOptionDto(id: 44, text: 'محفوظ', isActive: true),
+      );
+    final controller = WheelController(gateway: gateway);
+
+    await controller.initialize();
+
+    expect(controller.activeOptions.single.text, 'محفوظ');
+    expect(gateway.getCurrentCalls, 1);
+    expect(gateway.createCalls, 0);
+  });
+
+  test('soft-removes an option only after backend success', () async {
+    final gateway = _WheelGateway();
+    final controller = WheelController(gateway: gateway);
+    await controller.initialize();
+    await controller.addOption('برجر');
+    final option = controller.activeOptions.single;
+
+    expect(await controller.removeOption(option.id), isTrue);
+    expect(controller.activeOptions, isEmpty);
+    expect(gateway.options.single.isActive, isFalse);
+  });
 
   test('guards a second spin while the first request is pending', () async {
     final gateway = _WheelGateway()..spinCompleter = Completer();
     final controller = WheelController(gateway: gateway);
-    await controller.initialize(['أ', 'ب']);
+    await controller.initialize();
+    await controller.addOption('أ');
+    await controller.addOption('ب');
 
     final first = controller.spin();
     final second = await controller.spin();
@@ -48,7 +75,9 @@ void main() {
   test('keeps current options and classifies forbidden failures', () async {
     final gateway = _WheelGateway();
     final controller = WheelController(gateway: gateway);
-    await controller.initialize(['أ', 'ب']);
+    await controller.initialize();
+    await controller.addOption('أ');
+    await controller.addOption('ب');
     gateway.addError = const ApiException('Forbidden', statusCode: 403);
 
     final added = await controller.addOption('ج');
@@ -69,7 +98,9 @@ void main() {
       for (final entry in cases.entries) {
         final gateway = _WheelGateway();
         final controller = WheelController(gateway: gateway);
-        await controller.initialize(['أ', 'ب']);
+        await controller.initialize();
+        await controller.addOption('أ');
+        await controller.addOption('ب');
         gateway.addError = ApiException('Failure', statusCode: entry.key);
 
         expect(await controller.addOption('ج'), isFalse);
@@ -81,7 +112,11 @@ void main() {
 }
 
 class _WheelGateway implements WheelGateway {
+  _WheelGateway({this.currentSessionExists = false});
+
+  bool currentSessionExists;
   int createCalls = 0;
+  int getCurrentCalls = 0;
   int spinCalls = 0;
   int nextOptionId = 100;
   ApiException? addError;
@@ -98,6 +133,16 @@ class _WheelGateway implements WheelGateway {
   @override
   Future<WheelSessionDto> createSession({String? name}) async {
     createCalls++;
+    currentSessionExists = true;
+    return _session();
+  }
+
+  @override
+  Future<WheelSessionDto> getCurrentSession() async {
+    getCurrentCalls++;
+    if (!currentSessionExists) {
+      throw const ApiException('Not found', statusCode: 404);
+    }
     return _session();
   }
 
@@ -114,6 +159,18 @@ class _WheelGateway implements WheelGateway {
     );
     options.add(option);
     return option;
+  }
+
+  @override
+  Future<WheelOptionDto> removeOption(int wheelSessionId, int optionId) async {
+    final index = options.indexWhere((option) => option.id == optionId);
+    final removed = WheelOptionDto(
+      id: options[index].id,
+      text: options[index].text,
+      isActive: false,
+    );
+    options[index] = removed;
+    return removed;
   }
 
   @override
