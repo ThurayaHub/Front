@@ -166,7 +166,9 @@ class _ChooseRestaurantPageState extends State<ChooseRestaurantPage> {
               1 => _CategoryStep(
                 key: const ValueKey('choose-category-step'),
                 categories: _controller.categories,
+                allSelected: _controller.allCategoriesSelected,
                 selectedIds: _controller.selectedCategoryIds,
+                onAllCategories: _controller.useAllCategories,
                 onToggle: _controller.toggleCategory,
               ),
               _ => _NeighborhoodStep(
@@ -433,12 +435,16 @@ class _CategoryStep extends StatelessWidget {
   const _CategoryStep({
     super.key,
     required this.categories,
+    required this.allSelected,
     required this.selectedIds,
+    required this.onAllCategories,
     required this.onToggle,
   });
 
   final List<RestaurantLookupItemDto> categories;
+  final bool allSelected;
   final Set<int> selectedIds;
+  final VoidCallback onAllCategories;
   final ValueChanged<int> onToggle;
 
   @override
@@ -465,9 +471,39 @@ class _CategoryStep extends StatelessWidget {
                 mainAxisSpacing: AppSpacing.sm,
                 childAspectRatio: 1.45,
               ),
-              itemCount: categories.length,
+              itemCount: categories.length + 1,
               itemBuilder: (context, index) {
-                final item = categories[index];
+                if (index == 0) {
+                  return _SelectableSurface(
+                    key: const ValueKey('choose-category-all'),
+                    selected: allSelected,
+                    semanticLabel: l10n.allCuisines,
+                    onTap: onAllCategories,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.restaurant_menu_rounded,
+                          size: 30,
+                          color: allSelected
+                              ? AppColors.onPrimary
+                              : AppColors.primary,
+                        ),
+                        const SizedBox(height: AppSpacing.xs),
+                        Text(
+                          l10n.allCuisines,
+                          style: AppTextStyles.cardTitle.copyWith(
+                            color: allSelected
+                                ? AppColors.onPrimary
+                                : AppColors.textPrimary,
+                            fontSize: 17,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+                final item = categories[index - 1];
                 final selected = selectedIds.contains(item.id);
                 return _SelectableSurface(
                   key: ValueKey('choose-category-${item.id}'),

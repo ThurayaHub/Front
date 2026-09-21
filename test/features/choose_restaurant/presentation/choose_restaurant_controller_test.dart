@@ -65,6 +65,32 @@ void main() {
     expect(controller.recommendationStatus, RecommendationStatus.success);
   });
 
+  test('all cuisines sends no category filter', () async {
+    final gateway = _ChooseGateway();
+    final controller = _controller(chooseGateway: gateway);
+    addTearDown(controller.dispose);
+    await controller.initialize();
+    controller.togglePriceLevel(2);
+    controller.nextStep();
+
+    expect(controller.canContinue, isFalse);
+    controller.useAllCategories();
+    expect(controller.allCategoriesSelected, isTrue);
+    expect(controller.selectedCategoryIds, isEmpty);
+    expect(controller.canContinue, isTrue);
+
+    controller.toggleCategory(8);
+    expect(controller.allCategoriesSelected, isFalse);
+    expect(controller.selectedCategoryIds, {8});
+    controller.useAllCategories();
+    expect(controller.selectedCategoryIds, isEmpty);
+
+    controller.nextStep();
+    await controller.requestRecommendation();
+
+    expect(gateway.requests.single.categoryIds, isEmpty);
+  });
+
   test('turns a backend 404 into the friendly no-match state', () async {
     final controller = _controller(chooseGateway: _NoMatchGateway());
     addTearDown(controller.dispose);

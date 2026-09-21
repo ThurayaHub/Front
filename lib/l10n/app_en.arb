@@ -146,7 +146,7 @@
   "authenticationWelcome": "Welcome to Thuraya",
   "loginSubtitle": "Enter your mobile number to continue to Thuraya features that require an account.",
   "phoneNumber": "Mobile number",
-  "phoneNumberHint": "+9665XXXXXXXX",
+  "phoneNumberHint": "05XXXXXXXX",
   "continueLabel": "Continue",
   "registrationTitle": "Complete registration",
   "registrationSubtitle": "This number is not registered. Complete your details to create a Thuraya account.",
@@ -155,6 +155,18 @@
   "createAccount": "Create account",
   "changePhoneNumber": "Change mobile number",
   "fieldRequired": "This field is required",
+  "invalidSaudiPhone": "Enter a valid 10-digit Saudi mobile number starting with 05",
+  "invalidNameCharacters": "Name can contain only Arabic or English letters and spaces",
+  "invalidEmailCharacters": "Email contains invalid characters",
+  "emailAlreadyInUse": "This email address is already in use",
+  "maximumLengthExceeded": "Maximum length is {maxLength} characters",
+  "@maximumLengthExceeded": {
+    "placeholders": {
+      "maxLength": {
+        "type": "int"
+      }
+    }
+  },
   "invalidEmail": "Enter a valid email address",
   "authenticationUnavailable": "We couldn't complete login right now. Please try again.",
   "accountGuestTitle": "Welcome to Thuraya",
@@ -216,7 +228,8 @@
   "choosePriceTitle": "What's your budget?",
   "choosePriceSubtitle": "Select the price level that suits you",
   "chooseCategoryTitle": "What are you craving today?",
-  "chooseCategorySubtitle": "Choose one or more restaurant types",
+  "chooseCategorySubtitle": "Choose one or more cuisines, or choose All",
+  "allCuisines": "All",
   "chooseNeighborhoodTitle": "Where would you like to eat?",
   "chooseNeighborhoodSubtitle": "Choose a suitable neighborhood or neighborhoods",
   "next": "Next",

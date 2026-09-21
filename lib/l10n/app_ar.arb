@@ -146,7 +146,7 @@
   "authenticationWelcome": "مرحباً بك في ثريا",
   "loginSubtitle": "أدخل رقم جوالك للمتابعة إلى مزايا ثريا التي تتطلب حساباً.",
   "phoneNumber": "رقم الجوال",
-  "phoneNumberHint": "+9665XXXXXXXX",
+  "phoneNumberHint": "05XXXXXXXX",
   "continueLabel": "متابعة",
   "registrationTitle": "إكمال التسجيل",
   "registrationSubtitle": "هذا الرقم غير مسجل. أكمل بياناتك لإنشاء حساب ثريا.",
@@ -155,6 +155,18 @@
   "createAccount": "إنشاء الحساب",
   "changePhoneNumber": "تغيير رقم الجوال",
   "fieldRequired": "هذا الحقل مطلوب",
+  "invalidSaudiPhone": "أدخل رقم جوال سعودي صحيحاً من 10 أرقام يبدأ بـ 05",
+  "invalidNameCharacters": "يقبل الاسم الحروف العربية أو الإنجليزية والمسافات فقط",
+  "invalidEmailCharacters": "البريد الإلكتروني يحتوي على أحرف غير صالحة",
+  "emailAlreadyInUse": "البريد الإلكتروني مستخدم بالفعل",
+  "maximumLengthExceeded": "الحد الأقصى {maxLength} حرفاً",
+  "@maximumLengthExceeded": {
+    "placeholders": {
+      "maxLength": {
+        "type": "int"
+      }
+    }
+  },
   "invalidEmail": "أدخل بريداً إلكترونياً صحيحاً",
   "authenticationUnavailable": "تعذر إكمال تسجيل الدخول حالياً. حاول مرة أخرى.",
   "accountGuestTitle": "مرحباً بك في ثريا",
@@ -216,7 +228,8 @@
   "choosePriceTitle": "وش ميزانيتك؟",
   "choosePriceSubtitle": "حدد مستوى السعر المناسب لك",
   "chooseCategoryTitle": "وش تشتهي اليوم؟",
-  "chooseCategorySubtitle": "اختر نوع أو أكثر من المطاعم",
+  "chooseCategorySubtitle": "اختر نوعاً أو أكثر، أو اختر الكل",
+  "allCuisines": "الكل",
   "chooseNeighborhoodTitle": "وين ودك تاكل؟",
   "chooseNeighborhoodSubtitle": "اختر الحي أو الأحياء المناسبة لك",
   "next": "التالي",

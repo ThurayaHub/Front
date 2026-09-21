@@ -48,6 +48,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('وش تشتهي اليوم؟'), findsOneWidget);
+    expect(find.byKey(const ValueKey('choose-category-all')), findsOneWidget);
+    expect(find.text('الكل'), findsOneWidget);
     expect(find.text('آسيوي'), findsOneWidget);
     expect(find.text('ياباني'), findsOneWidget);
     expect(find.text('Asian'), findsNothing);
@@ -71,6 +73,36 @@ void main() {
     expect(controller.selectedPriceLevelIds, {1, 2});
     expect(controller.selectedCategoryIds, {8});
     expect(controller.selectedNeighborhoodIds, {16});
+  });
+
+  testWidgets('all cuisines advances without a category filter', (
+    tester,
+  ) async {
+    final controller = ChooseRestaurantController(
+      lookupGateway: _LookupGateway(),
+      chooseGateway: _ChooseGateway(),
+      detailsLoader: (_) => Future.error(Exception()),
+    );
+    addTearDown(controller.dispose);
+
+    await tester.pumpWidget(_TestApp(controller: controller));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('choose-price-1')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('choose-step-action')));
+    await tester.pumpAndSettle();
+
+    expect(controller.canContinue, isFalse);
+    await tester.tap(find.byKey(const ValueKey('choose-category-all')));
+    await tester.pump();
+
+    expect(controller.allCategoriesSelected, isTrue);
+    expect(controller.selectedCategoryIds, isEmpty);
+    expect(controller.canContinue, isTrue);
+
+    await tester.tap(find.byKey(const ValueKey('choose-step-action')));
+    await tester.pumpAndSettle();
+    expect(find.text('وين ودك تاكل؟'), findsOneWidget);
   });
 
   testWidgets(

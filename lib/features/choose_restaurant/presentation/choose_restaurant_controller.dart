@@ -62,13 +62,14 @@ class ChooseRestaurantController extends ChangeNotifier {
   final Set<int> selectedPriceLevelIds = {};
   final Set<int> selectedCategoryIds = {};
   final Set<int> selectedNeighborhoodIds = {};
+  bool allCategoriesSelected = false;
   String neighborhoodQuery = '';
   ChooseRestaurantRecommendation? recommendation;
   ChooseRestaurantRequest? lastRequest;
 
   bool get canContinue => switch (step) {
     0 => selectedPriceLevelIds.isNotEmpty,
-    1 => selectedCategoryIds.isNotEmpty,
+    1 => allCategoriesSelected || selectedCategoryIds.isNotEmpty,
     _ => true,
   };
 
@@ -110,7 +111,15 @@ class ChooseRestaurantController extends ChangeNotifier {
   }
 
   void toggleCategory(int id) {
+    allCategoriesSelected = false;
     _toggle(selectedCategoryIds, id);
+  }
+
+  void useAllCategories() {
+    if (allCategoriesSelected && selectedCategoryIds.isEmpty) return;
+    allCategoriesSelected = true;
+    selectedCategoryIds.clear();
+    _notify();
   }
 
   void toggleNeighborhood(int id) {

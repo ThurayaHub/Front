@@ -17,6 +17,18 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  static const _phoneNumberLength = 10;
+  static const _nameMaxLength = 40;
+  static const _emailMaxLength = 60;
+  static final _invalidNameCharacters = RegExp(
+    r'[^A-Za-z\u0621-\u063A\u0641-\u064A ]',
+  );
+  static final _validName = RegExp(r'^[A-Za-z\u0621-\u063A\u0641-\u064A ]+$');
+  static final _invalidEmailCharacters = RegExp(r'[^A-Za-z0-9@._%+\-]');
+  static final _validEmail = RegExp(
+    r'^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$',
+  );
+
   final _phoneFormKey = GlobalKey<FormState>();
   final _registrationFormKey = GlobalKey<FormState>();
   final _phoneController = TextEditingController();
@@ -25,6 +37,8 @@ class _LoginPageState extends State<LoginPage> {
 
   bool _showRegistration = false;
   bool _isSubmitting = false;
+  bool _nameHadInvalidCharacters = false;
+  bool _emailHadInvalidCharacters = false;
   String? _errorMessage;
 
   @override
@@ -87,7 +101,15 @@ class _LoginPageState extends State<LoginPage> {
         Navigator.of(context).pop(true);
       }
     } on ApiException catch (error) {
-      _showError(error.message);
+      if (!mounted) {
+        return;
+      }
+      final localizations = AppLocalizations.of(context);
+      _showError(
+        error.statusCode == 409
+            ? localizations.emailAlreadyInUse
+            : error.message,
+      );
     } catch (_) {
       if (mounted) {
         _showError(AppLocalizations.of(context).authenticationUnavailable);
@@ -231,11 +253,19 @@ class _LoginPageState extends State<LoginPage> {
             textInputAction: TextInputAction.done,
             autofillHints: const [AutofillHints.telephoneNumber],
             inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp(r'[0-9+]')),
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(_phoneNumberLength),
             ],
-            validator: (value) => value == null || value.trim().isEmpty
-                ? localizations.fieldRequired
-                : null,
+            validator: (value) {
+              final phoneNumber = value?.trim() ?? '';
+              if (phoneNumber.isEmpty) {
+                return localizations.fieldRequired;
+              }
+              if (!RegExp(r'^05\d{8}$').hasMatch(phoneNumber)) {
+                return localizations.invalidSaudiPhone;
+              }
+              return null;
+            },
             onSubmitted: (_) => _submitPhone(),
           ),
           if (_errorMessage != null) ...[
@@ -288,9 +318,30 @@ class _LoginPageState extends State<LoginPage> {
             label: localizations.fullName,
             textInputAction: TextInputAction.next,
             autofillHints: const [AutofillHints.name],
-            validator: (value) => value == null || value.trim().isEmpty
-                ? localizations.fieldRequired
-                : null,
+            inputFormatters: [
+              TextInputFormatter.withFunction((oldValue, newValue) {
+                _nameHadInvalidCharacters = _invalidNameCharacters.hasMatch(
+                  newValue.text,
+                );
+                return newValue;
+              }),
+              FilteringTextInputFormatter.deny(_invalidNameCharacters),
+              LengthLimitingTextInputFormatter(_nameMaxLength),
+            ],
+            validator: (value) {
+              final name = value?.trim() ?? '';
+              if (_nameHadInvalidCharacters ||
+                  (name.isNotEmpty && !_validName.hasMatch(name))) {
+                return localizations.invalidNameCharacters;
+              }
+              if (name.isEmpty) {
+                return localizations.fieldRequired;
+              }
+              if (name.length > _nameMaxLength) {
+                return localizations.maximumLengthExceeded(_nameMaxLength);
+              }
+              return null;
+            },
           ),
           const SizedBox(height: AppSpacing.md),
           _AuthTextField(
@@ -301,12 +352,28 @@ class _LoginPageState extends State<LoginPage> {
             textDirection: TextDirection.ltr,
             textInputAction: TextInputAction.done,
             autofillHints: const [AutofillHints.email],
+            inputFormatters: [
+              TextInputFormatter.withFunction((oldValue, newValue) {
+                _emailHadInvalidCharacters = _invalidEmailCharacters.hasMatch(
+                  newValue.text,
+                );
+                return newValue;
+              }),
+              FilteringTextInputFormatter.deny(_invalidEmailCharacters),
+              LengthLimitingTextInputFormatter(_emailMaxLength),
+            ],
             validator: (value) {
               final email = value?.trim() ?? '';
+              if (_emailHadInvalidCharacters) {
+                return localizations.invalidEmailCharacters;
+              }
               if (email.isEmpty) {
                 return localizations.fieldRequired;
               }
-              if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email)) {
+              if (email.length > _emailMaxLength) {
+                return localizations.maximumLengthExceeded(_emailMaxLength);
+              }
+              if (!_validEmail.hasMatch(email)) {
                 return localizations.invalidEmail;
               }
               return null;

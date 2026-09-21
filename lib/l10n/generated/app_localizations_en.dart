@@ -357,7 +357,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get phoneNumber => 'Mobile number';
 
   @override
-  String get phoneNumberHint => '+9665XXXXXXXX';
+  String get phoneNumberHint => '05XXXXXXXX';
 
   @override
   String get continueLabel => 'Continue';
@@ -383,6 +383,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fieldRequired => 'This field is required';
+
+  @override
+  String get invalidSaudiPhone =>
+      'Enter a valid 10-digit Saudi mobile number starting with 05';
+
+  @override
+  String get invalidNameCharacters =>
+      'Name can contain only Arabic or English letters and spaces';
+
+  @override
+  String get invalidEmailCharacters => 'Email contains invalid characters';
+
+  @override
+  String get emailAlreadyInUse => 'This email address is already in use';
+
+  @override
+  String maximumLengthExceeded(int maxLength) {
+    return 'Maximum length is $maxLength characters';
+  }
 
   @override
   String get invalidEmail => 'Enter a valid email address';
@@ -519,7 +538,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chooseCategoryTitle => 'What are you craving today?';
 
   @override
-  String get chooseCategorySubtitle => 'Choose one or more restaurant types';
+  String get chooseCategorySubtitle =>
+      'Choose one or more cuisines, or choose All';
+
+  @override
+  String get allCuisines => 'All';
 
   @override
   String get chooseNeighborhoodTitle => 'Where would you like to eat?';

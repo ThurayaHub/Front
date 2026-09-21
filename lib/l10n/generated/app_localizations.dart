@@ -737,7 +737,7 @@ abstract class AppLocalizations {
   /// No description provided for @phoneNumberHint.
   ///
   /// In en, this message translates to:
-  /// **'+9665XXXXXXXX'**
+  /// **'05XXXXXXXX'**
   String get phoneNumberHint;
 
   /// No description provided for @continueLabel.
@@ -787,6 +787,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This field is required'**
   String get fieldRequired;
+
+  /// No description provided for @invalidSaudiPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid 10-digit Saudi mobile number starting with 05'**
+  String get invalidSaudiPhone;
+
+  /// No description provided for @invalidNameCharacters.
+  ///
+  /// In en, this message translates to:
+  /// **'Name can contain only Arabic or English letters and spaces'**
+  String get invalidNameCharacters;
+
+  /// No description provided for @invalidEmailCharacters.
+  ///
+  /// In en, this message translates to:
+  /// **'Email contains invalid characters'**
+  String get invalidEmailCharacters;
+
+  /// No description provided for @emailAlreadyInUse.
+  ///
+  /// In en, this message translates to:
+  /// **'This email address is already in use'**
+  String get emailAlreadyInUse;
+
+  /// No description provided for @maximumLengthExceeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum length is {maxLength} characters'**
+  String maximumLengthExceeded(int maxLength);
 
   /// No description provided for @invalidEmail.
   ///
@@ -1031,8 +1061,14 @@ abstract class AppLocalizations {
   /// No description provided for @chooseCategorySubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Choose one or more restaurant types'**
+  /// **'Choose one or more cuisines, or choose All'**
   String get chooseCategorySubtitle;
+
+  /// No description provided for @allCuisines.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get allCuisines;
 
   /// No description provided for @chooseNeighborhoodTitle.
   ///

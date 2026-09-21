@@ -350,7 +350,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get phoneNumber => 'رقم الجوال';
 
   @override
-  String get phoneNumberHint => '+9665XXXXXXXX';
+  String get phoneNumberHint => '05XXXXXXXX';
 
   @override
   String get continueLabel => 'متابعة';
@@ -376,6 +376,26 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get fieldRequired => 'هذا الحقل مطلوب';
+
+  @override
+  String get invalidSaudiPhone =>
+      'أدخل رقم جوال سعودي صحيحاً من 10 أرقام يبدأ بـ 05';
+
+  @override
+  String get invalidNameCharacters =>
+      'يقبل الاسم الحروف العربية أو الإنجليزية والمسافات فقط';
+
+  @override
+  String get invalidEmailCharacters =>
+      'البريد الإلكتروني يحتوي على أحرف غير صالحة';
+
+  @override
+  String get emailAlreadyInUse => 'البريد الإلكتروني مستخدم بالفعل';
+
+  @override
+  String maximumLengthExceeded(int maxLength) {
+    return 'الحد الأقصى $maxLength حرفاً';
+  }
 
   @override
   String get invalidEmail => 'أدخل بريداً إلكترونياً صحيحاً';
@@ -508,7 +528,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chooseCategoryTitle => 'وش تشتهي اليوم؟';
 
   @override
-  String get chooseCategorySubtitle => 'اختر نوع أو أكثر من المطاعم';
+  String get chooseCategorySubtitle => 'اختر نوعاً أو أكثر، أو اختر الكل';
+
+  @override
+  String get allCuisines => 'الكل';
 
   @override
   String get chooseNeighborhoodTitle => 'وين ودك تاكل؟';

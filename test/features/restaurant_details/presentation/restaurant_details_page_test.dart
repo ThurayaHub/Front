@@ -203,7 +203,7 @@ void main() {
 
       await tester.enterText(
         find.byKey(const ValueKey('login-phone')),
-        '+966500000000',
+        '0500000000',
       );
       await tester.tap(find.byKey(const ValueKey('login-submit')));
       await tester.pumpAndSettle();
@@ -239,7 +239,7 @@ void main() {
 
       await tester.enterText(
         find.byKey(const ValueKey('login-phone')),
-        '+966500000000',
+        '0500000000',
       );
       await tester.tap(find.byKey(const ValueKey('login-submit')));
       await tester.pumpAndSettle();

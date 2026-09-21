@@ -6,6 +6,7 @@ import 'package:thuraya/core/auth/auth_service.dart';
 import 'package:thuraya/core/auth/auth_session_controller.dart';
 import 'package:thuraya/core/auth/auth_session_store.dart';
 import 'package:thuraya/core/auth/models/auth_models.dart';
+import 'package:thuraya/core/network/api_client.dart';
 import 'package:thuraya/core/routing/app_route_names.dart';
 import 'package:thuraya/core/widgets/thuraya_logo.dart';
 import 'package:thuraya/features/authentication/presentation/login_page.dart';
@@ -35,12 +36,12 @@ void main() {
 
     await tester.enterText(
       find.byKey(const ValueKey('login-phone')),
-      '+966500000000',
+      '0500000000',
     );
     await tester.tap(find.byKey(const ValueKey('login-submit')));
     await tester.pumpAndSettle();
 
-    expect(gateway.loggedInPhones, ['+966500000000']);
+    expect(gateway.loggedInPhones, ['0500000000']);
     expect(controller.isAuthenticated, isTrue);
     expect(find.byKey(const ValueKey('login-page')), findsNothing);
   });
@@ -56,7 +57,7 @@ void main() {
 
     await tester.enterText(
       find.byKey(const ValueKey('login-phone')),
-      '+966511111111',
+      '0511111111',
     );
     await tester.tap(find.byKey(const ValueKey('login-submit')));
     await tester.pumpAndSettle();
@@ -83,7 +84,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(gateway.registration, (
-      '+966511111111',
+      '0511111111',
       'مستخدم ثريا',
       'new@example.com',
     ));
@@ -108,6 +109,139 @@ void main() {
     expect(logo.height, 88);
     expect(find.text('مرحباً بك في ثريا'), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('limits registration fields and validates Saudi phone format', (
+    tester,
+  ) async {
+    final gateway = _LoginGateway(isNewUser: true);
+    final controller = _controller(gateway);
+    await tester.pumpWidget(_LoginTestApp(controller: controller));
+    await tester.tap(find.byKey(const ValueKey('open-login')));
+    await tester.pumpAndSettle();
+
+    final phoneField = find.byKey(const ValueKey('login-phone'));
+    final phoneWidget = tester.widget<TextField>(
+      find.descendant(of: phoneField, matching: find.byType(TextField)),
+    );
+    expect(phoneWidget.decoration?.hintText, '05XXXXXXXX');
+
+    await tester.enterText(phoneField, '061234567890');
+    expect(phoneWidget.controller?.text, '0612345678');
+    await tester.tap(find.byKey(const ValueKey('login-submit')));
+    await tester.pump();
+    expect(
+      find.text('أدخل رقم جوال سعودي صحيحاً من 10 أرقام يبدأ بـ 05'),
+      findsOneWidget,
+    );
+    expect(gateway.loggedInPhones, isEmpty);
+
+    await tester.enterText(phoneField, '0512345678');
+    await tester.tap(find.byKey(const ValueKey('login-submit')));
+    await tester.pumpAndSettle();
+
+    final longName = List.filled(50, 'ن').join();
+    final longEmail = '${List.filled(60, 'a').join()}@example.com';
+    final nameField = find.byKey(const ValueKey('registration-name'));
+    final emailField = find.byKey(const ValueKey('registration-email'));
+    await tester.enterText(nameField, longName);
+    await tester.enterText(emailField, longEmail);
+
+    final nameWidget = tester.widget<TextField>(
+      find.descendant(of: nameField, matching: find.byType(TextField)),
+    );
+    final emailWidget = tester.widget<TextField>(
+      find.descendant(of: emailField, matching: find.byType(TextField)),
+    );
+    expect(nameWidget.controller?.text.length, 40);
+    expect(emailWidget.controller?.text.length, 60);
+  });
+
+  testWidgets('rejects invalid registration name and email characters', (
+    tester,
+  ) async {
+    final gateway = _LoginGateway(isNewUser: true);
+    final controller = _controller(gateway);
+    await tester.pumpWidget(_LoginTestApp(controller: controller));
+    await tester.tap(find.byKey(const ValueKey('open-login')));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const ValueKey('login-phone')),
+      '0512345678',
+    );
+    await tester.tap(find.byKey(const ValueKey('login-submit')));
+    await tester.pumpAndSettle();
+
+    final nameField = find.byKey(const ValueKey('registration-name'));
+    final emailField = find.byKey(const ValueKey('registration-email'));
+    await tester.enterText(nameField, 'يتيريريروينين 👍👍');
+    await tester.enterText(emailField, '👍👍👍👍');
+
+    final nameWidget = tester.widget<TextField>(
+      find.descendant(of: nameField, matching: find.byType(TextField)),
+    );
+    final emailWidget = tester.widget<TextField>(
+      find.descendant(of: emailField, matching: find.byType(TextField)),
+    );
+    expect(nameWidget.controller?.text, 'يتيريريروينين ');
+    expect(emailWidget.controller?.text, isEmpty);
+
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('registration-submit')),
+    );
+    await tester.tap(find.byKey(const ValueKey('registration-submit')));
+    await tester.pump();
+
+    expect(
+      find.text('يقبل الاسم الحروف العربية أو الإنجليزية والمسافات فقط'),
+      findsOneWidget,
+    );
+    expect(
+      find.text('البريد الإلكتروني يحتوي على أحرف غير صالحة'),
+      findsOneWidget,
+    );
+    expect(gateway.registration, isNull);
+  });
+
+  testWidgets('shows a localized error when registration email is in use', (
+    tester,
+  ) async {
+    final gateway = _LoginGateway(
+      isNewUser: true,
+      registrationError: const ApiException(
+        'Registration could not be completed.',
+        statusCode: 409,
+      ),
+    );
+    final controller = _controller(gateway);
+    await tester.pumpWidget(_LoginTestApp(controller: controller));
+    await tester.tap(find.byKey(const ValueKey('open-login')));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const ValueKey('login-phone')),
+      '0512345678',
+    );
+    await tester.tap(find.byKey(const ValueKey('login-submit')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('registration-name')),
+      'مستخدم ثريا',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('registration-email')),
+      'x@x.com',
+    );
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('registration-submit')),
+    );
+    await tester.tap(find.byKey(const ValueKey('registration-submit')));
+    await tester.pump();
+
+    expect(find.text('البريد الإلكتروني مستخدم بالفعل'), findsOneWidget);
+    expect(find.text('Registration could not be completed.'), findsNothing);
+    expect(find.byKey(const ValueKey('login-page')), findsOneWidget);
   });
 }
 
@@ -157,9 +291,10 @@ class _LoginTestApp extends StatelessWidget {
 }
 
 class _LoginGateway implements AuthGateway {
-  _LoginGateway({required this.isNewUser});
+  _LoginGateway({required this.isNewUser, this.registrationError});
 
   final bool isNewUser;
+  final ApiException? registrationError;
   final List<String> loggedInPhones = [];
   (String, String, String)? registration;
 
@@ -200,6 +335,9 @@ class _LoginGateway implements AuthGateway {
     required String name,
     required String email,
   }) async {
+    if (registrationError != null) {
+      throw registrationError!;
+    }
     registration = (phoneNumber, name, email);
     return _authenticatedResponse;
   }
