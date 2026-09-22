@@ -7,6 +7,7 @@ import 'package:thuraya/core/theme/app_colors.dart';
 import 'package:thuraya/core/theme/app_text_styles.dart';
 import 'package:thuraya/core/widgets/thuraya_bottom_navigation_bar.dart';
 import 'package:thuraya/core/widgets/thuraya_loading_indicator.dart';
+import 'package:thuraya/core/widgets/thuraya_star_badge.dart';
 import 'package:thuraya/features/choose_restaurant/models/choose_restaurant_dto.dart';
 import 'package:thuraya/features/choose_restaurant/models/restaurant_lookup.dart';
 import 'package:thuraya/features/choose_restaurant/presentation/choose_restaurant_arabic_labels.dart';
@@ -1032,6 +1033,20 @@ class _RecommendationResult extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: AppTextStyles.cardTitle.copyWith(fontSize: 23),
                       ),
+                      if (data.hasThurayaStar) ...[
+                        const SizedBox(height: AppSpacing.sm),
+                        Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: ThurayaStarBadge(
+                            key: const ValueKey(
+                              'choose-recommendation-thuraya-star',
+                            ),
+                            hasThurayaStar: true,
+                            size: 22,
+                            variant: ThurayaStarBadgeVariant.compact,
+                          ),
+                        ),
+                      ],
                       if (data.metadata.isNotEmpty) ...[
                         const SizedBox(height: AppSpacing.xxs),
                         Text(
@@ -1352,6 +1367,7 @@ class _RecommendationViewData {
     required this.description,
     required this.metadata,
     required this.image,
+    required this.hasThurayaStar,
     required this.thurayaRating,
     required this.userRating,
     required this.reviewCount,
@@ -1401,6 +1417,8 @@ class _RecommendationViewData {
         priceName,
       ].where((value) => value.isNotEmpty).join(' • '),
       image: photo,
+      hasThurayaStar:
+          details?.hasThurayaStar ?? selection.hasThurayaStar,
       thurayaRating: thurayaValue == null || thurayaCount <= 0
           ? null
           : (thurayaValue / 2).clamp(0, 5).toDouble(),
@@ -1415,6 +1433,7 @@ class _RecommendationViewData {
   final String description;
   final String metadata;
   final String? image;
+  final bool hasThurayaStar;
   final double? thurayaRating;
   final double? userRating;
   final int reviewCount;

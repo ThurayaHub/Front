@@ -139,6 +139,10 @@ void main() {
       expect(find.text('(8)'), findsOneWidget);
       expect(find.text('0.0'), findsNothing);
       expect(find.byIcon(Icons.star_rounded), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('choose-recommendation-thuraya-star')),
+        findsOneWidget,
+      );
     },
   );
 

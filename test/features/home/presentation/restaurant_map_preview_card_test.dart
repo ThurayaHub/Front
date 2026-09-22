@@ -28,6 +28,10 @@ void main() {
       find.byKey(const ValueKey('restaurant-preview-user-rating')),
       findsOneWidget,
     );
+    expect(
+      find.byKey(const ValueKey('restaurant-preview-thuraya-star-42')),
+      findsOneWidget,
+    );
     expect(find.text('4.8'), findsOneWidget);
     expect(find.text('4.5'), findsOneWidget);
     expect(find.text('(8)'), findsOneWidget);

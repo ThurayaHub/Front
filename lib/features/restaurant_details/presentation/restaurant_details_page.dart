@@ -10,6 +10,7 @@ import 'package:thuraya/core/network/api_client.dart';
 import 'package:thuraya/core/routing/app_route_names.dart';
 import 'package:thuraya/core/theme/app_colors.dart';
 import 'package:thuraya/core/theme/app_text_styles.dart';
+import 'package:thuraya/core/widgets/thuraya_star_badge.dart';
 import 'package:thuraya/features/restaurant_details/models/restaurant_details_dto.dart';
 import 'package:thuraya/features/restaurant_details/services/restaurant_details_service.dart';
 import 'package:thuraya/features/restaurant_details/services/restaurant_external_actions.dart';
@@ -521,6 +522,18 @@ class _RestaurantHeader extends StatelessWidget {
             ],
           ],
         ),
+        if (restaurant.hasThurayaStar) ...[
+          const SizedBox(height: AppSpacing.sm),
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: ThurayaStarBadge(
+              key: const ValueKey('restaurant-details-thuraya-star'),
+              hasThurayaStar: true,
+              size: 30,
+              variant: ThurayaStarBadgeVariant.full,
+            ),
+          ),
+        ],
         if (restaurant.metadata.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.xs),
           Wrap(
@@ -1211,6 +1224,7 @@ class _RestaurantViewData {
     required this.allImages,
     required this.userRating,
     required this.reviewCount,
+    required this.hasThurayaStar,
     required this.thurayaRating,
     required this.thurayaComment,
   });
@@ -1253,6 +1267,7 @@ class _RestaurantViewData {
           ? null
           : details.reviewSummary.userRatingAverage!.clamp(0, 5),
       reviewCount: details.reviewSummary.reviewCount,
+      hasThurayaStar: details.hasThurayaStar,
       thurayaRating:
           details.thurayaReviewSummary.averageRating == null ||
               details.thurayaReviewSummary.totalReviews <= 0
@@ -1288,6 +1303,7 @@ class _RestaurantViewData {
           ? restaurant.rating
           : null,
       reviewCount: restaurant.reviewCount,
+      hasThurayaStar: restaurant.hasThurayaStar,
       thurayaRating:
           restaurant.thurayaRating != null && restaurant.thurayaRating! > 0
           ? restaurant.thurayaRating
@@ -1306,6 +1322,7 @@ class _RestaurantViewData {
   final List<String> allImages;
   final double? userRating;
   final int reviewCount;
+  final bool hasThurayaStar;
   final double? thurayaRating;
   final String? thurayaComment;
   bool get hasUserReviews => userRating != null && reviewCount > 0;

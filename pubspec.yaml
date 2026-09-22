@@ -35,6 +35,7 @@ flutter:
     - assets/branding/
     - assets/map/
     - assets/images/trending/
+    - assets/images/awards/
     - assets/images/restaurant_details/
     - assets/images/home/
     - assets/icons/trending/

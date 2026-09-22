@@ -39,5 +39,6 @@ class Restaurant {
   final double? thurayaRating;
   final int? travelMinutes;
 
+  bool get hasThurayaStar => cardStatus == RestaurantCardStatus.thurayaStar;
   String get cardDetails => '$category • $neighborhood';
 }

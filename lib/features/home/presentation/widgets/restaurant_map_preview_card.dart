@@ -4,6 +4,7 @@ import 'package:thuraya/core/constants/app_assets.dart';
 import 'package:thuraya/core/constants/app_spacing.dart';
 import 'package:thuraya/core/theme/app_colors.dart';
 import 'package:thuraya/core/theme/app_text_styles.dart';
+import 'package:thuraya/core/widgets/thuraya_star_badge.dart';
 import 'package:thuraya/features/restaurant_details/models/restaurant_details_dto.dart';
 import 'package:thuraya/l10n/generated/app_localizations.dart';
 
@@ -127,12 +128,31 @@ class RestaurantMapPreviewCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text(
-                        name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.start,
-                        style: AppTextStyles.homeCardTitle,
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.start,
+                              style: AppTextStyles.homeCardTitle,
+                            ),
+                          ),
+                          if (restaurant.hasThurayaStar) ...[
+                            const SizedBox(width: AppSpacing.xs),
+                            ThurayaStarBadge(
+                              key: ValueKey(
+                                'restaurant-preview-thuraya-star-${restaurant.id}',
+                              ),
+                              hasThurayaStar: true,
+                              size: 24,
+                              showLabel: false,
+                              variant: ThurayaStarBadgeVariant.iconOnly,
+                            ),
+                          ],
+                        ],
                       ),
                       if (description.isNotEmpty) ...[
                         const SizedBox(height: AppSpacing.xxs),

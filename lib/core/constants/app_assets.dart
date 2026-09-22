@@ -4,6 +4,7 @@ abstract final class AppAssets {
   static const String icons = 'assets/icons';
 
   static const String thurayaLogo = '$branding/thuraya_logo.png';
+  static const String thurayaStar = '$images/awards/thuraya_star.png';
 
   static const String trendingRestaurantInterior =
       '$images/trending/restaurant_interior.png';
@@ -15,7 +16,6 @@ abstract final class AppAssets {
   static const String navProfile = '$icons/trending/profile.svg';
   static const String navHome = '$icons/trending/home_map.svg';
   static const String backArrow = '$icons/trending/back_arrow.svg';
-  static const String thurayaStar = '$icons/trending/thuraya_star.svg';
   static const String ratingStar = '$icons/trending/rating_star.svg';
   static const String hot = '$icons/trending/hot.svg';
   static const String wheelPointer = '$icons/wheel/pointer.svg';

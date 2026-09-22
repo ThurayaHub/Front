@@ -4,6 +4,7 @@ import 'package:thuraya/core/constants/app_assets.dart';
 import 'package:thuraya/core/constants/app_spacing.dart';
 import 'package:thuraya/core/theme/app_colors.dart';
 import 'package:thuraya/core/theme/app_text_styles.dart';
+import 'package:thuraya/core/widgets/thuraya_star_badge.dart';
 import 'package:thuraya/features/choose_restaurant/presentation/choose_restaurant_arabic_labels.dart';
 import 'package:thuraya/features/home/models/restaurant_map_marker.dart';
 
@@ -70,11 +71,30 @@ class RestaurantSearchResultCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Text(
-                          restaurant.localizedName(languageCode),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTextStyles.homeCardTitle,
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                restaurant.localizedName(languageCode),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTextStyles.homeCardTitle,
+                              ),
+                            ),
+                            if (restaurant.hasThurayaStar) ...[
+                              const SizedBox(width: AppSpacing.xs),
+                              ThurayaStarBadge(
+                                key: ValueKey(
+                                  'restaurant-result-thuraya-star-${restaurant.id}',
+                                ),
+                                hasThurayaStar: true,
+                                size: 23,
+                                showLabel: false,
+                                variant: ThurayaStarBadgeVariant.iconOnly,
+                              ),
+                            ],
+                          ],
                         ),
                         if (metadata.isNotEmpty) ...[
                           const SizedBox(height: AppSpacing.xxs),

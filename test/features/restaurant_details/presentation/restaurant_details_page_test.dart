@@ -38,6 +38,10 @@ void main() {
       find.byKey(const ValueKey('restaurant-details-loading')),
       findsNothing,
     );
+    expect(
+      find.byKey(const ValueKey('restaurant-details-thuraya-star')),
+      findsOneWidget,
+    );
     expect(find.text('مائدة الرياض'), findsOneWidget);
   });
 
@@ -115,6 +119,7 @@ void main() {
         'latestReview': null,
         'history': <Object>[],
       },
+      'hasThurayaStar': false,
     });
 
     await tester.pumpWidget(_testPreloadedApp(details: details));
@@ -126,6 +131,10 @@ void main() {
     );
     expect(
       find.byKey(const ValueKey('restaurant-details-reviews')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey('restaurant-details-thuraya-star')),
       findsNothing,
     );
     expect(find.text('اتصال'), findsNothing);
@@ -168,12 +177,14 @@ void main() {
         createdAtUtc: DateTime.utc(2026, 9, 12),
       ),
     ]);
-    await tester.pumpWidget(
-      _testPreloadedApp(reviewService: reviewService),
-    );
+    await tester.pumpWidget(_testPreloadedApp(reviewService: reviewService));
     await tester.pump();
 
-    await tester.tap(find.byKey(const ValueKey('restaurant-details-reviews')));
+    final reviewsTile = find.byKey(
+      const ValueKey('restaurant-details-reviews'),
+    );
+    await tester.ensureVisible(reviewsTile);
+    await tester.tap(reviewsTile);
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('review-card-1')), findsOneWidget);

@@ -3,6 +3,7 @@ import 'package:thuraya/core/constants/app_spacing.dart';
 import 'package:thuraya/core/routing/app_route_names.dart';
 import 'package:thuraya/core/theme/app_colors.dart';
 import 'package:thuraya/core/theme/app_text_styles.dart';
+import 'package:thuraya/core/widgets/thuraya_star_badge.dart';
 import 'package:thuraya/features/account/models/profile_models.dart';
 import 'package:thuraya/features/account/presentation/profile_controllers.dart';
 import 'package:thuraya/features/account/presentation/widgets/profile_page_support.dart';
@@ -215,10 +216,13 @@ class _FavoriteCard extends StatelessWidget {
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           if (restaurant.hasThurayaStar)
-                            _Badge(
-                              icon: Icons.star_rounded,
-                              label: l10n.thurayaStar,
-                              color: AppColors.primary,
+                            ThurayaStarBadge(
+                              key: ValueKey(
+                                'favorite-thuraya-star-${restaurant.restaurantId}',
+                              ),
+                              hasThurayaStar: true,
+                              size: 18,
+                              variant: ThurayaStarBadgeVariant.compact,
                             ),
                           if (userRating != null)
                             _Badge(

@@ -325,7 +325,10 @@ class _TrendingCard extends StatelessWidget {
                               const SizedBox(width: AppSpacing.xs),
                               ThurayaStarBadge(
                                 key: ValueKey('trending-star-${restaurant.id}'),
-                                semanticLabel: l10n.thurayaStar,
+                                hasThurayaStar: true,
+                                size: 27,
+                                showLabel: false,
+                                variant: ThurayaStarBadgeVariant.iconOnly,
                               ),
                             ],
                           ],
