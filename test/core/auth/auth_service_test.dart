@@ -7,18 +7,33 @@ import 'package:thuraya/core/network/api_client.dart';
 
 void main() {
   test(
-    'uses the backend phone login endpoint and parses its token pair',
+    'uses the backend phone OTP endpoints and parses the token pair',
     () async {
       final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
       addTearDown(() => server.close(force: true));
-      String? requestMethod;
-      Uri? requestUri;
-      Object? requestBody;
+      final requests = <(String, String, Object?)>[];
       server.listen((request) async {
-        requestMethod = request.method;
-        requestUri = request.uri;
-        requestBody = jsonDecode(await utf8.decoder.bind(request).join());
-        _writeAuthResponse(request.response);
+        final body = jsonDecode(await utf8.decoder.bind(request).join());
+        requests.add((request.method, request.uri.path, body));
+        if (request.uri.path.endsWith('/request')) {
+          request.response
+            ..statusCode = HttpStatus.ok
+            ..headers.contentType = ContentType.json
+            ..write(
+              jsonEncode({
+                'success': true,
+                'message': 'OTP sent.',
+                'data': {
+                  'resendAvailableAtUtc': '2026-09-08T12:01:00Z',
+                },
+                'errors': <String>[],
+                'statusCode': 200,
+              }),
+            );
+          await request.response.close();
+        } else {
+          _writeAuthResponse(request.response);
+        }
       });
 
       final client = ApiClient(
@@ -28,11 +43,23 @@ void main() {
       addTearDown(client.close);
       final service = AuthService(apiClient: client);
 
-      final response = await service.loginWithPhone(' +966500000000 ');
+      final challenge = await service.requestPhoneOtp(' 0500000000 ');
+      final response = await service.verifyPhoneOtp(
+        phoneNumber: ' 0500000000 ',
+        otp: ' 123456 ',
+      );
 
-      expect(requestMethod, 'POST');
-      expect(requestUri?.path, '/api/auth/login-phone');
-      expect(requestBody, {'phoneNumber': '+966500000000'});
+      expect(requests, hasLength(2));
+      expect(requests[0].$1, 'POST');
+      expect(requests[0].$2, '/api/auth/phone-otp/request');
+      expect(requests[0].$3, {'phoneNumber': '0500000000'});
+      expect(requests[1].$1, 'POST');
+      expect(requests[1].$2, '/api/auth/phone-otp/verify');
+      expect(requests[1].$3, {
+        'phoneNumber': '0500000000',
+        'otp': '123456',
+      });
+      expect(challenge.resendAvailableAtUtc, DateTime.utc(2026, 9, 8, 12, 1));
       expect(response.isNewUser, isFalse);
       expect(response.user?.id, 7);
       expect(response.accessToken, 'access-token');

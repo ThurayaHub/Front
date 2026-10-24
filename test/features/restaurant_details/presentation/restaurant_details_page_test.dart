@@ -218,6 +218,9 @@ void main() {
       );
       await tester.tap(find.byKey(const ValueKey('login-submit')));
       await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const ValueKey('login-otp')), '123456');
+      await tester.tap(find.byKey(const ValueKey('otp-submit')));
+      await tester.pumpAndSettle();
 
       expect(find.byKey(const ValueKey('login-page')), findsNothing);
       expect(service.detailsRequests, 1);
@@ -253,6 +256,9 @@ void main() {
         '0500000000',
       );
       await tester.tap(find.byKey(const ValueKey('login-submit')));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const ValueKey('login-otp')), '123456');
+      await tester.tap(find.byKey(const ValueKey('otp-submit')));
       await tester.pumpAndSettle();
 
       expect(find.byKey(const ValueKey('review-sheet-title')), findsOneWidget);
@@ -497,14 +503,16 @@ class _ReviewListService extends RestaurantReviewService {
 }
 
 AuthSessionController _authController() {
+  final gateway = _DetailsAuthGateway();
   return AuthSessionController(
-    authGateway: _DetailsAuthGateway(),
+    authGateway: gateway,
+    phoneOtpGateway: gateway,
     sessionStore: _DetailsSessionStore(),
     now: () => DateTime.utc(2026, 9, 8, 12),
   );
 }
 
-class _DetailsAuthGateway implements AuthGateway {
+class _DetailsAuthGateway implements AuthGateway, PhoneOtpGateway {
   AuthResponse get _response => AuthResponse(
     isNewUser: false,
     user: const AuthUser(
@@ -522,6 +530,19 @@ class _DetailsAuthGateway implements AuthGateway {
 
   @override
   Future<AuthResponse> loginWithPhone(String phoneNumber) async => _response;
+
+  @override
+  Future<PhoneOtpChallenge> requestPhoneOtp(String phoneNumber) async {
+    return PhoneOtpChallenge(
+      resendAvailableAtUtc: DateTime.utc(2026, 9, 8, 12, 1),
+    );
+  }
+
+  @override
+  Future<AuthResponse> verifyPhoneOtp({
+    required String phoneNumber,
+    required String otp,
+  }) async => _response;
 
   @override
   Future<AuthResponse> completeRegistration({

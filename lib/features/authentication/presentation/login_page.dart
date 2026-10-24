@@ -16,6 +16,8 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
+enum _LoginStep { phone, otp, registration }
+
 class _LoginPageState extends State<LoginPage> {
   static const _phoneNumberLength = 10;
   static const _nameMaxLength = 40;
@@ -30,12 +32,14 @@ class _LoginPageState extends State<LoginPage> {
   );
 
   final _phoneFormKey = GlobalKey<FormState>();
+  final _otpFormKey = GlobalKey<FormState>();
   final _registrationFormKey = GlobalKey<FormState>();
   final _phoneController = TextEditingController();
+  final _otpController = TextEditingController();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
 
-  bool _showRegistration = false;
+  _LoginStep _step = _LoginStep.phone;
   bool _isSubmitting = false;
   bool _nameHadInvalidCharacters = false;
   bool _emailHadInvalidCharacters = false;
@@ -44,6 +48,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void dispose() {
     _phoneController.dispose();
+    _otpController.dispose();
     _nameController.dispose();
     _emailController.dispose();
     super.dispose();
@@ -59,22 +64,76 @@ class _LoginPageState extends State<LoginPage> {
       _errorMessage = null;
     });
     try {
-      final result = await AuthScope.read(
-        context,
-      ).loginWithPhone(_phoneController.text);
+      await AuthScope.read(context).requestPhoneOtp(_phoneController.text);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _step = _LoginStep.otp;
+        _isSubmitting = false;
+      });
+    } on ApiException catch (error) {
+      _showError(_localizedOtpError(error));
+    } catch (_) {
+      if (mounted) {
+        _showError(AppLocalizations.of(context).authenticationUnavailable);
+      }
+    }
+  }
+
+  Future<void> _submitOtp() async {
+    if (!_otpFormKey.currentState!.validate() || _isSubmitting) {
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+      _errorMessage = null;
+    });
+    try {
+      final result = await AuthScope.read(context).verifyPhoneOtp(
+        phoneNumber: _phoneController.text,
+        otp: _otpController.text,
+      );
       if (!mounted) {
         return;
       }
       if (result == AuthLoginResult.registrationRequired) {
         setState(() {
-          _showRegistration = true;
+          _step = _LoginStep.registration;
           _isSubmitting = false;
         });
         return;
       }
       Navigator.of(context).pop(true);
     } on ApiException catch (error) {
-      _showError(error.message);
+      _showError(_localizedOtpError(error, verifying: true));
+    } catch (_) {
+      if (mounted) {
+        _showError(AppLocalizations.of(context).authenticationUnavailable);
+      }
+    }
+  }
+
+  Future<void> _resendOtp() async {
+    if (_isSubmitting) {
+      return;
+    }
+    setState(() {
+      _isSubmitting = true;
+      _errorMessage = null;
+    });
+    try {
+      await AuthScope.read(context).requestPhoneOtp(_phoneController.text);
+      if (!mounted) {
+        return;
+      }
+      setState(() => _isSubmitting = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context).otpSent)),
+      );
+    } on ApiException catch (error) {
+      _showError(_localizedOtpError(error));
     } catch (_) {
       if (mounted) {
         _showError(AppLocalizations.of(context).authenticationUnavailable);
@@ -132,21 +191,37 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
     setState(() {
-      _showRegistration = false;
+      _step = _LoginStep.phone;
+      _otpController.clear();
       _errorMessage = null;
     });
+  }
+
+  String _localizedOtpError(ApiException error, {bool verifying = false}) {
+    final localizations = AppLocalizations.of(context);
+    if (error.statusCode == 429) {
+      return localizations.otpTooManyRequests;
+    }
+    if (verifying && (error.statusCode == 400 || error.statusCode == 401)) {
+      return localizations.invalidOtp;
+    }
+    return localizations.otpUnavailable;
   }
 
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     final useCompactHeader = MediaQuery.sizeOf(context).height < 700;
-    final title = _showRegistration
-        ? localizations.registrationTitle
-        : localizations.loginTitle;
-    final subtitle = _showRegistration
-        ? localizations.registrationSubtitle
-        : localizations.loginSubtitle;
+    final title = switch (_step) {
+      _LoginStep.phone => localizations.loginTitle,
+      _LoginStep.otp => localizations.otpTitle,
+      _LoginStep.registration => localizations.registrationTitle,
+    };
+    final subtitle = switch (_step) {
+      _LoginStep.phone => localizations.loginSubtitle,
+      _LoginStep.otp => localizations.otpSubtitle,
+      _LoginStep.registration => localizations.registrationSubtitle,
+    };
 
     return Scaffold(
       key: const ValueKey('login-page'),
@@ -158,7 +233,15 @@ class _LoginPageState extends State<LoginPage> {
         leading: IconButton(
           key: const ValueKey('login-back'),
           tooltip: localizations.back,
-          onPressed: _isSubmitting ? null : () => Navigator.of(context).pop(),
+          onPressed: _isSubmitting
+              ? null
+              : () {
+                  if (_step == _LoginStep.phone) {
+                    Navigator.of(context).pop();
+                  } else {
+                    _changePhoneNumber();
+                  }
+                },
           icon: const Icon(Icons.arrow_back_ios_new_rounded),
         ),
       ),
@@ -222,9 +305,12 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     child: AnimatedSwitcher(
                       duration: const Duration(milliseconds: 220),
-                      child: _showRegistration
-                          ? _buildRegistrationForm(localizations)
-                          : _buildPhoneForm(localizations),
+                      child: switch (_step) {
+                        _LoginStep.phone => _buildPhoneForm(localizations),
+                        _LoginStep.otp => _buildOtpForm(localizations),
+                        _LoginStep.registration =>
+                          _buildRegistrationForm(localizations),
+                      },
                     ),
                   ),
                 ],
@@ -278,6 +364,71 @@ class _LoginPageState extends State<LoginPage> {
             label: localizations.continueLabel,
             isLoading: _isSubmitting,
             onPressed: _submitPhone,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOtpForm(AppLocalizations localizations) {
+    return Form(
+      key: _otpFormKey,
+      child: Column(
+        key: const ValueKey('login-otp-step'),
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            localizations.otpSentTo(_phoneController.text.trim()),
+            textAlign: TextAlign.center,
+            style: AppTextStyles.cardMetadata,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          _AuthTextField(
+            key: const ValueKey('login-otp'),
+            controller: _otpController,
+            label: localizations.otpCode,
+            hint: localizations.otpHint,
+            keyboardType: TextInputType.number,
+            textDirection: TextDirection.ltr,
+            textInputAction: TextInputAction.done,
+            autofillHints: const [AutofillHints.oneTimeCode],
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(8),
+            ],
+            validator: (value) {
+              final otp = value?.trim() ?? '';
+              if (otp.isEmpty) {
+                return localizations.fieldRequired;
+              }
+              if (!RegExp(r'^\d{4,8}$').hasMatch(otp)) {
+                return localizations.invalidOtp;
+              }
+              return null;
+            },
+            onSubmitted: (_) => _submitOtp(),
+          ),
+          if (_errorMessage != null) ...[
+            const SizedBox(height: AppSpacing.sm),
+            _AuthError(message: _errorMessage!),
+          ],
+          const SizedBox(height: AppSpacing.lg),
+          _PrimaryAuthButton(
+            key: const ValueKey('otp-submit'),
+            label: localizations.verifyOtp,
+            isLoading: _isSubmitting,
+            onPressed: _submitOtp,
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          TextButton(
+            key: const ValueKey('otp-resend'),
+            onPressed: _isSubmitting ? null : _resendOtp,
+            child: Text(localizations.resendOtp),
+          ),
+          TextButton(
+            key: const ValueKey('otp-change-phone'),
+            onPressed: _isSubmitting ? null : _changePhoneNumber,
+            child: Text(localizations.changePhoneNumber),
           ),
         ],
       ),

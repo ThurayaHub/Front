@@ -41,7 +41,13 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('login-submit')));
     await tester.pumpAndSettle();
 
-    expect(gateway.loggedInPhones, ['0500000000']);
+    expect(find.byKey(const ValueKey('login-otp-step')), findsOneWidget);
+    await tester.enterText(find.byKey(const ValueKey('login-otp')), '123456');
+    await tester.tap(find.byKey(const ValueKey('otp-submit')));
+    await tester.pumpAndSettle();
+
+    expect(gateway.requestedPhones, ['0500000000']);
+    expect(gateway.verifiedPhones, [('0500000000', '123456')]);
     expect(controller.isAuthenticated, isTrue);
     expect(find.byKey(const ValueKey('login-page')), findsNothing);
   });
@@ -60,6 +66,9 @@ void main() {
       '0511111111',
     );
     await tester.tap(find.byKey(const ValueKey('login-submit')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const ValueKey('login-otp')), '123456');
+    await tester.tap(find.byKey(const ValueKey('otp-submit')));
     await tester.pumpAndSettle();
 
     expect(
@@ -140,6 +149,10 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('login-submit')));
     await tester.pumpAndSettle();
 
+    await tester.enterText(find.byKey(const ValueKey('login-otp')), '123456');
+    await tester.tap(find.byKey(const ValueKey('otp-submit')));
+    await tester.pumpAndSettle();
+
     final longName = List.filled(50, 'ن').join();
     final longEmail = '${List.filled(60, 'a').join()}@example.com';
     final nameField = find.byKey(const ValueKey('registration-name'));
@@ -171,6 +184,10 @@ void main() {
       '0512345678',
     );
     await tester.tap(find.byKey(const ValueKey('login-submit')));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byKey(const ValueKey('login-otp')), '123456');
+    await tester.tap(find.byKey(const ValueKey('otp-submit')));
     await tester.pumpAndSettle();
 
     final nameField = find.byKey(const ValueKey('registration-name'));
@@ -225,6 +242,9 @@ void main() {
     );
     await tester.tap(find.byKey(const ValueKey('login-submit')));
     await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const ValueKey('login-otp')), '123456');
+    await tester.tap(find.byKey(const ValueKey('otp-submit')));
+    await tester.pumpAndSettle();
     await tester.enterText(
       find.byKey(const ValueKey('registration-name')),
       'مستخدم ثريا',
@@ -248,6 +268,7 @@ void main() {
 AuthSessionController _controller(_LoginGateway gateway) {
   return AuthSessionController(
     authGateway: gateway,
+    phoneOtpGateway: gateway,
     sessionStore: _LoginSessionStore(),
     now: () => DateTime.utc(2026, 9, 8, 12),
   );
@@ -290,12 +311,15 @@ class _LoginTestApp extends StatelessWidget {
   }
 }
 
-class _LoginGateway implements AuthGateway {
+class _LoginGateway
+    implements AuthGateway, PhoneOtpGateway, OtpRegistrationGateway {
   _LoginGateway({required this.isNewUser, this.registrationError});
 
   final bool isNewUser;
   final ApiException? registrationError;
   final List<String> loggedInPhones = [];
+  final List<String> requestedPhones = [];
+  final List<(String, String)> verifiedPhones = [];
   (String, String, String)? registration;
 
   AuthResponse get _authenticatedResponse => AuthResponse(
@@ -330,6 +354,34 @@ class _LoginGateway implements AuthGateway {
   }
 
   @override
+  Future<PhoneOtpChallenge> requestPhoneOtp(String phoneNumber) async {
+    requestedPhones.add(phoneNumber);
+    return PhoneOtpChallenge(
+      resendAvailableAtUtc: DateTime.utc(2026, 9, 8, 12, 1),
+    );
+  }
+
+  @override
+  Future<AuthResponse> verifyPhoneOtp({
+    required String phoneNumber,
+    required String otp,
+  }) async {
+    verifiedPhones.add((phoneNumber, otp));
+    if (!isNewUser) {
+      return _authenticatedResponse;
+    }
+    return const AuthResponse(
+      isNewUser: true,
+      user: null,
+      accessToken: null,
+      refreshToken: null,
+      accessTokenExpiresAtUtc: null,
+      refreshTokenExpiresAtUtc: null,
+      registrationToken: 'registration-token',
+    );
+  }
+
+  @override
   Future<AuthResponse> completeRegistration({
     required String phoneNumber,
     required String name,
@@ -338,6 +390,21 @@ class _LoginGateway implements AuthGateway {
     if (registrationError != null) {
       throw registrationError!;
     }
+    registration = (phoneNumber, name, email);
+    return _authenticatedResponse;
+  }
+
+  @override
+  Future<AuthResponse> completeVerifiedRegistration({
+    required String phoneNumber,
+    required String name,
+    required String email,
+    required String registrationToken,
+  }) async {
+    if (registrationError != null) {
+      throw registrationError!;
+    }
+    expect(registrationToken, 'registration-token');
     registration = (phoneNumber, name, email);
     return _authenticatedResponse;
   }

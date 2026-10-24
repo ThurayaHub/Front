@@ -15,7 +15,26 @@ abstract interface class AuthGateway {
   Future<void> logout(String refreshToken);
 }
 
-class AuthService implements AuthGateway {
+abstract interface class PhoneOtpGateway {
+  Future<PhoneOtpChallenge> requestPhoneOtp(String phoneNumber);
+
+  Future<AuthResponse> verifyPhoneOtp({
+    required String phoneNumber,
+    required String otp,
+  });
+}
+
+abstract interface class OtpRegistrationGateway {
+  Future<AuthResponse> completeVerifiedRegistration({
+    required String phoneNumber,
+    required String name,
+    required String email,
+    required String registrationToken,
+  });
+}
+
+class AuthService
+    implements AuthGateway, PhoneOtpGateway, OtpRegistrationGateway {
   AuthService({ApiClient? apiClient})
     : _apiClient = apiClient ?? ApiClient(useAuthentication: false),
       _ownsApiClient = apiClient == null;
@@ -33,6 +52,30 @@ class AuthService implements AuthGateway {
   }
 
   @override
+  Future<PhoneOtpChallenge> requestPhoneOtp(String phoneNumber) async {
+    final data = await _apiClient.postResultData(
+      '/api/auth/phone-otp/request',
+      body: {'phoneNumber': phoneNumber.trim()},
+    );
+    if (data is! Map) {
+      throw const ApiException('The phone verification response is invalid.');
+    }
+    return PhoneOtpChallenge.fromJson(Map<String, dynamic>.from(data));
+  }
+
+  @override
+  Future<AuthResponse> verifyPhoneOtp({
+    required String phoneNumber,
+    required String otp,
+  }) async {
+    final data = await _apiClient.postResultData(
+      '/api/auth/phone-otp/verify',
+      body: {'phoneNumber': phoneNumber.trim(), 'otp': otp.trim()},
+    );
+    return _parseResponse(data);
+  }
+
+  @override
   Future<AuthResponse> completeRegistration({
     required String phoneNumber,
     required String name,
@@ -44,6 +87,25 @@ class AuthService implements AuthGateway {
         'phoneNumber': phoneNumber.trim(),
         'name': name.trim(),
         'email': email.trim(),
+      },
+    );
+    return _parseResponse(data);
+  }
+
+  @override
+  Future<AuthResponse> completeVerifiedRegistration({
+    required String phoneNumber,
+    required String name,
+    required String email,
+    required String registrationToken,
+  }) async {
+    final data = await _apiClient.postResultData(
+      '/api/auth/complete-registration',
+      body: {
+        'phoneNumber': phoneNumber.trim(),
+        'name': name.trim(),
+        'email': email.trim(),
+        'registrationToken': registrationToken,
       },
     );
     return _parseResponse(data);

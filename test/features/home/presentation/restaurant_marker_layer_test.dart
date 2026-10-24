@@ -72,6 +72,32 @@ void main() {
       'thuraya-restaurant-point-hit-layer',
     });
 
+    final labelCall = calls.singleWhere(
+      (call) => call.method == 'symbolLayer#add',
+    );
+    final labelArguments = Map<String, dynamic>.from(
+      labelCall.arguments as Map,
+    );
+    final labelProperties = Map<String, dynamic>.from(
+      labelArguments['properties'] as Map,
+    );
+    expect(labelArguments['layerId'], 'thuraya-restaurant-point-label-layer');
+    expect(labelArguments['sourceId'], RestaurantMarkerLayer.sourceId);
+    expect(labelArguments['enableInteraction'], isFalse);
+    expect(jsonDecode(labelArguments['filter'] as String), [
+      '!',
+      ['has', 'point_count'],
+    ]);
+    expect(labelProperties['text-field'], ['get', 'name']);
+    expect(labelProperties['text-variable-anchor'], [
+      'left',
+      'right',
+      'top',
+      'bottom',
+    ]);
+    expect(labelProperties['text-allow-overlap'], isFalse);
+    expect(labelProperties['symbol-sort-key'], ['get', 'sortKey']);
+
     controller.dispose();
   });
 
@@ -92,6 +118,17 @@ void main() {
     expect(properties['sortKey'], 0);
 
     expect(jsonEncode(collection), contains('FeatureCollection'));
+  });
+
+  test('uses the English restaurant name for English marker labels', () {
+    final collection = RestaurantMarkerLayer.featureCollection(const [
+      _restaurant,
+    ], 'en');
+    final features = collection['features'] as List<dynamic>;
+    final feature = Map<String, dynamic>.from(features.single as Map);
+    final properties = Map<String, dynamic>.from(feature['properties'] as Map);
+
+    expect(properties['name'], 'Burger House');
   });
 }
 

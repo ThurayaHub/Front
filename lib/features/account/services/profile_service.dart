@@ -6,6 +6,8 @@ abstract interface class ProfileGateway {
 
   Future<UserProfileDto> getDetails();
 
+  Future<EmailVerificationDto> requestEmailVerification();
+
   Future<List<ProfileFavoriteRestaurantDto>> getFavorites();
 
   Future<List<ProfileReviewDto>> getReviews();
@@ -29,6 +31,14 @@ class ProfileService implements ProfileGateway {
   Future<UserProfileDto> getDetails() async {
     final data = await _apiClient.getResultData('/api/profile/details');
     return UserProfileDto.fromJson(_requiredMap(data));
+  }
+
+  @override
+  Future<EmailVerificationDto> requestEmailVerification() async {
+    final data = await _apiClient.postResultData(
+      '/api/profile/email-verification/request',
+    );
+    return EmailVerificationDto.fromJson(_requiredMap(data));
   }
 
   @override

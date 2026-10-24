@@ -109,8 +109,12 @@ class _AccountPageState extends State<AccountPage> {
               icon: Icons.badge_outlined,
               title: l10n.profileDetailsTitle,
               subtitle: l10n.profileDetailsSubtitle,
-              onTap: () =>
-                  Navigator.of(context).pushNamed(AppRouteNames.profileDetails),
+              onTap: () async {
+                await Navigator.of(
+                  context,
+                ).pushNamed(AppRouteNames.profileDetails);
+                if (mounted) await _load(refresh: true);
+              },
             ),
             _AccountMenuItem(
               key: const ValueKey('account-favorites'),

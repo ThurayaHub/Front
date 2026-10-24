@@ -34,7 +34,7 @@ void main() {
 
     expect(find.byKey(const ValueKey('account-summary')), findsOneWidget);
     expect(find.text('سارة محمد'), findsOneWidget);
-    expect(find.text('البريد الإلكتروني موثق'), findsOneWidget);
+    expect(find.text('موثق'), findsOneWidget);
     expect(find.text('3 مراجعة'), findsOneWidget);
     expect(find.text('بياناتي'), findsOneWidget);
     expect(find.text('مفضلاتي'), findsOneWidget);
@@ -68,6 +68,56 @@ void main() {
     expect(find.text('عضو منذ 2024'), findsOneWidget);
     expect(find.text('917'), findsNothing);
     expect(find.textContaining('2024-'), findsNothing);
+  });
+
+  testWidgets('unverified profile can request a verification email', (
+    tester,
+  ) async {
+    final gateway = _ProfileGateway(verified: false);
+    final auth = await _authenticatedController();
+    await tester.pumpWidget(
+      _ProfileTestApp(
+        auth: auth,
+        child: ProfileDetailsPage(
+          controller: ProfileDetailsController(gateway: gateway),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('غير موثق'), findsOneWidget);
+    expect(find.text('توثيق البريد الإلكتروني'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('verify-email-button')));
+    await tester.pump();
+
+    expect(gateway.verificationRequests, 1);
+    expect(find.textContaining('تم إرسال رسالة التوثيق'), findsOneWidget);
+  });
+
+  testWidgets('profile refreshes verification status when app resumes', (
+    tester,
+  ) async {
+    final gateway = _ProfileGateway(verified: false);
+    final auth = await _authenticatedController();
+    await tester.pumpWidget(
+      _ProfileTestApp(
+        auth: auth,
+        child: ProfileDetailsPage(
+          controller: ProfileDetailsController(gateway: gateway),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('verify-email-button')), findsOneWidget);
+
+    gateway.verified = true;
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
+
+    expect(find.text('موثق'), findsOneWidget);
+    expect(find.byKey(const ValueKey('verify-email-button')), findsNothing);
   });
 
   testWidgets('favorites use real fields and removal executes once', (
@@ -189,13 +239,18 @@ class _ProfileTestApp extends StatelessWidget {
 }
 
 class _ProfileGateway implements ProfileGateway {
+  _ProfileGateway({this.verified = true});
+
+  bool verified;
+  int verificationRequests = 0;
+
   @override
-  Future<ProfileSummaryDto> getSummary() async => const ProfileSummaryDto(
+  Future<ProfileSummaryDto> getSummary() async => ProfileSummaryDto(
     userId: 917,
     name: 'سارة محمد',
     phoneNumber: '+966500000000',
     email: 'sara@example.com',
-    isEmailVerified: true,
+    isEmailVerified: verified,
     reviewCount: 3,
   );
 
@@ -205,10 +260,27 @@ class _ProfileGateway implements ProfileGateway {
     name: 'سارة محمد',
     phoneNumber: null,
     email: 'sara@example.com',
-    isEmailVerified: true,
+    isEmailVerified: verified,
     createdAtUtc: DateTime.utc(2024, 3, 2),
-    emailVerifiedAtUtc: DateTime.utc(2024, 3, 3),
+    emailVerifiedAtUtc: verified ? DateTime.utc(2024, 3, 3) : null,
+    emailVerificationResendAvailableAtUtc: null,
   );
+
+  @override
+  Future<EmailVerificationDto> requestEmailVerification() async {
+    verificationRequests++;
+    return EmailVerificationDto(
+      email: 'sara@example.com',
+      isEmailVerified: false,
+      tokenExpiresAtUtc: DateTime.now().toUtc().add(
+        const Duration(minutes: 30),
+      ),
+      resendAvailableAtUtc: DateTime.now().toUtc().add(
+        const Duration(minutes: 1),
+      ),
+      emailVerifiedAtUtc: null,
+    );
+  }
 
   @override
   Future<List<ProfileFavoriteRestaurantDto>> getFavorites() async => const [

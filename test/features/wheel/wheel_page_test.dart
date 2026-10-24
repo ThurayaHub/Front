@@ -43,6 +43,9 @@ void main() {
     );
     await tester.tap(find.byKey(const ValueKey('login-submit')));
     await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const ValueKey('login-otp')), '123456');
+    await tester.tap(find.byKey(const ValueKey('otp-submit')));
+    await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('wheel-page')), findsOneWidget);
     expect(gateway.createCalls, 1);
@@ -305,13 +308,17 @@ class _PageWheelGateway implements WheelGateway {
   );
 }
 
-AuthSessionController _authController() => AuthSessionController(
-  authGateway: _WheelAuthGateway(),
-  sessionStore: _WheelSessionStore(),
-  now: () => DateTime.utc(2026, 9, 20, 12),
-);
+AuthSessionController _authController() {
+  final gateway = _WheelAuthGateway();
+  return AuthSessionController(
+    authGateway: gateway,
+    phoneOtpGateway: gateway,
+    sessionStore: _WheelSessionStore(),
+    now: () => DateTime.utc(2026, 9, 20, 12),
+  );
+}
 
-class _WheelAuthGateway implements AuthGateway {
+class _WheelAuthGateway implements AuthGateway, PhoneOtpGateway {
   AuthResponse get _response => AuthResponse(
     isNewUser: false,
     user: const AuthUser(
@@ -329,6 +336,19 @@ class _WheelAuthGateway implements AuthGateway {
 
   @override
   Future<AuthResponse> loginWithPhone(String phoneNumber) async => _response;
+
+  @override
+  Future<PhoneOtpChallenge> requestPhoneOtp(String phoneNumber) async {
+    return PhoneOtpChallenge(
+      resendAvailableAtUtc: DateTime.utc(2026, 9, 20, 12, 1),
+    );
+  }
+
+  @override
+  Future<AuthResponse> verifyPhoneOtp({
+    required String phoneNumber,
+    required String otp,
+  }) async => _response;
 
   @override
   Future<AuthResponse> completeRegistration({

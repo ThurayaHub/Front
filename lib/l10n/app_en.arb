@@ -148,6 +148,24 @@
   "phoneNumber": "Mobile number",
   "phoneNumberHint": "05XXXXXXXX",
   "continueLabel": "Continue",
+  "otpTitle": "Verify mobile number",
+  "otpSubtitle": "Enter the one-time code sent to your mobile number.",
+  "otpSentTo": "We sent a verification code to {phoneNumber}",
+  "@otpSentTo": {
+    "placeholders": {
+      "phoneNumber": {
+        "type": "String"
+      }
+    }
+  },
+  "otpCode": "Verification code",
+  "otpHint": "Enter the code",
+  "verifyOtp": "Verify code",
+  "resendOtp": "Resend code",
+  "otpSent": "A new verification code was sent.",
+  "invalidOtp": "Enter a valid verification code",
+  "otpTooManyRequests": "Too many attempts. Please wait and try again.",
+  "otpUnavailable": "Phone verification is unavailable right now. Please try again.",
   "registrationTitle": "Complete registration",
   "registrationSubtitle": "This number is not registered. Complete your details to create a Thuraya account.",
   "fullName": "Name",
@@ -189,8 +207,22 @@
   "profileDetailsTitle": "My details",
   "myFavorites": "My favorites",
   "myReviews": "My reviews",
-  "emailVerified": "Email address verified",
-  "emailUnverified": "Email address not verified",
+  "emailVerified": "Verified",
+  "emailUnverified": "Not Verified",
+  "verifyEmail": "Verify Email",
+  "resendVerificationEmail": "Resend verification email",
+  "resendVerificationEmailIn": "Resend in {seconds}s",
+  "@resendVerificationEmailIn": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "sendingVerificationEmail": "Sending verification email...",
+  "verificationEmailSent": "Verification email sent. Open the link in the email, then return to Thuraya.",
+  "verificationEmailRateLimited": "Please wait before requesting another verification email.",
+  "verificationEmailRequestFailed": "We couldn't send the verification email. Please try again.",
   "reviewsWritten": "{count} reviews",
   "@reviewsWritten": {
     "placeholders": {

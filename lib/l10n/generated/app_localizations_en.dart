@@ -363,6 +363,44 @@ class AppLocalizationsEn extends AppLocalizations {
   String get continueLabel => 'Continue';
 
   @override
+  String get otpTitle => 'Verify mobile number';
+
+  @override
+  String get otpSubtitle =>
+      'Enter the one-time code sent to your mobile number.';
+
+  @override
+  String otpSentTo(String phoneNumber) {
+    return 'We sent a verification code to $phoneNumber';
+  }
+
+  @override
+  String get otpCode => 'Verification code';
+
+  @override
+  String get otpHint => 'Enter the code';
+
+  @override
+  String get verifyOtp => 'Verify code';
+
+  @override
+  String get resendOtp => 'Resend code';
+
+  @override
+  String get otpSent => 'A new verification code was sent.';
+
+  @override
+  String get invalidOtp => 'Enter a valid verification code';
+
+  @override
+  String get otpTooManyRequests =>
+      'Too many attempts. Please wait and try again.';
+
+  @override
+  String get otpUnavailable =>
+      'Phone verification is unavailable right now. Please try again.';
+
+  @override
   String get registrationTitle => 'Complete registration';
 
   @override
@@ -455,10 +493,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get myReviews => 'My reviews';
 
   @override
-  String get emailVerified => 'Email address verified';
+  String get emailVerified => 'Verified';
 
   @override
-  String get emailUnverified => 'Email address not verified';
+  String get emailUnverified => 'Not Verified';
+
+  @override
+  String get verifyEmail => 'Verify Email';
+
+  @override
+  String get resendVerificationEmail => 'Resend verification email';
+
+  @override
+  String resendVerificationEmailIn(int seconds) {
+    return 'Resend in ${seconds}s';
+  }
+
+  @override
+  String get sendingVerificationEmail => 'Sending verification email...';
+
+  @override
+  String get verificationEmailSent =>
+      'Verification email sent. Open the link in the email, then return to Thuraya.';
+
+  @override
+  String get verificationEmailRateLimited =>
+      'Please wait before requesting another verification email.';
+
+  @override
+  String get verificationEmailRequestFailed =>
+      'We couldn\'t send the verification email. Please try again.';
 
   @override
   String reviewsWritten(int count) {

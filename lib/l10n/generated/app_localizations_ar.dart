@@ -356,6 +356,43 @@ class AppLocalizationsAr extends AppLocalizations {
   String get continueLabel => 'متابعة';
 
   @override
+  String get otpTitle => 'توثيق رقم الجوال';
+
+  @override
+  String get otpSubtitle => 'أدخل رمز التحقق المرسل إلى رقم جوالك.';
+
+  @override
+  String otpSentTo(String phoneNumber) {
+    return 'أرسلنا رمز تحقق إلى $phoneNumber';
+  }
+
+  @override
+  String get otpCode => 'رمز التحقق';
+
+  @override
+  String get otpHint => 'أدخل الرمز';
+
+  @override
+  String get verifyOtp => 'تحقق من الرمز';
+
+  @override
+  String get resendOtp => 'إعادة إرسال الرمز';
+
+  @override
+  String get otpSent => 'تم إرسال رمز تحقق جديد.';
+
+  @override
+  String get invalidOtp => 'أدخل رمز تحقق صحيحاً';
+
+  @override
+  String get otpTooManyRequests =>
+      'محاولات كثيرة. انتظر قليلاً ثم حاول مرة أخرى.';
+
+  @override
+  String get otpUnavailable =>
+      'خدمة توثيق الجوال غير متاحة حالياً. حاول مرة أخرى.';
+
+  @override
   String get registrationTitle => 'إكمال التسجيل';
 
   @override
@@ -449,10 +486,36 @@ class AppLocalizationsAr extends AppLocalizations {
   String get myReviews => 'مراجعاتي';
 
   @override
-  String get emailVerified => 'البريد الإلكتروني موثق';
+  String get emailVerified => 'موثق';
 
   @override
-  String get emailUnverified => 'البريد الإلكتروني غير موثق';
+  String get emailUnverified => 'غير موثق';
+
+  @override
+  String get verifyEmail => 'توثيق البريد الإلكتروني';
+
+  @override
+  String get resendVerificationEmail => 'إعادة إرسال رسالة التوثيق';
+
+  @override
+  String resendVerificationEmailIn(int seconds) {
+    return 'إعادة الإرسال خلال $secondsث';
+  }
+
+  @override
+  String get sendingVerificationEmail => 'جارٍ إرسال رسالة التوثيق...';
+
+  @override
+  String get verificationEmailSent =>
+      'تم إرسال رسالة التوثيق. افتح الرابط في البريد ثم ارجع إلى ثريا.';
+
+  @override
+  String get verificationEmailRateLimited =>
+      'انتظر قليلاً قبل طلب رسالة توثيق أخرى.';
+
+  @override
+  String get verificationEmailRequestFailed =>
+      'تعذر إرسال رسالة التوثيق. حاول مرة أخرى.';
 
   @override
   String reviewsWritten(int count) {

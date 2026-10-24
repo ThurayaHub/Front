@@ -36,6 +36,7 @@ class UserProfileDto {
     required this.isEmailVerified,
     required this.createdAtUtc,
     required this.emailVerifiedAtUtc,
+    required this.emailVerificationResendAvailableAtUtc,
   });
 
   final int userId;
@@ -45,6 +46,7 @@ class UserProfileDto {
   final bool isEmailVerified;
   final DateTime createdAtUtc;
   final DateTime? emailVerifiedAtUtc;
+  final DateTime? emailVerificationResendAvailableAtUtc;
 
   factory UserProfileDto.fromJson(Map<String, dynamic> json) {
     return UserProfileDto(
@@ -54,6 +56,35 @@ class UserProfileDto {
       email: json['email'] as String?,
       isEmailVerified: json['isEmailVerified'] == true,
       createdAtUtc: _requiredDate(json, 'createdAtUtc'),
+      emailVerifiedAtUtc: _optionalDate(json['emailVerifiedAtUtc']),
+      emailVerificationResendAvailableAtUtc: _optionalDate(
+        json['emailVerificationResendAvailableAtUtc'],
+      ),
+    );
+  }
+}
+
+class EmailVerificationDto {
+  const EmailVerificationDto({
+    required this.email,
+    required this.isEmailVerified,
+    required this.tokenExpiresAtUtc,
+    required this.resendAvailableAtUtc,
+    required this.emailVerifiedAtUtc,
+  });
+
+  final String email;
+  final bool isEmailVerified;
+  final DateTime? tokenExpiresAtUtc;
+  final DateTime? resendAvailableAtUtc;
+  final DateTime? emailVerifiedAtUtc;
+
+  factory EmailVerificationDto.fromJson(Map<String, dynamic> json) {
+    return EmailVerificationDto(
+      email: _requiredString(json, 'email'),
+      isEmailVerified: json['isEmailVerified'] == true,
+      tokenExpiresAtUtc: _optionalDate(json['tokenExpiresAtUtc']),
+      resendAvailableAtUtc: _optionalDate(json['resendAvailableAtUtc']),
       emailVerifiedAtUtc: _optionalDate(json['emailVerifiedAtUtc']),
     );
   }

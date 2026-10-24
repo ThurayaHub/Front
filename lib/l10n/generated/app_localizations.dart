@@ -746,6 +746,72 @@ abstract class AppLocalizations {
   /// **'Continue'**
   String get continueLabel;
 
+  /// No description provided for @otpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify mobile number'**
+  String get otpTitle;
+
+  /// No description provided for @otpSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the one-time code sent to your mobile number.'**
+  String get otpSubtitle;
+
+  /// No description provided for @otpSentTo.
+  ///
+  /// In en, this message translates to:
+  /// **'We sent a verification code to {phoneNumber}'**
+  String otpSentTo(String phoneNumber);
+
+  /// No description provided for @otpCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification code'**
+  String get otpCode;
+
+  /// No description provided for @otpHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the code'**
+  String get otpHint;
+
+  /// No description provided for @verifyOtp.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify code'**
+  String get verifyOtp;
+
+  /// No description provided for @resendOtp.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend code'**
+  String get resendOtp;
+
+  /// No description provided for @otpSent.
+  ///
+  /// In en, this message translates to:
+  /// **'A new verification code was sent.'**
+  String get otpSent;
+
+  /// No description provided for @invalidOtp.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid verification code'**
+  String get invalidOtp;
+
+  /// No description provided for @otpTooManyRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts. Please wait and try again.'**
+  String get otpTooManyRequests;
+
+  /// No description provided for @otpUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone verification is unavailable right now. Please try again.'**
+  String get otpUnavailable;
+
   /// No description provided for @registrationTitle.
   ///
   /// In en, this message translates to:
@@ -911,14 +977,56 @@ abstract class AppLocalizations {
   /// No description provided for @emailVerified.
   ///
   /// In en, this message translates to:
-  /// **'Email address verified'**
+  /// **'Verified'**
   String get emailVerified;
 
   /// No description provided for @emailUnverified.
   ///
   /// In en, this message translates to:
-  /// **'Email address not verified'**
+  /// **'Not Verified'**
   String get emailUnverified;
+
+  /// No description provided for @verifyEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify Email'**
+  String get verifyEmail;
+
+  /// No description provided for @resendVerificationEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend verification email'**
+  String get resendVerificationEmail;
+
+  /// No description provided for @resendVerificationEmailIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend in {seconds}s'**
+  String resendVerificationEmailIn(int seconds);
+
+  /// No description provided for @sendingVerificationEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending verification email...'**
+  String get sendingVerificationEmail;
+
+  /// No description provided for @verificationEmailSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification email sent. Open the link in the email, then return to Thuraya.'**
+  String get verificationEmailSent;
+
+  /// No description provided for @verificationEmailRateLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Please wait before requesting another verification email.'**
+  String get verificationEmailRateLimited;
+
+  /// No description provided for @verificationEmailRequestFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t send the verification email. Please try again.'**
+  String get verificationEmailRequestFailed;
 
   /// No description provided for @reviewsWritten.
   ///

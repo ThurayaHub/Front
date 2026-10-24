@@ -6,6 +6,10 @@ import 'package:thuraya/features/restaurant_details/services/restaurant_details_
 
 enum ProfileLoadStatus { idle, loading, ready, error }
 
+enum EmailVerificationRequestStatus { idle, sending, sent, error }
+
+enum EmailVerificationRequestFailure { none, rateLimited, unavailable }
+
 typedef FavoriteRemover = Future<void> Function(int restaurantId);
 
 class AccountSummaryController extends ChangeNotifier {
@@ -82,6 +86,10 @@ class ProfileDetailsController extends ChangeNotifier {
 
   ProfileLoadStatus status = ProfileLoadStatus.idle;
   UserProfileDto? profile;
+  EmailVerificationRequestStatus verificationRequestStatus =
+      EmailVerificationRequestStatus.idle;
+  EmailVerificationRequestFailure verificationRequestFailure =
+      EmailVerificationRequestFailure.none;
 
   Future<void> load({bool refresh = false}) async {
     if (status == ProfileLoadStatus.loading ||
@@ -95,6 +103,9 @@ class ProfileDetailsController extends ChangeNotifier {
       if (_disposed) return;
       profile = value;
       status = ProfileLoadStatus.ready;
+      if (value.isEmailVerified) {
+        verificationRequestStatus = EmailVerificationRequestStatus.idle;
+      }
     } on AuthenticationRequiredException {
       rethrow;
     } catch (_) {
@@ -102,6 +113,51 @@ class ProfileDetailsController extends ChangeNotifier {
       status = ProfileLoadStatus.error;
     }
     _notify();
+  }
+
+  Future<bool> requestEmailVerification() async {
+    if (verificationRequestStatus == EmailVerificationRequestStatus.sending) {
+      return false;
+    }
+    verificationRequestStatus = EmailVerificationRequestStatus.sending;
+    verificationRequestFailure = EmailVerificationRequestFailure.none;
+    _notify();
+    try {
+      final result = await _gateway.requestEmailVerification();
+      if (_disposed) return false;
+      final current = profile;
+      if (current != null) {
+        profile = UserProfileDto(
+          userId: current.userId,
+          name: current.name,
+          phoneNumber: current.phoneNumber,
+          email: current.email,
+          isEmailVerified: result.isEmailVerified,
+          createdAtUtc: current.createdAtUtc,
+          emailVerifiedAtUtc: result.emailVerifiedAtUtc,
+          emailVerificationResendAvailableAtUtc: result.resendAvailableAtUtc,
+        );
+      }
+      verificationRequestStatus = EmailVerificationRequestStatus.sent;
+      _notify();
+      return true;
+    } on AuthenticationRequiredException {
+      rethrow;
+    } on ApiException catch (error) {
+      if (_disposed) return false;
+      verificationRequestStatus = EmailVerificationRequestStatus.error;
+      verificationRequestFailure = error.statusCode == 429
+          ? EmailVerificationRequestFailure.rateLimited
+          : EmailVerificationRequestFailure.unavailable;
+      _notify();
+      return false;
+    } catch (_) {
+      if (_disposed) return false;
+      verificationRequestStatus = EmailVerificationRequestStatus.error;
+      verificationRequestFailure = EmailVerificationRequestFailure.unavailable;
+      _notify();
+      return false;
+    }
   }
 
   void _notify() {

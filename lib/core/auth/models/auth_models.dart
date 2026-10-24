@@ -86,6 +86,7 @@ class AuthResponse {
     required this.refreshToken,
     required this.accessTokenExpiresAtUtc,
     required this.refreshTokenExpiresAtUtc,
+    this.registrationToken,
   });
 
   final bool isNewUser;
@@ -94,6 +95,7 @@ class AuthResponse {
   final String? refreshToken;
   final DateTime? accessTokenExpiresAtUtc;
   final DateTime? refreshTokenExpiresAtUtc;
+  final String? registrationToken;
 
   factory AuthResponse.fromJson(Map<String, dynamic> json) {
     final user = json['user'];
@@ -110,6 +112,7 @@ class AuthResponse {
       refreshTokenExpiresAtUtc: _optionalDateTime(
         json['refreshTokenExpiresAtUtc'],
       ),
+      registrationToken: json['registrationToken'] as String?,
     );
   }
 
@@ -135,6 +138,20 @@ class AuthResponse {
       refreshToken: currentRefreshToken,
       accessTokenExpiresAtUtc: accessExpiry,
       refreshTokenExpiresAtUtc: refreshExpiry,
+    );
+  }
+}
+
+class PhoneOtpChallenge {
+  const PhoneOtpChallenge({required this.resendAvailableAtUtc});
+
+  final DateTime resendAvailableAtUtc;
+
+  factory PhoneOtpChallenge.fromJson(Map<String, dynamic> json) {
+    return PhoneOtpChallenge(
+      resendAvailableAtUtc: DateTime.parse(
+        _requiredString(json, 'resendAvailableAtUtc'),
+      ).toUtc(),
     );
   }
 }

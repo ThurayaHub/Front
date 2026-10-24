@@ -148,6 +148,24 @@
   "phoneNumber": "رقم الجوال",
   "phoneNumberHint": "05XXXXXXXX",
   "continueLabel": "متابعة",
+  "otpTitle": "توثيق رقم الجوال",
+  "otpSubtitle": "أدخل رمز التحقق المرسل إلى رقم جوالك.",
+  "otpSentTo": "أرسلنا رمز تحقق إلى {phoneNumber}",
+  "@otpSentTo": {
+    "placeholders": {
+      "phoneNumber": {
+        "type": "String"
+      }
+    }
+  },
+  "otpCode": "رمز التحقق",
+  "otpHint": "أدخل الرمز",
+  "verifyOtp": "تحقق من الرمز",
+  "resendOtp": "إعادة إرسال الرمز",
+  "otpSent": "تم إرسال رمز تحقق جديد.",
+  "invalidOtp": "أدخل رمز تحقق صحيحاً",
+  "otpTooManyRequests": "محاولات كثيرة. انتظر قليلاً ثم حاول مرة أخرى.",
+  "otpUnavailable": "خدمة توثيق الجوال غير متاحة حالياً. حاول مرة أخرى.",
   "registrationTitle": "إكمال التسجيل",
   "registrationSubtitle": "هذا الرقم غير مسجل. أكمل بياناتك لإنشاء حساب ثريا.",
   "fullName": "الاسم",
@@ -189,8 +207,22 @@
   "profileDetailsTitle": "بياناتي",
   "myFavorites": "مفضلاتي",
   "myReviews": "مراجعاتي",
-  "emailVerified": "البريد الإلكتروني موثق",
-  "emailUnverified": "البريد الإلكتروني غير موثق",
+  "emailVerified": "موثق",
+  "emailUnverified": "غير موثق",
+  "verifyEmail": "توثيق البريد الإلكتروني",
+  "resendVerificationEmail": "إعادة إرسال رسالة التوثيق",
+  "resendVerificationEmailIn": "إعادة الإرسال خلال {seconds}ث",
+  "@resendVerificationEmailIn": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "sendingVerificationEmail": "جارٍ إرسال رسالة التوثيق...",
+  "verificationEmailSent": "تم إرسال رسالة التوثيق. افتح الرابط في البريد ثم ارجع إلى ثريا.",
+  "verificationEmailRateLimited": "انتظر قليلاً قبل طلب رسالة توثيق أخرى.",
+  "verificationEmailRequestFailed": "تعذر إرسال رسالة التوثيق. حاول مرة أخرى.",
   "reviewsWritten": "{count} مراجعة",
   "@reviewsWritten": {
     "placeholders": {

@@ -25,6 +25,8 @@ abstract final class RestaurantMarkerLayer {
   static const String _cafeGlyphLayerId = 'thuraya-cafe-point-glyph-layer';
   static const String _cafeGlyphCenterLayerId =
       'thuraya-cafe-point-glyph-center-layer';
+  static const String _pointLabelLayerId =
+      'thuraya-restaurant-point-label-layer';
   static const String _selectedHaloLayerId =
       'thuraya-selected-restaurant-halo-layer';
   static const String _selectedPointLayerId =
@@ -158,6 +160,33 @@ abstract final class RestaurantMarkerLayer {
         circleColor: _mapColor(AppColors.primary),
       ),
       filter: _placeTypeFilter('cafe'),
+      enableInteraction: false,
+    );
+    await controller.addSymbolLayer(
+      sourceId,
+      _pointLabelLayerId,
+      SymbolLayerProperties(
+        symbolPlacement: 'point',
+        symbolSortKey: const ['get', 'sortKey'],
+        textField: const ['get', 'name'],
+        textFont: const ['Noto Sans Regular'],
+        textSize: _labelTextSize,
+        textMaxWidth: 12,
+        textLineHeight: 1.1,
+        textJustify: 'auto',
+        // Prefer either side of the unchanged marker, then fall back above
+        // or below when MapLibre's collision detection needs more room.
+        textVariableAnchor: const ['left', 'right', 'top', 'bottom'],
+        textRadialOffset: 1.4,
+        textPadding: 3,
+        textAllowOverlap: false,
+        textIgnorePlacement: false,
+        textColor: _mapColor(AppColors.textPrimary),
+        textHaloColor: _mapColor(AppColors.surface),
+        textHaloWidth: 1.5,
+        textHaloBlur: 0.35,
+      ),
+      filter: _pointFilter,
       enableInteraction: false,
     );
   }
@@ -376,6 +405,18 @@ abstract final class RestaurantMarkerLayer {
     3.6,
     16,
     4.6,
+  ];
+
+  static const List<Object> _labelTextSize = [
+    'interpolate',
+    ['linear'],
+    ['zoom'],
+    9.5,
+    11,
+    13,
+    12,
+    16,
+    13,
   ];
 
   static String _mapColor(Color color) {
