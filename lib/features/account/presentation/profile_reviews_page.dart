@@ -109,7 +109,9 @@ class _ProfileReviewsPageState extends State<ProfileReviewsPage> {
           itemBuilder: (context, index) => _ReviewCard(
             review: _controller.reviews[index],
             onOpen: () => Navigator.of(context).pushNamed(
-              AppRouteNames.restaurantDetails,
+              AppRouteNames.restaurantDetailsFor(
+                _controller.reviews[index].restaurantId,
+              ),
               arguments: _controller.reviews[index].restaurantId,
             ),
           ),

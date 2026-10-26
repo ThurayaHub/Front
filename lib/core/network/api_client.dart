@@ -14,8 +14,7 @@ class ApiException implements Exception {
 }
 
 class AuthenticationRequiredException extends ApiException {
-  const AuthenticationRequiredException(super.message)
-    : super(statusCode: 401);
+  const AuthenticationRequiredException(super.message) : super(statusCode: 401);
 }
 
 abstract interface class ApiAuthorizationDelegate {
@@ -68,6 +67,19 @@ class ApiClient {
     );
   }
 
+  Future<Map<String, dynamic>> patchJson(
+    String path, {
+    Object? body,
+    Map<String, String> queryParameters = const {},
+  }) {
+    return _requestJson(
+      'PATCH',
+      path,
+      queryParameters: queryParameters,
+      body: body,
+    );
+  }
+
   Future<Map<String, dynamic>> deleteJson(
     String path, {
     Object? body,
@@ -95,6 +107,19 @@ class ApiClient {
     Map<String, String> queryParameters = const {},
   }) async {
     final response = await postJson(
+      path,
+      body: body,
+      queryParameters: queryParameters,
+    );
+    return _resultData(response);
+  }
+
+  Future<Object?> patchResultData(
+    String path, {
+    Object? body,
+    Map<String, String> queryParameters = const {},
+  }) async {
+    final response = await patchJson(
       path,
       body: body,
       queryParameters: queryParameters,
@@ -196,9 +221,9 @@ class ApiClient {
     }
 
     final rawResponse = await _httpClient.send(request).timeout(requestTimeout);
-    final responseBody = await rawResponse.stream
-        .bytesToString()
-        .timeout(requestTimeout);
+    final responseBody = await rawResponse.stream.bytesToString().timeout(
+      requestTimeout,
+    );
 
     Object? decodedBody;
     if (responseBody.isNotEmpty) {

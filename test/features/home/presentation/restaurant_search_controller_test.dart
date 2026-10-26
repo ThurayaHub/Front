@@ -176,6 +176,8 @@ const _restaurant = RestaurantMapMarker(
   priceLevelId: 2,
   priceLevelName: 'Medium',
   hasThurayaStar: false,
+  adminRatingAverage: 4.5,
+  adminRatingCount: 1,
   thurayaRatingAverage: 9,
   thurayaReviewCount: 1,
   userRatingAverage: 4.5,

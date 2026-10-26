@@ -30,6 +30,36 @@ void main() {
           'isEmailVerified': true,
           'createdAtUtc': '2024-03-02T00:00:00Z',
           'emailVerifiedAtUtc': '2024-03-03T00:00:00Z',
+          'isPhoneVerified': true,
+          'pendingEmailChange': null,
+          'pendingPhoneChange': null,
+        },
+        '/api/profile/name' ||
+        '/api/profile/email-change' ||
+        '/api/profile/phone-change/verify' ||
+        '/api/profile/phone-change' => {
+          'userId': 7,
+          'name': 'سارة',
+          'phoneNumber': '+966500000000',
+          'isPhoneVerified': true,
+          'email': 'sara@example.com',
+          'isEmailVerified': true,
+          'createdAtUtc': '2024-03-02T00:00:00Z',
+          'emailVerifiedAtUtc': '2024-03-03T00:00:00Z',
+          'pendingEmailChange': null,
+          'pendingPhoneChange': null,
+        },
+        '/api/profile/email-change/request' => {
+          'value': 'new@example.com',
+          'expiresAtUtc': '2026-10-24T12:30:00Z',
+          'resendAvailableAtUtc': '2026-10-24T12:01:00Z',
+          'attemptCount': 0,
+        },
+        '/api/profile/phone-change/request' => {
+          'value': '+966512345678',
+          'expiresAtUtc': '2026-10-24T12:10:00Z',
+          'resendAvailableAtUtc': '2026-10-24T12:01:00Z',
+          'attemptCount': 0,
         },
         '/api/profile/favorites' => [
           {
@@ -94,6 +124,12 @@ void main() {
     final favorites = await service.getFavorites();
     final reviews = await service.getReviews();
     final verification = await service.requestEmailVerification();
+    final updated = await service.updateName('سارة');
+    final emailChange = await service.requestEmailChange('new@example.com');
+    await service.cancelEmailChange();
+    final phoneChange = await service.requestPhoneChange('0512345678');
+    await service.verifyPhoneChange('1234');
+    await service.cancelPhoneChange();
 
     expect(paths, [
       '/api/profile',
@@ -101,6 +137,12 @@ void main() {
       '/api/profile/favorites',
       '/api/profile/reviews',
       '/api/profile/email-verification/request',
+      '/api/profile/name',
+      '/api/profile/email-change/request',
+      '/api/profile/email-change',
+      '/api/profile/phone-change/request',
+      '/api/profile/phone-change/verify',
+      '/api/profile/phone-change',
     ]);
     expect(summary.name, 'سارة');
     expect(details.createdAtUtc.year, 2024);
@@ -108,5 +150,8 @@ void main() {
     expect(reviews.single.rating, 5);
     expect(verification.email, 'sara@example.com');
     expect(verification.isEmailVerified, isFalse);
+    expect(updated.isPhoneVerified, isTrue);
+    expect(emailChange.value, 'new@example.com');
+    expect(phoneChange.value, '+966512345678');
   });
 }

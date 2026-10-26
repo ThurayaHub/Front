@@ -32,10 +32,10 @@ class RestaurantSearchResultCard extends StatelessWidget {
         ChooseRestaurantArabicLabels.priceSymbol(priceName),
     ];
     final thurayaRating =
-        restaurant.thurayaRatingAverage == null ||
-            restaurant.thurayaReviewCount <= 0
+        restaurant.adminRatingAverage == null ||
+            restaurant.adminRatingCount <= 0
         ? null
-        : (restaurant.thurayaRatingAverage! / 2).clamp(0, 5).toDouble();
+        : restaurant.adminRatingAverage!.clamp(0, 5).toDouble();
     final userRating =
         restaurant.userRatingAverage == null || restaurant.reviewCount <= 0
         ? null

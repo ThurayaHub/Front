@@ -212,6 +212,8 @@ void main() {
                 'priceLevelId': 2,
                 'priceLevelName': 'Medium',
                 'hasThurayaStar': false,
+                'adminRatingAverage': 4.5,
+                'adminRatingCount': 1,
                 'thurayaRatingAverage': 9.0,
                 'thurayaReviewCount': 1,
                 'userRatingAverage': 4.5,
@@ -267,6 +269,7 @@ void main() {
     });
     expect(results.single.localizedName('ar'), 'بيت البرجر');
     expect(results.single.thurayaRatingAverage, 9);
+    expect(results.single.adminRatingAverage, 4.5);
     expect(results.single.localizedNeighborhood('en'), 'Al Olaya');
   });
 

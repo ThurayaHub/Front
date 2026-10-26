@@ -35,6 +35,19 @@
   "thurayaStarDescription": "حائز على نجمة التميز للإبداع الطهوي",
   "thurayaRatingLabel": "تقييم ثريا",
   "thurayaReviewLabel": "رأي ثريا",
+  "thurayaEvaluations": "تقييمات ثريا",
+  "thurayaRatedOn": "تم التقييم في {date}",
+  "@thurayaRatedOn": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "thurayaRatingUpdatedOn": "تم التحديث في {date}",
+  "@thurayaRatingUpdatedOn": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
   "userReviewCount": "{count} تقييم مستخدم",
   "@userReviewCount": {
     "placeholders": {
@@ -50,6 +63,29 @@
   "shareUnavailable": "تعذرت مشاركة المطعم حالياً.",
   "aboutRestaurant": "نبذة عن المطعم",
   "photos": "الصور",
+  "overviewTab": "نظرة عامة",
+  "communityRating": "تقييم المجتمع",
+  "restaurantHighlights": "أبرز المعلومات",
+  "restaurantInformation": "معلومات المطعم",
+  "restaurantLocation": "الموقع",
+  "cuisines": "المطابخ",
+  "price": "السعر",
+  "restaurantStatus": "الحالة",
+  "outOfFive": "من 5",
+  "outOfTen": "من 10",
+  "readMore": "عرض المزيد",
+  "showLess": "عرض أقل",
+  "noPhotosAvailable": "لا توجد صور للمطعم بعد",
+  "noPhotosAvailableSubtitle": "ستظهر الصور هنا عند توفرها.",
+  "thurayaStarMeaning": "ما هي نجمة ثريا؟",
+  "thurayaStarMeaningDescription": "نجمة ثريا هي وسام حصري تمنحه ثريا. وهي مستقلة عن تقييم ثريا الرقمي وتقييمات المجتمع.",
+  "photoPosition": "الصورة {current} من {total}",
+  "@photoPosition": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
   "viewAll": "عرض الكل",
   "reviewsTitle": "التقييمات",
   "openRestaurantReviews": "عرض تقييمات المستخدمين",
@@ -294,5 +330,32 @@
   "submitReview": "إرسال المراجعة",
   "reviewCreatedSuccess": "تمت إضافة مراجعتك بنجاح",
   "reviewSubmitError": "تعذر إرسال المراجعة حالياً. حاول مرة أخرى.",
-  "reviewDuplicateError": "سبق أن أضفت مراجعة لهذا المطعم."
+  "reviewDuplicateError": "سبق أن أضفت مراجعة لهذا المطعم.",
+  "editProfileField": "تعديل",
+  "saveChanges": "حفظ التغييرات",
+  "cancel": "إلغاء",
+  "verified": "موثق",
+  "unverified": "غير موثق",
+  "editNameTitle": "تعديل الاسم",
+  "editEmailTitle": "تغيير البريد الإلكتروني",
+  "editPhoneTitle": "تغيير رقم الجوال",
+  "nameRequired": "أدخل اسمك",
+  "invalidEmail": "أدخل بريداً إلكترونياً صحيحاً",
+  "profileUpdateSuccess": "تم تحديث بياناتك.",
+  "profileUpdateFailed": "تعذر تحديث بياناتك. حاول مرة أخرى.",
+  "pendingEmailTitle": "تغيير البريد بانتظار التوثيق",
+  "pendingEmailMessage": "أرسلنا رابط توثيق إلى {email}. سيبقى بريدك الحالي فعالاً حتى تؤكد البريد الجديد.",
+  "@pendingEmailMessage": {"placeholders": {"email": {"type": "String"}}},
+  "pendingPhoneTitle": "تغيير رقم الجوال بانتظار التوثيق",
+  "pendingPhoneMessage": "أدخل رمز التحقق المرسل إلى {phone} لإكمال تغيير رقم الجوال.",
+  "@pendingPhoneMessage": {"placeholders": {"phone": {"type": "String"}}},
+  "enterOtpTitle": "توثيق رقم الجوال الجديد",
+  "otpLabel": "رمز التحقق",
+  "verifyCode": "تحقق من الرمز",
+  "resendCode": "إعادة إرسال الرمز",
+  "cancelChange": "إلغاء التغيير",
+  "emailChangeRequested": "افتح البريد الجديد واضغط رابط التوثيق.",
+  "phoneCodeSent": "تم إرسال رمز تحقق إلى رقم الجوال الجديد.",
+  "phoneVerified": "تم تغيير رقم الجوال وتوثيقه.",
+  "saving": "جارٍ الحفظ..."
 }

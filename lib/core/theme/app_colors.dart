@@ -32,4 +32,23 @@ abstract final class AppColors {
     onError: onError,
     outline: outline,
   );
+
+  static const Color darkBackground = Color(0xFF0D0F1A);
+  static const Color darkSurface = Color(0xFF171925);
+  static const Color darkPanel = Color(0xFF202331);
+  static const Color darkBorder = Color(0xFF333645);
+  static const Color darkTextPrimary = Color(0xFFF6F3F2);
+  static const Color darkTextSecondary = Color(0xFFC8C7D0);
+
+  static const ColorScheme darkScheme = ColorScheme.dark(
+    primary: Color(0xFFB9BCFF),
+    onPrimary: Color(0xFF00043F),
+    secondary: Color(0xFFE8C95F),
+    onSecondary: Color(0xFF272000),
+    surface: darkSurface,
+    onSurface: darkTextPrimary,
+    error: Color(0xFFFFB4AB),
+    onError: Color(0xFF690005),
+    outline: darkBorder,
+  );
 }

@@ -266,6 +266,24 @@ abstract class AppLocalizations {
   /// **'Thuraya review'**
   String get thurayaReviewLabel;
 
+  /// No description provided for @thurayaEvaluations.
+  ///
+  /// In en, this message translates to:
+  /// **'Thuraya evaluations'**
+  String get thurayaEvaluations;
+
+  /// No description provided for @thurayaRatedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Rated on {date}'**
+  String thurayaRatedOn(String date);
+
+  /// No description provided for @thurayaRatingUpdatedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated on {date}'**
+  String thurayaRatingUpdatedOn(String date);
+
   /// No description provided for @userReviewCount.
   ///
   /// In en, this message translates to:
@@ -313,6 +331,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Photos'**
   String get photos;
+
+  /// No description provided for @overviewTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get overviewTab;
+
+  /// No description provided for @communityRating.
+  ///
+  /// In en, this message translates to:
+  /// **'Community rating'**
+  String get communityRating;
+
+  /// No description provided for @restaurantHighlights.
+  ///
+  /// In en, this message translates to:
+  /// **'Restaurant highlights'**
+  String get restaurantHighlights;
+
+  /// No description provided for @restaurantInformation.
+  ///
+  /// In en, this message translates to:
+  /// **'Restaurant information'**
+  String get restaurantInformation;
+
+  /// No description provided for @restaurantLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get restaurantLocation;
+
+  /// No description provided for @cuisines.
+  ///
+  /// In en, this message translates to:
+  /// **'Cuisines'**
+  String get cuisines;
+
+  /// No description provided for @price.
+  ///
+  /// In en, this message translates to:
+  /// **'Price'**
+  String get price;
+
+  /// No description provided for @restaurantStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get restaurantStatus;
+
+  /// No description provided for @outOfFive.
+  ///
+  /// In en, this message translates to:
+  /// **'out of 5'**
+  String get outOfFive;
+
+  /// No description provided for @outOfTen.
+  ///
+  /// In en, this message translates to:
+  /// **'out of 10'**
+  String get outOfTen;
+
+  /// No description provided for @readMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Read more'**
+  String get readMore;
+
+  /// No description provided for @showLess.
+  ///
+  /// In en, this message translates to:
+  /// **'Show less'**
+  String get showLess;
+
+  /// No description provided for @noPhotosAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No restaurant photos yet'**
+  String get noPhotosAvailable;
+
+  /// No description provided for @noPhotosAvailableSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos will appear here when they become available.'**
+  String get noPhotosAvailableSubtitle;
+
+  /// No description provided for @thurayaStarMeaning.
+  ///
+  /// In en, this message translates to:
+  /// **'What is the Thuraya Star?'**
+  String get thurayaStarMeaning;
+
+  /// No description provided for @thurayaStarMeaningDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'The Thuraya Star is an exclusive distinction awarded by Thuraya. It is separate from Thuraya\'s numerical evaluation and community ratings.'**
+  String get thurayaStarMeaningDescription;
+
+  /// No description provided for @photoPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo {current} of {total}'**
+  String photoPosition(int current, int total);
 
   /// No description provided for @viewAll.
   ///
@@ -1375,6 +1495,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You have already reviewed this restaurant.'**
   String get reviewDuplicateError;
+
+  /// No description provided for @editProfileField.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get editProfileField;
+
+  /// No description provided for @saveChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes'**
+  String get saveChanges;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @verified.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified'**
+  String get verified;
+
+  /// No description provided for @unverified.
+  ///
+  /// In en, this message translates to:
+  /// **'Not verified'**
+  String get unverified;
+
+  /// No description provided for @editNameTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit name'**
+  String get editNameTitle;
+
+  /// No description provided for @editEmailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change email address'**
+  String get editEmailTitle;
+
+  /// No description provided for @editPhoneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change mobile number'**
+  String get editPhoneTitle;
+
+  /// No description provided for @nameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your name'**
+  String get nameRequired;
+
+  /// No description provided for @profileUpdateSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Your profile was updated.'**
+  String get profileUpdateSuccess;
+
+  /// No description provided for @profileUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t update your profile. Please try again.'**
+  String get profileUpdateFailed;
+
+  /// No description provided for @pendingEmailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Email change pending'**
+  String get pendingEmailTitle;
+
+  /// No description provided for @pendingEmailMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'We sent a verification link to {email}. Your current email remains active until you confirm it.'**
+  String pendingEmailMessage(String email);
+
+  /// No description provided for @pendingPhoneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile change pending'**
+  String get pendingPhoneTitle;
+
+  /// No description provided for @pendingPhoneMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the OTP sent to {phone} to finish changing your mobile number.'**
+  String pendingPhoneMessage(String phone);
+
+  /// No description provided for @enterOtpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify new mobile number'**
+  String get enterOtpTitle;
+
+  /// No description provided for @otpLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification code'**
+  String get otpLabel;
+
+  /// No description provided for @verifyCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify code'**
+  String get verifyCode;
+
+  /// No description provided for @resendCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend code'**
+  String get resendCode;
+
+  /// No description provided for @cancelChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel change'**
+  String get cancelChange;
+
+  /// No description provided for @emailChangeRequested.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the new inbox and open the verification link.'**
+  String get emailChangeRequested;
+
+  /// No description provided for @phoneCodeSent.
+  ///
+  /// In en, this message translates to:
+  /// **'A verification code was sent to the new mobile number.'**
+  String get phoneCodeSent;
+
+  /// No description provided for @phoneVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Your mobile number was changed and verified.'**
+  String get phoneVerified;
+
+  /// No description provided for @saving.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving...'**
+  String get saving;
 }
 
 class _AppLocalizationsDelegate

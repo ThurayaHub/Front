@@ -135,7 +135,7 @@ class _TrendingPageState extends State<TrendingPage> {
                 restaurant.neighborhoodId,
               ),
               onTap: () => Navigator.of(context).pushNamed(
-                AppRouteNames.restaurantDetails,
+                AppRouteNames.restaurantDetailsFor(restaurant.id),
                 arguments: restaurant.id,
               ),
             );

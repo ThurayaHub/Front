@@ -95,6 +95,32 @@ void main() {
     expect(find.textContaining('تم إرسال رسالة التوثيق'), findsOneWidget);
   });
 
+  testWidgets('name can be edited from the profile page', (tester) async {
+    final gateway = _ProfileGateway();
+    final auth = await _authenticatedController();
+    await tester.pumpWidget(
+      _ProfileTestApp(
+        auth: auth,
+        child: ProfileDetailsPage(
+          controller: ProfileDetailsController(gateway: gateway),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('profile-edit-name')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('profile-edit-input')),
+      'سارة الجديدة',
+    );
+    await tester.tap(find.byKey(const ValueKey('profile-edit-save')));
+    await tester.pumpAndSettle();
+
+    expect(gateway.updatedNames, ['سارة الجديدة']);
+    expect(auth.user?.name, 'سارة الجديدة');
+  });
+
   testWidgets('profile refreshes verification status when app resumes', (
     tester,
   ) async {
@@ -116,7 +142,7 @@ void main() {
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     await tester.pumpAndSettle();
 
-    expect(find.text('موثق'), findsOneWidget);
+    expect(find.text('موثق'), findsWidgets);
     expect(find.byKey(const ValueKey('verify-email-button')), findsNothing);
   });
 
@@ -225,7 +251,8 @@ class _ProfileTestApp extends StatelessWidget {
       ],
       home: child,
       onGenerateRoute: (settings) {
-        if (settings.name == AppRouteNames.restaurantDetails) {
+        if (Uri.tryParse(settings.name ?? '')?.path ==
+            AppRouteNames.restaurantDetails) {
           return MaterialPageRoute<void>(
             builder: (_) =>
                 const Scaffold(key: ValueKey('restaurant-details-test-page')),
@@ -243,6 +270,7 @@ class _ProfileGateway implements ProfileGateway {
 
   bool verified;
   int verificationRequests = 0;
+  final List<String> updatedNames = [];
 
   @override
   Future<ProfileSummaryDto> getSummary() async => ProfileSummaryDto(
@@ -259,12 +287,49 @@ class _ProfileGateway implements ProfileGateway {
     userId: 917,
     name: 'سارة محمد',
     phoneNumber: null,
+    isPhoneVerified: true,
     email: 'sara@example.com',
     isEmailVerified: verified,
     createdAtUtc: DateTime.utc(2024, 3, 2),
     emailVerifiedAtUtc: verified ? DateTime.utc(2024, 3, 3) : null,
     emailVerificationResendAvailableAtUtc: null,
+    pendingEmailChange: null,
+    pendingPhoneChange: null,
   );
+
+  @override
+  Future<UserProfileDto> updateName(String name) {
+    updatedNames.add(name);
+    return getDetails();
+  }
+
+  @override
+  Future<PendingContactChangeDto> requestEmailChange(String email) async =>
+      PendingContactChangeDto(
+        value: email,
+        expiresAtUtc: DateTime.now().toUtc().add(const Duration(minutes: 30)),
+        resendAvailableAtUtc: null,
+        attemptCount: 0,
+      );
+
+  @override
+  Future<UserProfileDto> cancelEmailChange() => getDetails();
+
+  @override
+  Future<PendingContactChangeDto> requestPhoneChange(
+    String phoneNumber,
+  ) async => PendingContactChangeDto(
+    value: phoneNumber,
+    expiresAtUtc: DateTime.now().toUtc().add(const Duration(minutes: 10)),
+    resendAvailableAtUtc: null,
+    attemptCount: 0,
+  );
+
+  @override
+  Future<UserProfileDto> verifyPhoneChange(String otp) => getDetails();
+
+  @override
+  Future<UserProfileDto> cancelPhoneChange() => getDetails();
 
   @override
   Future<EmailVerificationDto> requestEmailVerification() async {

@@ -308,8 +308,9 @@ class _LoginPageState extends State<LoginPage> {
                       child: switch (_step) {
                         _LoginStep.phone => _buildPhoneForm(localizations),
                         _LoginStep.otp => _buildOtpForm(localizations),
-                        _LoginStep.registration =>
-                          _buildRegistrationForm(localizations),
+                        _LoginStep.registration => _buildRegistrationForm(
+                          localizations,
+                        ),
                       },
                     ),
                   ),
@@ -584,6 +585,8 @@ class _AuthTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextFormField(
       controller: controller,
+      style: AppTextStyles.homeCardTitle.copyWith(fontWeight: FontWeight.w500),
+      cursorColor: AppColors.primary,
       keyboardType: keyboardType,
       textDirection: textDirection,
       textAlign: TextAlign.start,
@@ -596,6 +599,13 @@ class _AuthTextField extends StatelessWidget {
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
+        labelStyle: AppTextStyles.detailsMetadata,
+        floatingLabelStyle: AppTextStyles.detailsMetadata.copyWith(
+          color: AppColors.primary,
+        ),
+        hintStyle: AppTextStyles.screenSubtitle.copyWith(
+          color: AppColors.textMuted,
+        ),
         filled: true,
         fillColor: AppColors.background,
         contentPadding: const EdgeInsets.symmetric(

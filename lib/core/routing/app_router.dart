@@ -17,7 +17,9 @@ import 'package:thuraya/features/wheel/presentation/wheel_page.dart';
 
 abstract final class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
-    switch (settings.name) {
+    final uri = Uri.tryParse(settings.name ?? '');
+    final routeName = uri?.path ?? settings.name;
+    switch (routeName) {
       case AppRouteNames.home:
         return MaterialPageRoute<void>(
           builder: (_) => const HomePage(),
@@ -55,7 +57,31 @@ abstract final class AppRouter {
           settings: settings,
         );
       case AppRouteNames.restaurantDetails:
-        final detailsArgument = settings.arguments;
+        final suppliedArgument = settings.arguments;
+        final restaurantId = switch (suppliedArgument) {
+          Restaurant restaurant => restaurant.id,
+          RestaurantDetailsDto details => details.id,
+          int id => id,
+          null => int.tryParse(uri?.queryParameters['id'] ?? ''),
+          _ => null,
+        };
+        if (restaurantId == null || restaurantId <= 0) {
+          if (suppliedArgument != null) {
+            throw FlutterError(
+              'The restaurant details route requires a Restaurant, '
+              'RestaurantDetailsDto, or positive int ID.',
+            );
+          }
+          return MaterialPageRoute<void>(
+            builder: (_) => const HomePage(),
+            settings: const RouteSettings(name: AppRouteNames.home),
+          );
+        }
+        final detailsArgument = suppliedArgument ?? restaurantId;
+        final detailsSettings = RouteSettings(
+          name: AppRouteNames.restaurantDetailsFor(restaurantId),
+          arguments: detailsArgument,
+        );
         return MaterialPageRoute<void>(
           builder: (_) => switch (detailsArgument) {
             Restaurant restaurant => RestaurantDetailsPage(
@@ -67,12 +93,9 @@ abstract final class AppRouter {
             int restaurantId => RestaurantDetailsPage.fromId(
               restaurantId: restaurantId,
             ),
-            _ => throw FlutterError(
-              'The restaurant details route requires a Restaurant, '
-              'RestaurantDetailsDto, or int ID.',
-            ),
+            _ => RestaurantDetailsPage.fromId(restaurantId: restaurantId),
           },
-          settings: settings,
+          settings: detailsSettings,
         );
       case AppRouteNames.restaurantReviews:
         final reviewsArgument = settings.arguments;

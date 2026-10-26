@@ -22,6 +22,7 @@ class RestaurantDetailsDto {
     required this.photos,
     required this.badges,
     required this.reviewSummary,
+    required this.adminRatings,
     required this.thurayaReviewSummary,
     required this.isFavorite,
   });
@@ -48,6 +49,7 @@ class RestaurantDetailsDto {
   final List<RestaurantPhotoDto> photos;
   final List<RestaurantBadgeDto> badges;
   final RestaurantReviewSummaryDto reviewSummary;
+  final List<AdminRestaurantRatingDto> adminRatings;
   final ThurayaReviewSummaryDto thurayaReviewSummary;
   final bool? isFavorite;
 
@@ -77,6 +79,9 @@ class RestaurantDetailsDto {
       reviewSummary: RestaurantReviewSummaryDto.fromJson(
         _requiredMap(json, 'reviewSummary'),
       ),
+      adminRatings: json['adminRatings'] is List
+          ? _mapList(json['adminRatings'], AdminRestaurantRatingDto.fromJson)
+          : const [],
       thurayaReviewSummary: ThurayaReviewSummaryDto.fromJson(
         _requiredMap(json, 'thurayaReviewSummary'),
       ),
@@ -106,6 +111,36 @@ class RestaurantDetailsDto {
     return trimmedValue == null || trimmedValue.isEmpty
         ? fallback
         : trimmedValue;
+  }
+}
+
+class AdminRestaurantRatingDto {
+  const AdminRestaurantRatingDto({
+    required this.id,
+    required this.stars,
+    required this.comment,
+    required this.createdAtUtc,
+    required this.updatedAtUtc,
+  });
+
+  final int id;
+  final double stars;
+  final String? comment;
+  final DateTime createdAtUtc;
+  final DateTime? updatedAtUtc;
+
+  DateTime get effectiveDate => updatedAtUtc ?? createdAtUtc;
+
+  factory AdminRestaurantRatingDto.fromJson(Map<String, dynamic> json) {
+    return AdminRestaurantRatingDto(
+      id: _requiredNumber(json, 'id').toInt(),
+      stars: _requiredNumber(json, 'stars').toDouble(),
+      comment: json['comment'] as String?,
+      createdAtUtc: DateTime.parse(_requiredString(json, 'createdAtUtc')),
+      updatedAtUtc: json['updatedAtUtc'] is String
+          ? DateTime.parse(json['updatedAtUtc'] as String)
+          : null,
+    );
   }
 }
 

@@ -33,6 +33,23 @@ void main() {
         .setMockMethodCallHandler(mapChannel, null);
   });
 
+  testWidgets('keeps the app light when the operating system is dark', (
+    tester,
+  ) async {
+    tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
+    addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+
+    await tester.pumpWidget(const ThurayaApp());
+    await tester.pumpAndSettle();
+
+    expect(
+      Theme.of(
+        tester.element(find.byKey(const ValueKey('home-page'))),
+      ).brightness,
+      Brightness.light,
+    );
+  });
+
   testWidgets('renders the interactive Riyadh MapLibre map on Home', (
     tester,
   ) async {
@@ -186,7 +203,7 @@ void main() {
     expect(navigationLabel('الرئيسية').style?.color, AppColors.primary);
   });
 
-  testWidgets('opens reviews in RTL, scrolls, and returns to details', (
+  testWidgets('opens inline reviews in RTL, scrolls, and returns to overview', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(390, 800);
@@ -205,13 +222,14 @@ void main() {
       context,
     ).pushNamed(AppRouteNames.restaurantDetails, arguments: restaurant);
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('restaurant-details-reviews')));
+    final reviewsTab = find.byKey(const ValueKey('restaurant-details-reviews'));
+    await tester.ensureVisible(reviewsTab);
+    await tester.tap(reviewsTab);
     await tester.pumpAndSettle();
 
     final reviewsTitle = find.text('التقييمات');
     expect(reviewsTitle, findsOneWidget);
     expect(Directionality.of(tester.element(reviewsTitle)), TextDirection.rtl);
-    expect(find.text('إيليا للغوص'), findsOneWidget);
     expect(find.text('124 تقييم'), findsOneWidget);
     expect(find.text('عبدالله محمد'), findsOneWidget);
 
@@ -238,14 +256,14 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('فيصل القحطاني').hitTestable(), findsOneWidget);
 
-    await tester.tap(find.byKey(const ValueKey('restaurant-reviews-back')));
+    await tester.tap(find.text('نظرة عامة'));
     await tester.pumpAndSettle();
 
     expect(
       find.byKey(const ValueKey('restaurant-details-page')),
       findsOneWidget,
     );
-    expect(find.text('124 تقييم'), findsOneWidget);
+    expect(find.text('124'), findsOneWidget);
   });
 
   testWidgets('shows the Arabic empty reviews state', (tester) async {

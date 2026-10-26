@@ -8,6 +8,18 @@ abstract interface class ProfileGateway {
 
   Future<EmailVerificationDto> requestEmailVerification();
 
+  Future<UserProfileDto> updateName(String name);
+
+  Future<PendingContactChangeDto> requestEmailChange(String email);
+
+  Future<UserProfileDto> cancelEmailChange();
+
+  Future<PendingContactChangeDto> requestPhoneChange(String phoneNumber);
+
+  Future<UserProfileDto> verifyPhoneChange(String otp);
+
+  Future<UserProfileDto> cancelPhoneChange();
+
   Future<List<ProfileFavoriteRestaurantDto>> getFavorites();
 
   Future<List<ProfileReviewDto>> getReviews();
@@ -39,6 +51,54 @@ class ProfileService implements ProfileGateway {
       '/api/profile/email-verification/request',
     );
     return EmailVerificationDto.fromJson(_requiredMap(data));
+  }
+
+  @override
+  Future<UserProfileDto> updateName(String name) async {
+    final data = await _apiClient.patchResultData(
+      '/api/profile/name',
+      body: {'name': name.trim()},
+    );
+    return UserProfileDto.fromJson(_requiredMap(data));
+  }
+
+  @override
+  Future<PendingContactChangeDto> requestEmailChange(String email) async {
+    final data = await _apiClient.postResultData(
+      '/api/profile/email-change/request',
+      body: {'email': email.trim()},
+    );
+    return PendingContactChangeDto.fromJson(_requiredMap(data));
+  }
+
+  @override
+  Future<UserProfileDto> cancelEmailChange() async {
+    final data = await _apiClient.deleteResultData('/api/profile/email-change');
+    return UserProfileDto.fromJson(_requiredMap(data));
+  }
+
+  @override
+  Future<PendingContactChangeDto> requestPhoneChange(String phoneNumber) async {
+    final data = await _apiClient.postResultData(
+      '/api/profile/phone-change/request',
+      body: {'phoneNumber': phoneNumber.trim()},
+    );
+    return PendingContactChangeDto.fromJson(_requiredMap(data));
+  }
+
+  @override
+  Future<UserProfileDto> verifyPhoneChange(String otp) async {
+    final data = await _apiClient.postResultData(
+      '/api/profile/phone-change/verify',
+      body: {'otp': otp.trim()},
+    );
+    return UserProfileDto.fromJson(_requiredMap(data));
+  }
+
+  @override
+  Future<UserProfileDto> cancelPhoneChange() async {
+    final data = await _apiClient.deleteResultData('/api/profile/phone-change');
+    return UserProfileDto.fromJson(_requiredMap(data));
   }
 
   @override

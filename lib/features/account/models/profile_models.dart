@@ -32,27 +32,34 @@ class UserProfileDto {
     required this.userId,
     required this.name,
     required this.phoneNumber,
+    required this.isPhoneVerified,
     required this.email,
     required this.isEmailVerified,
     required this.createdAtUtc,
     required this.emailVerifiedAtUtc,
     required this.emailVerificationResendAvailableAtUtc,
+    required this.pendingEmailChange,
+    required this.pendingPhoneChange,
   });
 
   final int userId;
   final String name;
   final String? phoneNumber;
+  final bool isPhoneVerified;
   final String? email;
   final bool isEmailVerified;
   final DateTime createdAtUtc;
   final DateTime? emailVerifiedAtUtc;
   final DateTime? emailVerificationResendAvailableAtUtc;
+  final PendingContactChangeDto? pendingEmailChange;
+  final PendingContactChangeDto? pendingPhoneChange;
 
   factory UserProfileDto.fromJson(Map<String, dynamic> json) {
     return UserProfileDto(
       userId: _requiredInt(json, 'userId'),
       name: _requiredString(json, 'name'),
       phoneNumber: json['phoneNumber'] as String?,
+      isPhoneVerified: json['isPhoneVerified'] == true,
       email: json['email'] as String?,
       isEmailVerified: json['isEmailVerified'] == true,
       createdAtUtc: _requiredDate(json, 'createdAtUtc'),
@@ -60,7 +67,42 @@ class UserProfileDto {
       emailVerificationResendAvailableAtUtc: _optionalDate(
         json['emailVerificationResendAvailableAtUtc'],
       ),
+      pendingEmailChange: PendingContactChangeDto.optionalFromJson(
+        json['pendingEmailChange'],
+      ),
+      pendingPhoneChange: PendingContactChangeDto.optionalFromJson(
+        json['pendingPhoneChange'],
+      ),
     );
+  }
+}
+
+class PendingContactChangeDto {
+  const PendingContactChangeDto({
+    required this.value,
+    required this.expiresAtUtc,
+    required this.resendAvailableAtUtc,
+    required this.attemptCount,
+  });
+
+  final String value;
+  final DateTime expiresAtUtc;
+  final DateTime? resendAvailableAtUtc;
+  final int attemptCount;
+
+  factory PendingContactChangeDto.fromJson(Map<String, dynamic> json) {
+    return PendingContactChangeDto(
+      value: _requiredString(json, 'value'),
+      expiresAtUtc: _requiredDate(json, 'expiresAtUtc'),
+      resendAvailableAtUtc: _optionalDate(json['resendAvailableAtUtc']),
+      attemptCount: _requiredInt(json, 'attemptCount'),
+    );
+  }
+
+  static PendingContactChangeDto? optionalFromJson(Object? value) {
+    return value is Map
+        ? PendingContactChangeDto.fromJson(Map<String, dynamic>.from(value))
+        : null;
   }
 }
 

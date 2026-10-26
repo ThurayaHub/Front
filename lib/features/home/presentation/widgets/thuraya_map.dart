@@ -587,7 +587,10 @@ class _ThurayaMapState extends State<ThurayaMap> {
     _isOpeningRestaurantDetails = true;
     unawaited(
       Navigator.of(context)
-          .pushNamed(AppRouteNames.restaurantDetails, arguments: details)
+          .pushNamed(
+            AppRouteNames.restaurantDetailsFor(details.id),
+            arguments: details,
+          )
           .whenComplete(() => _isOpeningRestaurantDetails = false),
     );
   }

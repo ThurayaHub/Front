@@ -101,6 +101,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get thurayaReviewLabel => 'Thuraya review';
 
   @override
+  String get thurayaEvaluations => 'Thuraya evaluations';
+
+  @override
+  String thurayaRatedOn(String date) {
+    return 'Rated on $date';
+  }
+
+  @override
+  String thurayaRatingUpdatedOn(String date) {
+    return 'Updated on $date';
+  }
+
+  @override
   String userReviewCount(int count) {
     return '$count user reviews';
   }
@@ -125,6 +138,61 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get photos => 'Photos';
+
+  @override
+  String get overviewTab => 'Overview';
+
+  @override
+  String get communityRating => 'Community rating';
+
+  @override
+  String get restaurantHighlights => 'Restaurant highlights';
+
+  @override
+  String get restaurantInformation => 'Restaurant information';
+
+  @override
+  String get restaurantLocation => 'Location';
+
+  @override
+  String get cuisines => 'Cuisines';
+
+  @override
+  String get price => 'Price';
+
+  @override
+  String get restaurantStatus => 'Status';
+
+  @override
+  String get outOfFive => 'out of 5';
+
+  @override
+  String get outOfTen => 'out of 10';
+
+  @override
+  String get readMore => 'Read more';
+
+  @override
+  String get showLess => 'Show less';
+
+  @override
+  String get noPhotosAvailable => 'No restaurant photos yet';
+
+  @override
+  String get noPhotosAvailableSubtitle =>
+      'Photos will appear here when they become available.';
+
+  @override
+  String get thurayaStarMeaning => 'What is the Thuraya Star?';
+
+  @override
+  String get thurayaStarMeaningDescription =>
+      'The Thuraya Star is an exclusive distinction awarded by Thuraya. It is separate from Thuraya\'s numerical evaluation and community ratings.';
+
+  @override
+  String photoPosition(int current, int total) {
+    return 'Photo $current of $total';
+  }
 
   @override
   String get viewAll => 'View all';
@@ -714,4 +782,83 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get reviewDuplicateError =>
       'You have already reviewed this restaurant.';
+
+  @override
+  String get editProfileField => 'Edit';
+
+  @override
+  String get saveChanges => 'Save changes';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get verified => 'Verified';
+
+  @override
+  String get unverified => 'Not verified';
+
+  @override
+  String get editNameTitle => 'Edit name';
+
+  @override
+  String get editEmailTitle => 'Change email address';
+
+  @override
+  String get editPhoneTitle => 'Change mobile number';
+
+  @override
+  String get nameRequired => 'Enter your name';
+
+  @override
+  String get profileUpdateSuccess => 'Your profile was updated.';
+
+  @override
+  String get profileUpdateFailed =>
+      'We couldn\'t update your profile. Please try again.';
+
+  @override
+  String get pendingEmailTitle => 'Email change pending';
+
+  @override
+  String pendingEmailMessage(String email) {
+    return 'We sent a verification link to $email. Your current email remains active until you confirm it.';
+  }
+
+  @override
+  String get pendingPhoneTitle => 'Mobile change pending';
+
+  @override
+  String pendingPhoneMessage(String phone) {
+    return 'Enter the OTP sent to $phone to finish changing your mobile number.';
+  }
+
+  @override
+  String get enterOtpTitle => 'Verify new mobile number';
+
+  @override
+  String get otpLabel => 'Verification code';
+
+  @override
+  String get verifyCode => 'Verify code';
+
+  @override
+  String get resendCode => 'Resend code';
+
+  @override
+  String get cancelChange => 'Cancel change';
+
+  @override
+  String get emailChangeRequested =>
+      'Check the new inbox and open the verification link.';
+
+  @override
+  String get phoneCodeSent =>
+      'A verification code was sent to the new mobile number.';
+
+  @override
+  String get phoneVerified => 'Your mobile number was changed and verified.';
+
+  @override
+  String get saving => 'Saving...';
 }

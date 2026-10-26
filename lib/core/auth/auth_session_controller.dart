@@ -16,9 +16,11 @@ class AuthSessionController extends ChangeNotifier
   }) : _authGateway = authGateway ?? AuthService(),
        _sessionStore = sessionStore ?? SecureAuthSessionStore(),
        _now = now ?? DateTime.now {
-    _phoneOtpGateway = phoneOtpGateway ?? (_authGateway is PhoneOtpGateway
-        ? _authGateway as PhoneOtpGateway
-        : null);
+    _phoneOtpGateway =
+        phoneOtpGateway ??
+        (_authGateway is PhoneOtpGateway
+            ? _authGateway as PhoneOtpGateway
+            : null);
   }
 
   static final AuthSessionController instance = AuthSessionController();
@@ -130,8 +132,8 @@ class AuthSessionController extends ChangeNotifier
     required String email,
   }) async {
     final registrationToken = _registrationToken;
-    final response = registrationToken != null &&
-            _authGateway is OtpRegistrationGateway
+    final response =
+        registrationToken != null && _authGateway is OtpRegistrationGateway
         ? await (_authGateway as OtpRegistrationGateway)
               .completeVerifiedRegistration(
                 phoneNumber: phoneNumber,
@@ -157,6 +159,40 @@ class AuthSessionController extends ChangeNotifier
     } finally {
       await clearSession();
     }
+  }
+
+  Future<void> updateCachedUser({
+    String? name,
+    String? email,
+    String? phoneNumber,
+  }) async {
+    final current = _session;
+    if (current == null) return;
+    final user = current.user;
+    final updatedName = name ?? user.name;
+    final updatedEmail = email ?? user.email;
+    final updatedPhoneNumber = phoneNumber ?? user.phoneNumber;
+    if (updatedName == user.name &&
+        updatedEmail == user.email &&
+        updatedPhoneNumber == user.phoneNumber) {
+      return;
+    }
+    final updated = AuthSession(
+      user: AuthUser(
+        id: user.id,
+        name: updatedName,
+        email: updatedEmail,
+        phoneNumber: updatedPhoneNumber,
+        role: user.role,
+      ),
+      accessToken: current.accessToken,
+      refreshToken: current.refreshToken,
+      accessTokenExpiresAtUtc: current.accessTokenExpiresAtUtc,
+      refreshTokenExpiresAtUtc: current.refreshTokenExpiresAtUtc,
+    );
+    await _sessionStore.write(updated);
+    _session = updated;
+    notifyListeners();
   }
 
   @override

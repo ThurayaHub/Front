@@ -22,6 +22,8 @@ class ThurayaApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
         theme: AppTheme.light,
+        darkTheme: AppTheme.light,
+        themeMode: ThemeMode.light,
         locale: const Locale('ar'),
         initialRoute: AppRouteNames.home,
         onGenerateRoute: AppRouter.onGenerateRoute,

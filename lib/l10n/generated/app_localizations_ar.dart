@@ -98,6 +98,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get thurayaReviewLabel => 'رأي ثريا';
 
   @override
+  String get thurayaEvaluations => 'تقييمات ثريا';
+
+  @override
+  String thurayaRatedOn(String date) {
+    return 'تم التقييم في $date';
+  }
+
+  @override
+  String thurayaRatingUpdatedOn(String date) {
+    return 'تم التحديث في $date';
+  }
+
+  @override
   String userReviewCount(int count) {
     return '$count تقييم مستخدم';
   }
@@ -122,6 +135,60 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get photos => 'الصور';
+
+  @override
+  String get overviewTab => 'نظرة عامة';
+
+  @override
+  String get communityRating => 'تقييم المجتمع';
+
+  @override
+  String get restaurantHighlights => 'أبرز المعلومات';
+
+  @override
+  String get restaurantInformation => 'معلومات المطعم';
+
+  @override
+  String get restaurantLocation => 'الموقع';
+
+  @override
+  String get cuisines => 'المطابخ';
+
+  @override
+  String get price => 'السعر';
+
+  @override
+  String get restaurantStatus => 'الحالة';
+
+  @override
+  String get outOfFive => 'من 5';
+
+  @override
+  String get outOfTen => 'من 10';
+
+  @override
+  String get readMore => 'عرض المزيد';
+
+  @override
+  String get showLess => 'عرض أقل';
+
+  @override
+  String get noPhotosAvailable => 'لا توجد صور للمطعم بعد';
+
+  @override
+  String get noPhotosAvailableSubtitle => 'ستظهر الصور هنا عند توفرها.';
+
+  @override
+  String get thurayaStarMeaning => 'ما هي نجمة ثريا؟';
+
+  @override
+  String get thurayaStarMeaningDescription =>
+      'نجمة ثريا هي وسام حصري تمنحه ثريا. وهي مستقلة عن تقييم ثريا الرقمي وتقييمات المجتمع.';
+
+  @override
+  String photoPosition(int current, int total) {
+    return 'الصورة $current من $total';
+  }
 
   @override
   String get viewAll => 'عرض الكل';
@@ -695,4 +762,80 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get reviewDuplicateError => 'سبق أن أضفت مراجعة لهذا المطعم.';
+
+  @override
+  String get editProfileField => 'تعديل';
+
+  @override
+  String get saveChanges => 'حفظ التغييرات';
+
+  @override
+  String get cancel => 'إلغاء';
+
+  @override
+  String get verified => 'موثق';
+
+  @override
+  String get unverified => 'غير موثق';
+
+  @override
+  String get editNameTitle => 'تعديل الاسم';
+
+  @override
+  String get editEmailTitle => 'تغيير البريد الإلكتروني';
+
+  @override
+  String get editPhoneTitle => 'تغيير رقم الجوال';
+
+  @override
+  String get nameRequired => 'أدخل اسمك';
+
+  @override
+  String get profileUpdateSuccess => 'تم تحديث بياناتك.';
+
+  @override
+  String get profileUpdateFailed => 'تعذر تحديث بياناتك. حاول مرة أخرى.';
+
+  @override
+  String get pendingEmailTitle => 'تغيير البريد بانتظار التوثيق';
+
+  @override
+  String pendingEmailMessage(String email) {
+    return 'أرسلنا رابط توثيق إلى $email. سيبقى بريدك الحالي فعالاً حتى تؤكد البريد الجديد.';
+  }
+
+  @override
+  String get pendingPhoneTitle => 'تغيير رقم الجوال بانتظار التوثيق';
+
+  @override
+  String pendingPhoneMessage(String phone) {
+    return 'أدخل رمز التحقق المرسل إلى $phone لإكمال تغيير رقم الجوال.';
+  }
+
+  @override
+  String get enterOtpTitle => 'توثيق رقم الجوال الجديد';
+
+  @override
+  String get otpLabel => 'رمز التحقق';
+
+  @override
+  String get verifyCode => 'تحقق من الرمز';
+
+  @override
+  String get resendCode => 'إعادة إرسال الرمز';
+
+  @override
+  String get cancelChange => 'إلغاء التغيير';
+
+  @override
+  String get emailChangeRequested => 'افتح البريد الجديد واضغط رابط التوثيق.';
+
+  @override
+  String get phoneCodeSent => 'تم إرسال رمز تحقق إلى رقم الجوال الجديد.';
+
+  @override
+  String get phoneVerified => 'تم تغيير رقم الجوال وتوثيقه.';
+
+  @override
+  String get saving => 'جارٍ الحفظ...';
 }

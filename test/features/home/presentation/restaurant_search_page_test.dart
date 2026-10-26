@@ -491,7 +491,8 @@ class _TestApp extends StatelessWidget {
         restaurantDetailsService: restaurantDetailsService,
       ),
       onGenerateRoute: (settings) {
-        if (settings.name == AppRouteNames.restaurantDetails) {
+        if (Uri.tryParse(settings.name ?? '')?.path ==
+            AppRouteNames.restaurantDetails) {
           return MaterialPageRoute<void>(
             builder: (_) =>
                 Scaffold(body: Text('details-${settings.arguments}')),
@@ -607,6 +608,8 @@ const _restaurant = RestaurantMapMarker(
   priceLevelId: 2,
   priceLevelName: 'Medium',
   hasThurayaStar: false,
+  adminRatingAverage: 4,
+  adminRatingCount: 1,
   thurayaRatingAverage: 8,
   thurayaReviewCount: 1,
   userRatingAverage: 4.5,

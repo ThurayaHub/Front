@@ -135,7 +135,8 @@ Widget _testApp(
     supportedLocales: AppLocalizations.supportedLocales,
     home: TrendingPage(controller: controller),
     onGenerateRoute: (settings) {
-      if (settings.name == AppRouteNames.restaurantDetails) {
+      if (Uri.tryParse(settings.name ?? '')?.path ==
+          AppRouteNames.restaurantDetails) {
         onDetails?.call(settings.arguments);
         return MaterialPageRoute<void>(
           builder: (_) => const Scaffold(key: ValueKey('details-placeholder')),

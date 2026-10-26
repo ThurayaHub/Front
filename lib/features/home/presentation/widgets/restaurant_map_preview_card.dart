@@ -35,9 +35,9 @@ class RestaurantMapPreviewCard extends StatelessWidget {
     final languageCode = Localizations.localeOf(context).languageCode;
     final name = restaurant.localizedName(languageCode);
     final description = restaurant.localizedDescription(languageCode).trim();
-    final thurayaRating = _tenPointRatingOutOfFive(
-      restaurant.thurayaReviewSummary.averageRating,
-      restaurant.thurayaReviewSummary.totalReviews,
+    final thurayaRating = _fivePointRating(
+      restaurant.reviewSummary.adminRatingAverage,
+      restaurant.reviewSummary.adminRatingCount,
     );
     final userRating = _fivePointRating(
       restaurant.reviewSummary.userRatingAverage,
@@ -220,13 +220,6 @@ class RestaurantMapPreviewCard extends StatelessWidget {
     final url = (coverPhotos.isNotEmpty ? coverPhotos.first : photos.first).url
         .trim();
     return url.isEmpty ? null : url;
-  }
-
-  static double? _tenPointRatingOutOfFive(double? value, int reviewCount) {
-    if (value == null || reviewCount <= 0) {
-      return null;
-    }
-    return (value / 2).clamp(0, 5).toDouble();
   }
 
   static double? _fivePointRating(double? value, int reviewCount) {

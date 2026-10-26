@@ -10,4 +10,9 @@ abstract final class AppRouteNames {
   static const String restaurantReviews = '/restaurant-reviews';
   static const String wheel = '/wheel';
   static const String chooseRestaurant = '/choose-restaurant';
+
+  static String restaurantDetailsFor(int restaurantId) => Uri(
+    path: restaurantDetails,
+    queryParameters: {'id': restaurantId.toString()},
+  ).toString();
 }

@@ -113,6 +113,7 @@ void main() {
         'adminRatingAverage': null,
         'adminRatingCount': 0,
       },
+      'adminRatings': <Object>[],
       'thurayaReviewSummary': {
         'averageRating': null,
         'totalReviews': 0,
@@ -140,6 +141,37 @@ void main() {
     expect(find.text('اتصال'), findsNothing);
     expect(find.text('الاتجاهات'), findsOneWidget);
     expect(find.text('مشاركة'), findsOneWidget);
+  });
+
+  testWidgets('shows Thuraya rating comments and their effective dates', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_testPreloadedApp());
+    await tester.pump();
+
+    expect(
+      find.byKey(const ValueKey('restaurant-details-thuraya-rating')),
+      findsOneWidget,
+    );
+    expect(find.text('4.7'), findsOneWidget);
+    await tester.drag(
+      find.byKey(const PageStorageKey('restaurant-overview-scroll')),
+      const Offset(0, -400),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('تقييمات ثريا'), findsOneWidget);
+    expect(
+      find.text('Excellent service and carefully prepared dishes.'),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('restaurant-details-admin-rating-date-81')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('restaurant-details-admin-rating-80')),
+      findsOneWidget,
+    );
   });
 
   testWidgets('Directions and Share receive the real details DTO', (
@@ -303,7 +335,14 @@ void main() {
     );
     expect(find.text('مائدة الرياض'), findsOneWidget);
     expect(find.text('4.5'), findsOneWidget);
-    expect(find.text('8 تقييم'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('restaurant-details-reviews')),
+        matching: find.text('التقييمات'),
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('8'), findsOneWidget);
     expect(find.textContaining('Saudi'), findsOneWidget);
   });
 
@@ -341,6 +380,117 @@ void main() {
       find.byKey(const ValueKey('restaurant-details-page')),
       findsOneWidget,
     );
+  });
+
+  testWidgets('new tabs and Thuraya Star explanation are localized', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_testPreloadedApp());
+    await tester.pump();
+
+    expect(find.text('نظرة عامة'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(TabBar),
+        matching: find.text('التقييمات'),
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('الصور'), findsOneWidget);
+
+    final star = find.byKey(const ValueKey('restaurant-details-thuraya-star'));
+    await tester.ensureVisible(star);
+    await tester.pumpAndSettle();
+    tester.widget<InkWell>(star).onTap!();
+    await tester.pumpAndSettle();
+
+    expect(find.text('ما هي نجمة ثريا؟'), findsOneWidget);
+    expect(find.textContaining('وسام حصري'), findsOneWidget);
+  });
+
+  testWidgets('rating-only community reviews omit an empty comment block', (
+    tester,
+  ) async {
+    final reviewService = _ReviewListService([
+      RestaurantReview(
+        id: 7,
+        restaurantId: 42,
+        reviewerName: 'سارة',
+        stars: 4,
+        comment: null,
+        createdAtUtc: DateTime.utc(2026, 10, 1),
+      ),
+    ]);
+    await tester.pumpWidget(_testPreloadedApp(reviewService: reviewService));
+    await tester.pump();
+
+    final reviewsTab = find.byKey(const ValueKey('restaurant-details-reviews'));
+    await tester.ensureVisible(reviewsTab);
+    await tester.tap(reviewsTab);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('review-card-7')), findsOneWidget);
+    expect(find.byKey(const ValueKey('review-comment-7')), findsNothing);
+  });
+
+  testWidgets('restaurant details render in the light theme', (tester) async {
+    await tester.pumpWidget(
+      AuthScope(
+        controller: _authController(),
+        child: MaterialApp(
+          locale: const Locale('ar'),
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          theme: AppTheme.light,
+          home: RestaurantDetailsPage.fromDetails(details: _detailsDto),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(
+      Theme.of(tester.element(find.text('مائدة الرياض'))).brightness,
+      Brightness.light,
+    );
+    expect(
+      find.byKey(const ValueKey('restaurant-details-page')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('restaurant identity and tabs render in English LTR', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        supportedLocales: AppLocalizations.supportedLocales,
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        theme: AppTheme.light,
+        home: RestaurantDetailsPage.fromDetails(details: _detailsDto),
+      ),
+    );
+    await tester.pump();
+
+    final name = find.text('Riyadh Table');
+    expect(name, findsOneWidget);
+    expect(Directionality.of(tester.element(name)), TextDirection.ltr);
+    expect(find.text('Overview'), findsOneWidget);
+    expect(
+      find.descendant(of: find.byType(TabBar), matching: find.text('Reviews')),
+      findsOneWidget,
+    );
+    expect(find.text('Photos'), findsOneWidget);
   });
 }
 

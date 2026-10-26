@@ -10,6 +10,8 @@ enum EmailVerificationRequestStatus { idle, sending, sent, error }
 
 enum EmailVerificationRequestFailure { none, rateLimited, unavailable }
 
+enum ProfileMutationStatus { idle, saving, success, error }
+
 typedef FavoriteRemover = Future<void> Function(int restaurantId);
 
 class AccountSummaryController extends ChangeNotifier {
@@ -90,6 +92,8 @@ class ProfileDetailsController extends ChangeNotifier {
       EmailVerificationRequestStatus.idle;
   EmailVerificationRequestFailure verificationRequestFailure =
       EmailVerificationRequestFailure.none;
+  ProfileMutationStatus mutationStatus = ProfileMutationStatus.idle;
+  ApiException? mutationError;
 
   Future<void> load({bool refresh = false}) async {
     if (status == ProfileLoadStatus.loading ||
@@ -131,11 +135,14 @@ class ProfileDetailsController extends ChangeNotifier {
           userId: current.userId,
           name: current.name,
           phoneNumber: current.phoneNumber,
+          isPhoneVerified: current.isPhoneVerified,
           email: current.email,
           isEmailVerified: result.isEmailVerified,
           createdAtUtc: current.createdAtUtc,
           emailVerifiedAtUtc: result.emailVerifiedAtUtc,
           emailVerificationResendAvailableAtUtc: result.resendAvailableAtUtc,
+          pendingEmailChange: current.pendingEmailChange,
+          pendingPhoneChange: current.pendingPhoneChange,
         );
       }
       verificationRequestStatus = EmailVerificationRequestStatus.sent;
@@ -158,6 +165,85 @@ class ProfileDetailsController extends ChangeNotifier {
       _notify();
       return false;
     }
+  }
+
+  Future<bool> updateName(String name) {
+    return _mutate(() => _gateway.updateName(name));
+  }
+
+  Future<bool> requestEmailChange(String email) {
+    return _mutateAndReload(() => _gateway.requestEmailChange(email));
+  }
+
+  Future<bool> cancelEmailChange() {
+    return _mutate(_gateway.cancelEmailChange);
+  }
+
+  Future<bool> requestPhoneChange(String phoneNumber) {
+    return _mutateAndReload(() => _gateway.requestPhoneChange(phoneNumber));
+  }
+
+  Future<bool> verifyPhoneChange(String otp) {
+    return _mutate(() => _gateway.verifyPhoneChange(otp));
+  }
+
+  Future<bool> cancelPhoneChange() {
+    return _mutate(_gateway.cancelPhoneChange);
+  }
+
+  Future<bool> _mutate(Future<UserProfileDto> Function() action) async {
+    if (mutationStatus == ProfileMutationStatus.saving) return false;
+    mutationStatus = ProfileMutationStatus.saving;
+    mutationError = null;
+    _notify();
+    try {
+      final value = await action();
+      if (_disposed) return false;
+      profile = value;
+      mutationStatus = ProfileMutationStatus.success;
+      _notify();
+      return true;
+    } on AuthenticationRequiredException {
+      rethrow;
+    } on ApiException catch (error) {
+      if (_disposed) return false;
+      mutationError = error;
+      mutationStatus = ProfileMutationStatus.error;
+    } catch (_) {
+      if (_disposed) return false;
+      mutationError = const ApiException('The profile update failed.');
+      mutationStatus = ProfileMutationStatus.error;
+    }
+    _notify();
+    return false;
+  }
+
+  Future<bool> _mutateAndReload(Future<Object?> Function() action) async {
+    if (mutationStatus == ProfileMutationStatus.saving) return false;
+    mutationStatus = ProfileMutationStatus.saving;
+    mutationError = null;
+    _notify();
+    try {
+      await action();
+      final value = await _gateway.getDetails();
+      if (_disposed) return false;
+      profile = value;
+      mutationStatus = ProfileMutationStatus.success;
+      _notify();
+      return true;
+    } on AuthenticationRequiredException {
+      rethrow;
+    } on ApiException catch (error) {
+      if (_disposed) return false;
+      mutationError = error;
+      mutationStatus = ProfileMutationStatus.error;
+    } catch (_) {
+      if (_disposed) return false;
+      mutationError = const ApiException('The profile update failed.');
+      mutationStatus = ProfileMutationStatus.error;
+    }
+    _notify();
+    return false;
   }
 
   void _notify() {

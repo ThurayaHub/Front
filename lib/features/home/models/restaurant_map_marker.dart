@@ -9,6 +9,8 @@ class RestaurantMapMarker {
     this.priceLevelId,
     this.priceLevelName,
     required this.hasThurayaStar,
+    this.adminRatingAverage,
+    this.adminRatingCount = 0,
     this.thurayaRatingAverage,
     this.thurayaReviewCount = 0,
     this.userRatingAverage,
@@ -31,6 +33,8 @@ class RestaurantMapMarker {
   final int? priceLevelId;
   final String? priceLevelName;
   final bool hasThurayaStar;
+  final double? adminRatingAverage;
+  final int adminRatingCount;
   final double? thurayaRatingAverage;
   final int thurayaReviewCount;
   final double? userRatingAverage;
@@ -54,6 +58,8 @@ class RestaurantMapMarker {
       priceLevelId: (json['priceLevelId'] as num?)?.toInt(),
       priceLevelName: json['priceLevelName'] as String?,
       hasThurayaStar: json['hasThurayaStar'] == true,
+      adminRatingAverage: (json['adminRatingAverage'] as num?)?.toDouble(),
+      adminRatingCount: (json['adminRatingCount'] as num?)?.toInt() ?? 0,
       thurayaRatingAverage: (json['thurayaRatingAverage'] as num?)?.toDouble(),
       thurayaReviewCount: (json['thurayaReviewCount'] as num?)?.toInt() ?? 0,
       userRatingAverage: (json['userRatingAverage'] as num?)?.toDouble(),

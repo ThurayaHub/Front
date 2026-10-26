@@ -281,6 +281,10 @@ class _WheelPageState extends State<WheelPage>
                 textInputAction: TextInputAction.done,
                 textAlign: TextAlign.right,
                 maxLength: 40,
+                style: AppTextStyles.homeCardTitle.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
+                cursorColor: AppColors.primary,
                 onSubmitted: (_) => _addOption(),
                 onTapOutside: (_) => FocusScope.of(context).unfocus(),
                 decoration: InputDecoration(

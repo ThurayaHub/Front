@@ -134,7 +134,7 @@ class _ProfileFavoritesPageState extends State<ProfileFavoritesPage> {
               ),
               onRemove: () => _remove(restaurant),
               onOpen: () => Navigator.of(context).pushNamed(
-                AppRouteNames.restaurantDetails,
+                AppRouteNames.restaurantDetailsFor(restaurant.restaurantId),
                 arguments: restaurant.restaurantId,
               ),
             );

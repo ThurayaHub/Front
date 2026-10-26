@@ -202,7 +202,7 @@ class _ChooseRestaurantPageState extends State<ChooseRestaurantPage> {
     final recommendation = _controller.recommendation;
     if (recommendation == null) return;
     Navigator.of(context).pushNamed(
-      AppRouteNames.restaurantDetails,
+      AppRouteNames.restaurantDetailsFor(recommendation.selection.id),
       arguments: recommendation.details ?? recommendation.selection.id,
     );
   }

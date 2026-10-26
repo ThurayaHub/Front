@@ -49,9 +49,25 @@ final Map<String, dynamic> restaurantDetailsData = {
   'reviewSummary': {
     'userRatingAverage': 4.5,
     'reviewCount': 8,
-    'adminRatingAverage': 8.5,
+    'adminRatingAverage': 4.7,
     'adminRatingCount': 2,
   },
+  'adminRatings': [
+    {
+      'id': 81,
+      'stars': 5.0,
+      'comment': 'Excellent service and carefully prepared dishes.',
+      'createdAtUtc': '2026-08-01T12:00:00Z',
+      'updatedAtUtc': '2026-08-02T12:00:00Z',
+    },
+    {
+      'id': 80,
+      'stars': 4.4,
+      'comment': null,
+      'createdAtUtc': '2026-07-20T12:00:00Z',
+      'updatedAtUtc': null,
+    },
+  ],
   'thurayaReviewSummary': {
     'averageRating': 9.5,
     'totalReviews': 1,

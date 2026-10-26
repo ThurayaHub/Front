@@ -35,6 +35,19 @@
   "thurayaStarDescription": "Awarded the star of excellence for culinary creativity",
   "thurayaRatingLabel": "Thuraya rating",
   "thurayaReviewLabel": "Thuraya review",
+  "thurayaEvaluations": "Thuraya evaluations",
+  "thurayaRatedOn": "Rated on {date}",
+  "@thurayaRatedOn": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "thurayaRatingUpdatedOn": "Updated on {date}",
+  "@thurayaRatingUpdatedOn": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
   "userReviewCount": "{count} user reviews",
   "@userReviewCount": {
     "placeholders": {
@@ -50,6 +63,29 @@
   "shareUnavailable": "This restaurant cannot be shared right now.",
   "aboutRestaurant": "About the restaurant",
   "photos": "Photos",
+  "overviewTab": "Overview",
+  "communityRating": "Community rating",
+  "restaurantHighlights": "Restaurant highlights",
+  "restaurantInformation": "Restaurant information",
+  "restaurantLocation": "Location",
+  "cuisines": "Cuisines",
+  "price": "Price",
+  "restaurantStatus": "Status",
+  "outOfFive": "out of 5",
+  "outOfTen": "out of 10",
+  "readMore": "Read more",
+  "showLess": "Show less",
+  "noPhotosAvailable": "No restaurant photos yet",
+  "noPhotosAvailableSubtitle": "Photos will appear here when they become available.",
+  "thurayaStarMeaning": "What is the Thuraya Star?",
+  "thurayaStarMeaningDescription": "The Thuraya Star is an exclusive distinction awarded by Thuraya. It is separate from Thuraya's numerical evaluation and community ratings.",
+  "photoPosition": "Photo {current} of {total}",
+  "@photoPosition": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
   "viewAll": "View all",
   "reviewsTitle": "Reviews",
   "openRestaurantReviews": "View user reviews",
@@ -294,5 +330,32 @@
   "submitReview": "Submit review",
   "reviewCreatedSuccess": "Your review was added successfully",
   "reviewSubmitError": "Your review could not be submitted right now. Please try again.",
-  "reviewDuplicateError": "You have already reviewed this restaurant."
+  "reviewDuplicateError": "You have already reviewed this restaurant.",
+  "editProfileField": "Edit",
+  "saveChanges": "Save changes",
+  "cancel": "Cancel",
+  "verified": "Verified",
+  "unverified": "Not verified",
+  "editNameTitle": "Edit name",
+  "editEmailTitle": "Change email address",
+  "editPhoneTitle": "Change mobile number",
+  "nameRequired": "Enter your name",
+  "invalidEmail": "Enter a valid email address",
+  "profileUpdateSuccess": "Your profile was updated.",
+  "profileUpdateFailed": "We couldn't update your profile. Please try again.",
+  "pendingEmailTitle": "Email change pending",
+  "pendingEmailMessage": "We sent a verification link to {email}. Your current email remains active until you confirm it.",
+  "@pendingEmailMessage": {"placeholders": {"email": {"type": "String"}}},
+  "pendingPhoneTitle": "Mobile change pending",
+  "pendingPhoneMessage": "Enter the OTP sent to {phone} to finish changing your mobile number.",
+  "@pendingPhoneMessage": {"placeholders": {"phone": {"type": "String"}}},
+  "enterOtpTitle": "Verify new mobile number",
+  "otpLabel": "Verification code",
+  "verifyCode": "Verify code",
+  "resendCode": "Resend code",
+  "cancelChange": "Cancel change",
+  "emailChangeRequested": "Check the new inbox and open the verification link.",
+  "phoneCodeSent": "A verification code was sent to the new mobile number.",
+  "phoneVerified": "Your mobile number was changed and verified.",
+  "saving": "Saving..."
 }

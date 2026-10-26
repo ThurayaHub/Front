@@ -32,7 +32,7 @@ void main() {
       find.byKey(const ValueKey('restaurant-preview-thuraya-star-42')),
       findsOneWidget,
     );
-    expect(find.text('4.8'), findsOneWidget);
+    expect(find.text('4.7'), findsOneWidget);
     expect(find.text('4.5'), findsOneWidget);
     expect(find.text('(8)'), findsOneWidget);
     expect(find.text('5 د'), findsNothing);
@@ -131,15 +131,10 @@ final RestaurantDetailsDto _detailsWithoutRatings =
         ...(restaurantDetailsData['reviewSummary']! as Map<String, dynamic>),
         'userRatingAverage': null,
         'reviewCount': 0,
+        'adminRatingAverage': null,
+        'adminRatingCount': 0,
       },
-      'thurayaReviewSummary': {
-        ...(restaurantDetailsData['thurayaReviewSummary']!
-            as Map<String, dynamic>),
-        'averageRating': null,
-        'totalReviews': 0,
-        'latestReview': null,
-        'history': <Object>[],
-      },
+      'adminRatings': <Object>[],
       'isFavorite': false,
     });
 
