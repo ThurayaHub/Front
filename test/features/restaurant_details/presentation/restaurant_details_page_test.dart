@@ -43,6 +43,8 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('مائدة الرياض'), findsOneWidget);
+    expect(find.text('الحالة'), findsNothing);
+    expect(find.text('Published'), findsNothing);
   });
 
   testWidgets('uses the first photo as hero and only later photos in gallery', (

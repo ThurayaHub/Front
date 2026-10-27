@@ -70,7 +70,6 @@
   "restaurantLocation": "Location",
   "cuisines": "Cuisines",
   "price": "Price",
-  "restaurantStatus": "Status",
   "outOfFive": "out of 5",
   "outOfTen": "out of 10",
   "readMore": "Read more",

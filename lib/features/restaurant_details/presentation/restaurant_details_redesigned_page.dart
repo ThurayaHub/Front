@@ -1097,8 +1097,6 @@ class _InfoCard extends StatelessWidget {
         ),
       if (data.price.isNotEmpty)
         _Info(Icons.payments_outlined, l10n.price, data.price, ltr: true),
-      if (data.status.isNotEmpty)
-        _Info(Icons.info_outline, l10n.restaurantStatus, data.status),
     ];
     return _Card(
       child: Column(
@@ -1919,7 +1917,6 @@ class _ViewData {
     required this.neighborhood,
     required this.address,
     required this.price,
-    required this.status,
     required this.photos,
     required this.userRating,
     required this.reviewCount,
@@ -1940,7 +1937,6 @@ class _ViewData {
       price: value.priceLevelName?.trim().isNotEmpty == true
           ? value.priceLevelName!.trim()
           : List.filled(value.priceLevelId.clamp(0, 4), r'$').join(),
-      status: value.statusName?.trim() ?? '',
       photos: value.photos
           .map((item) => item.url.trim())
           .where((item) => item.isNotEmpty)
@@ -1977,7 +1973,6 @@ class _ViewData {
       neighborhood: value.neighborhood.trim(),
       address: '',
       price: value.priceLevel.trim(),
-      status: '',
       photos: photos,
       userRating: value.rating > 0 && value.reviewCount > 0
           ? value.rating
@@ -1996,7 +1991,6 @@ class _ViewData {
   final String neighborhood;
   final String address;
   final String price;
-  final String status;
   final List<String> photos;
   final double? userRating;
   final int reviewCount;
@@ -2004,8 +1998,7 @@ class _ViewData {
   final double? thurayaRating;
   final List<_ThurayaEvaluationData> thurayaEvaluations;
   bool get hasReviews => userRating != null && reviewCount > 0;
-  bool get hasInfo =>
-      categories.isNotEmpty || price.isNotEmpty || status.isNotEmpty;
+  bool get hasInfo => categories.isNotEmpty || price.isNotEmpty;
 }
 
 class _ThurayaEvaluationData {

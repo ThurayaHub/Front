@@ -374,12 +374,6 @@ abstract class AppLocalizations {
   /// **'Price'**
   String get price;
 
-  /// No description provided for @restaurantStatus.
-  ///
-  /// In en, this message translates to:
-  /// **'Status'**
-  String get restaurantStatus;
-
   /// No description provided for @outOfFive.
   ///
   /// In en, this message translates to:

@@ -158,9 +158,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get price => 'السعر';
 
   @override
-  String get restaurantStatus => 'الحالة';
-
-  @override
   String get outOfFive => 'من 5';
 
   @override
