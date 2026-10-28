@@ -16,6 +16,7 @@ import 'package:thuraya/features/home/services/thuraya_map_style_loader.dart';
 import 'package:thuraya/features/restaurant_details/models/restaurant_details_dto.dart';
 import 'package:thuraya/features/restaurant_details/services/restaurant_details_service.dart';
 import 'package:thuraya/l10n/generated/app_localizations.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ThurayaMap extends StatefulWidget {
   const ThurayaMap({
@@ -54,6 +55,7 @@ class ThurayaMap extends StatefulWidget {
 class _ThurayaMapState extends State<ThurayaMap> {
   static const double _locationButtonSize = 44;
   static const Duration _markerRequestDebounce = Duration(milliseconds: 350);
+  static final Uri _mapAttributionUri = Uri.https('openfreemap.org', '/');
 
   MapLibreMapController? _mapController;
   late final RestaurantMapService _restaurantMapService;
@@ -779,6 +781,9 @@ class _ThurayaMapState extends State<ThurayaMap> {
               logoEnabled: false,
               attributionButtonPosition: AttributionButtonPosition.bottomLeft,
               attributionButtonMargins: Point(8, widget.padding.bottom + 8),
+              // The required attribution remains visible in the Flutter
+              // overlay below; only MapLibre's compact blue (i) is hidden.
+              attributionButtonColor: Colors.transparent,
             );
           },
         ),
@@ -809,6 +814,41 @@ class _ThurayaMapState extends State<ThurayaMap> {
                   ),
                 ),
             ],
+          ),
+        ),
+        PositionedDirectional(
+          start: 8,
+          bottom: widget.padding.bottom + 8,
+          child: Semantics(
+            link: true,
+            label: 'OpenFreeMap, OpenMapTiles, and OpenStreetMap attribution',
+            child: Material(
+              color: AppColors.surface.withValues(alpha: 0.88),
+              borderRadius: BorderRadius.circular(3),
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                key: const ValueKey('map-attribution'),
+                onTap: () => unawaited(
+                  launchUrl(
+                    _mapAttributionUri,
+                    mode: LaunchMode.externalApplication,
+                  ),
+                ),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                  child: Text(
+                    'OpenFreeMap © OpenMapTiles Data from OpenStreetMap',
+                    maxLines: 1,
+                    textDirection: TextDirection.ltr,
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 8,
+                      height: 1,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
         Positioned(
