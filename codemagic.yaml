@@ -22,8 +22,7 @@ workflows:
 
       - name: Install iOS dependencies
         script: |
-          cd ios
-          pod install
+          find . -name "Podfile" -execdir pod install \;
 
       - name: Configure iOS code signing
         script: xcode-project use-profiles
