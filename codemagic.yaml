@@ -1,7 +1,7 @@
 
 workflows:
   thuraya-ios:
-    name: Thuraya iOS Build
+    name: Thuraya iOS Release
     max_build_duration: 120
     instance_type: mac_mini_m2
 
@@ -10,16 +10,31 @@ workflows:
       xcode: 26.5
       cocoapods: default
 
+      ios_signing:
+        provisioning_profiles:
+          - thuraya-appstore
+        certificates:
+          - thuraya-distribution
+
     scripts:
       - name: Get Flutter dependencies
         script: flutter pub get
 
       - name: Install iOS dependencies
-        script: find . -name "Podfile" -execdir pod install \;
+        script: |
+          cd ios
+          pod install
 
-      - name: Build iOS without signing
-        script: flutter build ios --debug --no-codesign
+      - name: Configure iOS code signing
+        script: xcode-project use-profiles
+
+      - name: Build signed Thuraya IPA
+        script: |
+          flutter build ipa --release \
+            --build-name=1.0.0 \
+            --build-number=1 \
+            --export-options-plist=/Users/builder/export_options.plist
 
     artifacts:
-      - build/ios/iphoneos/**/*.app
+      - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
