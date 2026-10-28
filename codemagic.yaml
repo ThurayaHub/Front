@@ -6,7 +6,7 @@ workflows:
     instance_type: mac_mini_m2
 
     integrations:
-      app_store_connect: NM2NTZ2WM7
+      app_store_connect: Thuraya-Codemagic
 
     environment:
       flutter: stable
