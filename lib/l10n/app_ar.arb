@@ -166,6 +166,8 @@
   "minimumWheelOptions": "أضف خيارين على الأقل",
   "spinWheel": "لف العجلة",
   "yourWheelChoice": "اختيارك هو",
+  "wheelSpinAgain": "لف مرة أخرى",
+  "wheelDismissResult": "تم",
   "wheelEmptyState": "أضف خياراتك وابدأ اللف",
   "removeWheelOption": "إزالة الخيار",
   "wheelNetworkError": "تعذر الاتصال بالعجلة حالياً. حاول مرة أخرى.",

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:thuraya/core/constants/app_assets.dart';
 import 'package:thuraya/core/constants/app_spacing.dart';
@@ -6,7 +8,8 @@ import 'package:thuraya/core/routing/app_route_names.dart';
 import 'package:thuraya/core/theme/app_colors.dart';
 import 'package:thuraya/core/theme/app_text_styles.dart';
 import 'package:thuraya/core/widgets/thuraya_bottom_navigation_bar.dart';
-import 'package:thuraya/core/widgets/thuraya_loading_indicator.dart';
+import 'package:thuraya/core/widgets/thuraya_logo.dart';
+import 'package:thuraya/core/widgets/thuraya_result_reveal.dart';
 import 'package:thuraya/core/widgets/thuraya_star_badge.dart';
 import 'package:thuraya/features/choose_restaurant/models/choose_restaurant_dto.dart';
 import 'package:thuraya/features/choose_restaurant/models/restaurant_lookup.dart';
@@ -28,14 +31,31 @@ class _ChooseRestaurantPageState extends State<ChooseRestaurantPage> {
   late final ChooseRestaurantController _controller;
   late final bool _ownsController;
   final _neighborhoodSearchController = TextEditingController();
+  RecommendationStatus _previousRecommendationStatus =
+      RecommendationStatus.idle;
+  int _revealId = 0;
+  bool _isRevealing = false;
+  bool _logoPrepared = false;
 
   @override
   void initState() {
     super.initState();
     _ownsController = widget.controller == null;
     _controller = widget.controller ?? ChooseRestaurantController();
+    _updateRevealState();
     _controller.addListener(_refresh);
     _controller.initialize();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_logoPrepared) {
+      _logoPrepared = true;
+      unawaited(
+        precacheImage(const AssetImage(AppAssets.thurayaLogo), context),
+      );
+    }
   }
 
   @override
@@ -47,7 +67,30 @@ class _ChooseRestaurantPageState extends State<ChooseRestaurantPage> {
   }
 
   void _refresh() {
+    _updateRevealState();
     if (mounted) setState(() {});
+  }
+
+  void _updateRevealState() {
+    final status = _controller.recommendationStatus;
+    if (status == RecommendationStatus.loading &&
+        _previousRecommendationStatus != status) {
+      _revealId++;
+      _isRevealing = true;
+    } else if (status != RecommendationStatus.loading &&
+        status != RecommendationStatus.success) {
+      _isRevealing = false;
+    }
+    _previousRecommendationStatus = status;
+  }
+
+  void _requestRecommendation() {
+    if (_isRevealing ||
+        _controller.recommendationStatus == RecommendationStatus.loading) {
+      return;
+    }
+    FocusScope.of(context).unfocus();
+    unawaited(_controller.requestRecommendation());
   }
 
   void _goBack() {
@@ -103,8 +146,35 @@ class _ChooseRestaurantPageState extends State<ChooseRestaurantPage> {
 
   Widget _buildReadyBody(AppLocalizations l10n) {
     final status = _controller.recommendationStatus;
-    if (status == RecommendationStatus.loading) {
-      return _RecommendationLoading(message: l10n.chooseLoading);
+    final recommendation = _controller.recommendation;
+    if (status == RecommendationStatus.loading ||
+        (status == RecommendationStatus.success && recommendation != null)) {
+      final ready =
+          status == RecommendationStatus.success && recommendation != null;
+      return Padding(
+        padding: const EdgeInsetsDirectional.fromSTEB(20, 8, 20, 20),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 400),
+            child: SizedBox.expand(
+              child: ThurayaResultReveal(
+                key: ValueKey('choose-reveal-$_revealId'),
+                isReady: ready,
+                loadingMessage: l10n.chooseLoading,
+                onRevealed: () => _isRevealing = false,
+                child: ready
+                    ? _RecommendationResult(
+                        recommendation: recommendation,
+                        onViewRestaurant: _openRestaurant,
+                        onChooseAnother: _requestRecommendation,
+                        onChangeSelections: _controller.changeSelections,
+                      )
+                    : null,
+              ),
+            ),
+          ),
+        ),
+      );
     }
     if (status == RecommendationStatus.noMatch) {
       return _RecommendationMessage(
@@ -115,7 +185,7 @@ class _ChooseRestaurantPageState extends State<ChooseRestaurantPage> {
         primaryLabel: l10n.editSelections,
         onPrimary: _controller.changeSelections,
         secondaryLabel: l10n.chooseAnother,
-        onSecondary: _controller.requestRecommendation,
+        onSecondary: _requestRecommendation,
       );
     }
     if (status == RecommendationStatus.error) {
@@ -124,21 +194,11 @@ class _ChooseRestaurantPageState extends State<ChooseRestaurantPage> {
         icon: Icons.sentiment_dissatisfied_rounded,
         title: l10n.chooseRequestError,
         primaryLabel: l10n.retry,
-        onPrimary: _controller.requestRecommendation,
+        onPrimary: _requestRecommendation,
         secondaryLabel: l10n.changeSelections,
         onSecondary: _controller.changeSelections,
       );
     }
-    if (status == RecommendationStatus.success &&
-        _controller.recommendation != null) {
-      return _RecommendationResult(
-        recommendation: _controller.recommendation!,
-        onViewRestaurant: _openRestaurant,
-        onChooseAnother: _controller.requestRecommendation,
-        onChangeSelections: _controller.changeSelections,
-      );
-    }
-
     return Column(
       children: [
         _ProgressHeader(step: _controller.step, l10n: l10n),
@@ -191,7 +251,7 @@ class _ChooseRestaurantPageState extends State<ChooseRestaurantPage> {
           isLastStep: _controller.step == 2,
           enabled: _controller.canContinue,
           onPressed: _controller.step == 2
-              ? _controller.requestRecommendation
+              ? _requestRecommendation
               : _controller.nextStep,
         ),
       ],
@@ -928,34 +988,6 @@ class _StepAction extends StatelessWidget {
   }
 }
 
-class _RecommendationLoading extends StatelessWidget {
-  const _RecommendationLoading({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      key: const ValueKey('choose-recommendation-loading'),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const ThurayaLoadingIndicator(size: 112),
-            const SizedBox(height: AppSpacing.lg),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: AppTextStyles.cardTitle.copyWith(color: AppColors.primary),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _RecommendationResult extends StatelessWidget {
   const _RecommendationResult({
     required this.recommendation,
@@ -972,152 +1004,114 @@ class _RecommendationResult extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final data = _RecommendationViewData.fromRecommendation(recommendation);
-    return SingleChildScrollView(
+    final data = _RecommendationViewData.fromRecommendation(
+      recommendation,
+      languageCode: Localizations.localeOf(context).languageCode,
+    );
+    return Column(
       key: const ValueKey('choose-recommendation-result'),
-      padding: const EdgeInsetsDirectional.fromSTEB(
-        AppSpacing.screen,
-        AppSpacing.xs,
-        AppSpacing.screen,
-        AppSpacing.lg,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            l10n.recommendationTitle,
-            textAlign: TextAlign.center,
-            style: AppTextStyles.screenTitle.copyWith(
-              color: AppColors.textPrimary,
-              fontSize: 25,
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Center(
+          child: ThurayaLogo(width: 44, height: 44, semanticLabel: null),
+        ),
+        const SizedBox(height: 20),
+        Text(
+          l10n.recommendationTitle,
+          textAlign: TextAlign.center,
+          style: AppTextStyles.screenSubtitle.copyWith(
+            color: AppColors.textMuted,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          data.name,
+          key: const ValueKey('choose-result-name'),
+          textAlign: TextAlign.center,
+          style: AppTextStyles.screenTitle.copyWith(fontSize: 28, height: 1.35),
+        ),
+        const SizedBox(height: 20),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: AspectRatio(
+            aspectRatio: 16 / 10,
+            child: _RecommendationImage(source: data.image),
+          ),
+        ),
+        if (data.hasThurayaStar) ...[
+          const SizedBox(height: AppSpacing.sm),
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: ThurayaStarBadge(
+              key: const ValueKey('choose-recommendation-thuraya-star'),
+              hasThurayaStar: true,
+              size: 22,
+              variant: ThurayaStarBadgeVariant.compact,
             ),
           ),
-          const SizedBox(height: AppSpacing.xxs),
+        ],
+        if (data.metadata.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.sm),
           Text(
-            l10n.recommendedRestaurant,
-            textAlign: TextAlign.center,
-            style: AppTextStyles.screenSubtitle.copyWith(
+            data.metadata,
+            style: AppTextStyles.homeCategory.copyWith(
               color: AppColors.textMuted,
             ),
           ),
-          const SizedBox(height: AppSpacing.lg),
-          Container(
-            clipBehavior: Clip.antiAlias,
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(28),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x1A000666),
-                  blurRadius: 26,
-                  offset: Offset(0, 10),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SizedBox(
-                  height: 218,
-                  child: _RecommendationImage(source: data.image),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(AppSpacing.lg),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        data.name,
-                        key: const ValueKey('choose-result-name'),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.cardTitle.copyWith(fontSize: 23),
-                      ),
-                      if (data.hasThurayaStar) ...[
-                        const SizedBox(height: AppSpacing.sm),
-                        Align(
-                          alignment: AlignmentDirectional.centerStart,
-                          child: ThurayaStarBadge(
-                            key: const ValueKey(
-                              'choose-recommendation-thuraya-star',
-                            ),
-                            hasThurayaStar: true,
-                            size: 22,
-                            variant: ThurayaStarBadgeVariant.compact,
-                          ),
-                        ),
-                      ],
-                      if (data.metadata.isNotEmpty) ...[
-                        const SizedBox(height: AppSpacing.xxs),
-                        Text(
-                          data.metadata,
-                          style: AppTextStyles.homeCategory.copyWith(
-                            color: AppColors.textMuted,
-                          ),
-                        ),
-                      ],
-                      if (data.description.isNotEmpty) ...[
-                        const SizedBox(height: AppSpacing.sm),
-                        Text(
-                          data.description,
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTextStyles.screenSubtitle.copyWith(
-                            height: 1.55,
-                          ),
-                        ),
-                      ],
-                      if (data.thurayaRating != null ||
-                          data.userRating != null) ...[
-                        const SizedBox(height: AppSpacing.md),
-                        const Divider(height: 1, color: AppColors.panelBorder),
-                        const SizedBox(height: AppSpacing.sm),
-                        Wrap(
-                          spacing: AppSpacing.lg,
-                          runSpacing: AppSpacing.xs,
-                          children: [
-                            if (data.thurayaRating case final rating?)
-                              _RatingValue(
-                                rating: rating,
-                                color: AppColors.primary,
-                              ),
-                            if (data.userRating case final rating?)
-                              _RatingValue(
-                                rating: rating,
-                                count: data.reviewCount,
-                                color: AppColors.secondary,
-                              ),
-                          ],
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          _PrimaryButton(
-            key: const ValueKey('choose-view-restaurant'),
-            label: l10n.viewRestaurant,
-            icon: Icons.restaurant_menu_rounded,
-            onPressed: onViewRestaurant,
-          ),
+        ],
+        if (data.description.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.sm),
-          OutlinedButton.icon(
-            key: const ValueKey('choose-another'),
-            onPressed: onChooseAnother,
-            icon: const Icon(Icons.refresh_rounded),
-            label: Text(l10n.chooseAnother),
-            style: _secondaryButtonStyle(),
-          ),
-          TextButton(
-            key: const ValueKey('choose-change-selections'),
-            onPressed: onChangeSelections,
-            child: Text(l10n.changeSelections),
+          Text(
+            data.description,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.screenSubtitle.copyWith(height: 1.55),
           ),
         ],
-      ),
+        if (data.thurayaRating != null || data.userRating != null) ...[
+          const SizedBox(height: AppSpacing.md),
+          const Divider(height: 1, color: AppColors.panelBorder),
+          const SizedBox(height: AppSpacing.sm),
+          Wrap(
+            spacing: AppSpacing.lg,
+            runSpacing: AppSpacing.xs,
+            children: [
+              if (data.thurayaRating case final rating?)
+                _RatingValue(rating: rating, color: AppColors.primary),
+              if (data.userRating case final rating?)
+                _RatingValue(
+                  rating: rating,
+                  count: data.reviewCount,
+                  color: AppColors.secondary,
+                ),
+            ],
+          ),
+        ],
+        const SizedBox(height: 28),
+        FilledButton.icon(
+          key: const ValueKey('choose-view-restaurant'),
+          onPressed: onViewRestaurant,
+          icon: const Icon(Icons.restaurant_menu_rounded),
+          label: Text(l10n.viewRestaurant),
+          style: ThurayaResultReveal.primaryActionStyle(),
+        ),
+        const SizedBox(height: 8),
+        OutlinedButton.icon(
+          key: const ValueKey('choose-another'),
+          onPressed: onChooseAnother,
+          icon: const Icon(Icons.refresh_rounded),
+          label: Text(l10n.chooseAnother),
+          style: _secondaryButtonStyle(),
+        ),
+        const SizedBox(height: 8),
+        TextButton(
+          key: const ValueKey('choose-change-selections'),
+          onPressed: onChangeSelections,
+          style: ThurayaResultReveal.secondaryActionStyle(),
+          child: Text(l10n.changeSelections),
+        ),
+      ],
     );
   }
 }
@@ -1374,24 +1368,28 @@ class _RecommendationViewData {
   });
 
   factory _RecommendationViewData.fromRecommendation(
-    ChooseRestaurantRecommendation recommendation,
-  ) {
+    ChooseRestaurantRecommendation recommendation, {
+    required String languageCode,
+  }) {
     final selection = recommendation.selection;
     final details = recommendation.details;
     final categories = (details?.categories ?? selection.categories)
         .map(
-          (category) =>
-              ChooseRestaurantArabicLabels.categoryName(category.name),
+          (category) => languageCode == 'ar'
+              ? ChooseRestaurantArabicLabels.categoryName(category.name)
+              : category.name,
         )
         .toSet()
-        .join('، ');
+        .join(languageCode == 'ar' ? '، ' : ', ');
     final neighborhood =
-        details?.localizedNeighborhood('ar').trim().isNotEmpty == true
-        ? details!.localizedNeighborhood('ar').trim()
-        : selection.localizedNeighborhood('ar').trim();
-    final priceName = ChooseRestaurantArabicLabels.priceName(
-      details?.priceLevelName ?? selection.priceLevelName ?? '',
-    );
+        details?.localizedNeighborhood(languageCode).trim().isNotEmpty == true
+        ? details!.localizedNeighborhood(languageCode).trim()
+        : selection.localizedNeighborhood(languageCode).trim();
+    final rawPriceName =
+        details?.priceLevelName ?? selection.priceLevelName ?? '';
+    final priceName = languageCode == 'ar'
+        ? ChooseRestaurantArabicLabels.priceName(rawPriceName)
+        : rawPriceName;
     final photos = details?.photos ?? const <RestaurantPhotoDto>[];
     final coverPhotos = photos.where((photo) => photo.isCoverPhoto);
     final photo = photos.isEmpty
@@ -1405,20 +1403,20 @@ class _RecommendationViewData {
         details?.reviewSummary.reviewCount ?? selection.reviewCount;
 
     return _RecommendationViewData(
-      name: details?.localizedName('ar').trim().isNotEmpty == true
-          ? details!.localizedName('ar').trim()
-          : selection.localizedName('ar').trim(),
-      description: details?.localizedDescription('ar').trim().isNotEmpty == true
-          ? details!.localizedDescription('ar').trim()
-          : selection.localizedDescription('ar').trim(),
+      name: details?.localizedName(languageCode).trim().isNotEmpty == true
+          ? details!.localizedName(languageCode).trim()
+          : selection.localizedName(languageCode).trim(),
+      description:
+          details?.localizedDescription(languageCode).trim().isNotEmpty == true
+          ? details!.localizedDescription(languageCode).trim()
+          : selection.localizedDescription(languageCode).trim(),
       metadata: [
         categories,
         neighborhood,
         priceName,
       ].where((value) => value.isNotEmpty).join(' • '),
       image: photo,
-      hasThurayaStar:
-          details?.hasThurayaStar ?? selection.hasThurayaStar,
+      hasThurayaStar: details?.hasThurayaStar ?? selection.hasThurayaStar,
       thurayaRating: thurayaValue == null || thurayaCount <= 0
           ? null
           : (thurayaValue / 2).clamp(0, 5).toDouble(),

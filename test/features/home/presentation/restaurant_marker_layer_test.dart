@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 import 'package:thuraya/features/home/models/restaurant_map_marker.dart';
 import 'package:thuraya/features/home/presentation/widgets/restaurant_marker_layer.dart';
+import 'package:thuraya/features/home/presentation/widgets/restaurant_marker_images.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -73,7 +74,10 @@ void main() {
     });
 
     final labelCall = calls.singleWhere(
-      (call) => call.method == 'symbolLayer#add',
+      (call) =>
+          call.method == 'symbolLayer#add' &&
+          (call.arguments as Map)['layerId'] ==
+              'thuraya-restaurant-point-label-layer',
     );
     final labelArguments = Map<String, dynamic>.from(
       labelCall.arguments as Map,
@@ -98,8 +102,159 @@ void main() {
     expect(labelProperties['text-allow-overlap'], isFalse);
     expect(labelProperties['symbol-sort-key'], ['get', 'sortKey']);
 
+    final countCall = calls.singleWhere(
+      (call) =>
+          call.method == 'symbolLayer#add' &&
+          (call.arguments as Map)['layerId'] ==
+              RestaurantMarkerLayer.clusterCountLayerId,
+    );
+    final countArguments = countCall.arguments as Map;
+    expect(countArguments['enableInteraction'], isFalse);
+    expect(jsonDecode(countArguments['filter'] as String), [
+      'has',
+      'point_count',
+    ]);
+    final countProperties = countArguments['properties'] as Map;
+    expect(countProperties['text-color'], '#ffffff');
+    expect(countProperties['text-allow-overlap'], isTrue);
+    expect(countProperties['text-field'], [
+      'to-string',
+      ['get', 'point_count_abbreviated'],
+    ]);
+
+    final imageCalls = calls
+        .where((call) => call.method == 'style#addImage')
+        .toList();
+    expect(imageCalls.map((call) => (call.arguments as Map)['name']), [
+      RestaurantMarkerImages.restaurant,
+      RestaurantMarkerImages.cafe,
+    ]);
+    for (final call in imageCalls) {
+      final image = call.arguments as Map;
+      expect(image['sdf'], isFalse);
+      expect((image['bytes'] as List<int>).take(8), [
+        137,
+        80,
+        78,
+        71,
+        13,
+        10,
+        26,
+        10,
+      ]);
+    }
+    Map properties(String id, String method) =>
+        calls
+                .where((call) => call.method == method)
+                .map((call) => call.arguments as Map)
+                .singleWhere((args) => args['layerId'] == id)['properties']
+            as Map;
+    final categoryIcon = properties(
+      'thuraya-restaurant-point-glyph-layer',
+      'symbolLayer#add',
+    );
+    final selectedIcon = properties(
+      'thuraya-selected-restaurant-glyph-layer',
+      'symbolLayer#add',
+    );
+    expect(categoryIcon['icon-image'], [
+      'match',
+      ['get', 'placeType'],
+      'cafe',
+      RestaurantMarkerImages.cafe,
+      RestaurantMarkerImages.restaurant,
+    ]);
+    expect(selectedIcon['icon-image'], categoryIcon['icon-image']);
+    expect(categoryIcon['icon-allow-overlap'], isTrue);
+    final point = properties(
+      'thuraya-restaurant-points-layer',
+      'circleLayer#add',
+    );
+    final selected = properties(
+      'thuraya-selected-restaurant-point-layer',
+      'circleLayer#add',
+    );
+    expect(point['circle-color'], '#000666');
+    expect(point['circle-stroke-color'], '#ffffff');
+    expect(selected['circle-color'], '#d4af37');
+    expect(selected['circle-stroke-color'], '#ffffff');
+    expect(
+      selected['circle-radius'],
+      greaterThan((point['circle-radius'] as List).last as num),
+    );
+
+    // Switching selections touches only the tiny selected source, never images
+    // or the clustered restaurant source.
+    calls.clear();
+    await RestaurantMarkerLayer.updateSelected(controller, _restaurant, 'ar');
+    await RestaurantMarkerLayer.updateSelected(controller, null, 'ar');
+    expect(calls.map((call) => call.method), [
+      'source#setGeoJson',
+      'source#setGeoJson',
+    ]);
+    expect(
+      calls.every(
+        (call) =>
+            (call.arguments as Map)['sourceId'] ==
+            'thuraya-selected-restaurant-source',
+      ),
+      isTrue,
+    );
+
     controller.dispose();
   });
+
+  test(
+    'normalizes native image density without changing marker geometry',
+    () async {
+      final calls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(mapChannel, (call) async {
+            calls.add(call);
+            return null;
+          });
+      final platform = MapLibreMethodChannel();
+      await platform.initPlatform(0);
+      final controller = MapLibreMapController(
+        maplibrePlatform: platform,
+        initialCameraPosition: const CameraPosition(
+          target: LatLng(24.71, 46.67),
+          zoom: 16,
+        ),
+        annotationOrder: const [],
+        annotationConsumeTapEvents: const [],
+      );
+      await RestaurantMarkerLayer.install(controller, imagePixelRatio: 3);
+      final selected = calls.singleWhere(
+        (call) =>
+            call.method == 'symbolLayer#add' &&
+            (call.arguments as Map)['layerId'] ==
+                'thuraya-selected-restaurant-glyph-layer',
+      );
+      expect(
+        ((selected.arguments as Map)['properties'] as Map)['icon-size'],
+        26 * 3 / 72,
+      );
+      controller.dispose();
+    },
+  );
+
+  test(
+    'reuses the same two distinct bundled glyph buffers across map instances',
+    () async {
+      final first = await RestaurantMarkerImages.load();
+      final second = await RestaurantMarkerImages.load();
+      expect(identical(first, second), isTrue);
+      expect(first.keys, [
+        RestaurantMarkerImages.restaurant,
+        RestaurantMarkerImages.cafe,
+      ]);
+      expect(
+        first[RestaurantMarkerImages.restaurant],
+        isNot(orderedEquals(first[RestaurantMarkerImages.cafe]!)),
+      );
+    },
+  );
 
   test('builds localized point features for filtered marker updates', () {
     final collection = RestaurantMarkerLayer.featureCollection(const [

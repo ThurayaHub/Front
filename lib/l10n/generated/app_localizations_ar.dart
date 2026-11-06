@@ -364,6 +364,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get yourWheelChoice => 'اختيارك هو';
 
   @override
+  String get wheelSpinAgain => 'لف مرة أخرى';
+
+  @override
+  String get wheelDismissResult => 'تم';
+
+  @override
   String get wheelEmptyState => 'أضف خياراتك وابدأ اللف';
 
   @override

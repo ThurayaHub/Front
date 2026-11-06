@@ -117,7 +117,7 @@ enum RestaurantMapPlaceType {
 
   factory RestaurantMapPlaceType.fromJson(Object? value) {
     return switch (value) {
-      String text when text.toLowerCase() == 'cafe' => cafe,
+      String text when text.trim().toLowerCase() == 'cafe' => cafe,
       _ => restaurant,
     };
   }

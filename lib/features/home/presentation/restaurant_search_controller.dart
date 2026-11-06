@@ -44,6 +44,8 @@ class RestaurantSearchController extends ChangeNotifier {
   String? _inFlightRequestSignature;
   String? _resultsFilterSignature;
   bool _resultsIncludeListMetadata = false;
+  // Changes only for a new search/filter intent, never for viewport refreshes.
+  int cameraFitRequestId = 0;
 
   bool get shouldFitSearchResults =>
       filters.hasSearchText &&
@@ -80,6 +82,7 @@ class RestaurantSearchController extends ChangeNotifier {
     final changed = value != filters;
     filters = value;
     if (changed) {
+      cameraFitRequestId++;
       _requestGeneration++;
       _inFlightRequestSignature = null;
       _resultsIncludeListMetadata = false;
@@ -93,6 +96,15 @@ class RestaurantSearchController extends ChangeNotifier {
 
   Future<void> loadViewport(SupportedMapBounds bounds) async {
     _currentViewport = bounds;
+    // Named searches cover the whole supported region; moving the camera does
+    // not change their results or require another region-wide request.
+    if (filters.hasSearchText &&
+        _resultsFilterSignature == filters.cacheSignature &&
+        !hasSearchError &&
+        (resultsView == RestaurantResultsView.map ||
+            _resultsIncludeListMetadata)) {
+      return;
+    }
     await search(force: true);
   }
 

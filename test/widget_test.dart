@@ -98,10 +98,13 @@ void main() {
     expect(map.myLocationEnabled, isFalse);
     expect(map.myLocationTrackingMode, MyLocationTrackingMode.none);
     expect(map.attributionButtonPosition, AttributionButtonPosition.bottomLeft);
-    expect(map.attributionButtonColor, Colors.transparent);
-    expect(find.byKey(const ValueKey('map-attribution')), findsOneWidget);
+    expect(map.attributionButtonColor, AppColors.primary);
     expect(
-      find.text('OpenFreeMap © OpenMapTiles Data from OpenStreetMap'),
+      find.byKey(const ValueKey('map-attribution-notice')),
+      findsOneWidget,
+    );
+    expect(
+      find.text('OpenFreeMap · © OpenMapTiles\n© OpenStreetMap contributors'),
       findsOneWidget,
     );
     expect(map.onStyleLoadedCallback, isNotNull);

@@ -52,6 +52,7 @@ class ChooseRestaurantController extends ChangeNotifier {
   ChooseRestaurantService? _ownedChooseService;
   RestaurantDetailsService? _ownedDetailsService;
   bool _disposed = false;
+  int _recommendationGeneration = 0;
 
   ChooseLookupStatus lookupStatus = ChooseLookupStatus.idle;
   RecommendationStatus recommendationStatus = RecommendationStatus.idle;
@@ -152,6 +153,7 @@ class ChooseRestaurantController extends ChangeNotifier {
 
   Future<void> requestRecommendation() async {
     if (recommendationStatus == RecommendationStatus.loading) return;
+    final generation = ++_recommendationGeneration;
     final request = ChooseRestaurantRequest(
       priceLevelIds: _sorted(selectedPriceLevelIds),
       categoryIds: _sorted(selectedCategoryIds),
@@ -164,6 +166,7 @@ class ChooseRestaurantController extends ChangeNotifier {
 
     try {
       final selection = await _chooseGateway.choose(request);
+      if (_disposed || generation != _recommendationGeneration) return;
       RestaurantDetailsDto? details;
       try {
         details = await _detailsLoader(selection.id);
@@ -171,25 +174,26 @@ class ChooseRestaurantController extends ChangeNotifier {
         // The choose response is sufficient to render the result. Full details
         // are a best-effort enhancement for photos and Thuraya ratings.
       }
-      if (_disposed) return;
+      if (_disposed || generation != _recommendationGeneration) return;
       recommendation = ChooseRestaurantRecommendation(
         selection: selection,
         details: details,
       );
       recommendationStatus = RecommendationStatus.success;
     } on ApiException catch (error) {
-      if (_disposed) return;
+      if (_disposed || generation != _recommendationGeneration) return;
       recommendationStatus = error.statusCode == 404
           ? RecommendationStatus.noMatch
           : RecommendationStatus.error;
     } catch (_) {
-      if (_disposed) return;
+      if (_disposed || generation != _recommendationGeneration) return;
       recommendationStatus = RecommendationStatus.error;
     }
     _notify();
   }
 
   void changeSelections() {
+    _recommendationGeneration++;
     recommendation = null;
     recommendationStatus = RecommendationStatus.idle;
     step = 2;
@@ -210,6 +214,7 @@ class ChooseRestaurantController extends ChangeNotifier {
   @override
   void dispose() {
     _disposed = true;
+    _recommendationGeneration++;
     _ownedLookupService?.close();
     _ownedChooseService?.close();
     _ownedDetailsService?.close();

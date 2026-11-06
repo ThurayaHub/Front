@@ -64,6 +64,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _submitSearch() async {
     _openSearch();
+    setState(() => _selectedSearchRestaurant = null);
     _suggestionDebounce?.cancel();
     _controller.clearSuggestions();
     FocusScope.of(context).unfocus();
@@ -90,11 +91,13 @@ class _HomePageState extends State<HomePage> {
       ),
     );
     if (filters == null || !mounted) return;
+    setState(() => _selectedSearchRestaurant = null);
     _searchController.text = filters.searchText;
     await _controller.applyFilters(filters);
   }
 
   Future<void> _clearAll() async {
+    setState(() => _selectedSearchRestaurant = null);
     _suggestionDebounce?.cancel();
     _controller.clearSuggestions();
     _searchController.clear();
@@ -202,6 +205,7 @@ class _HomePageState extends State<HomePage> {
                       restaurantDetailsService: widget.restaurantDetailsService,
                       onViewportChanged: _controller.loadViewport,
                       fitRestaurants: _controller.shouldFitSearchResults,
+                      fitRequestId: _controller.cameraFitRequestId,
                     ),
                     _RestaurantResultsList(
                       controller: _controller,
@@ -405,7 +409,7 @@ class _HomeSearchBarState extends State<_HomeSearchBar> {
           height: 66,
           padding: const EdgeInsetsDirectional.fromSTEB(8, 0, 10, 0),
           decoration: BoxDecoration(
-            color: AppColors.background.withValues(alpha: 0.96),
+            color: AppColors.surface,
             borderRadius: BorderRadius.circular(9999),
             border: Border.all(
               color: AppColors.inputHint.withValues(alpha: 0.3),
@@ -436,6 +440,7 @@ class _HomeSearchBarState extends State<_HomeSearchBar> {
                     color: AppColors.textPrimary,
                   ),
                   decoration: InputDecoration(
+                    filled: false,
                     isDense: true,
                     hintText: localizations.searchRestaurant,
                     hintStyle: AppTextStyles.homeSearchHint,

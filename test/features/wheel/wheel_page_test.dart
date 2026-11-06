@@ -17,6 +17,7 @@ import 'package:thuraya/core/widgets/thuraya_bottom_navigation_bar.dart';
 import 'package:thuraya/features/wheel/models/wheel_models.dart';
 import 'package:thuraya/features/wheel/presentation/wheel_page.dart';
 import 'package:thuraya/features/wheel/presentation/widgets/dynamic_wheel.dart';
+import 'package:thuraya/features/wheel/presentation/widgets/wheel_result_reveal.dart';
 import 'package:thuraya/features/wheel/services/wheel_service.dart';
 import 'package:thuraya/l10n/generated/app_localizations.dart';
 
@@ -177,6 +178,109 @@ void main() {
     expect(find.byKey(const ValueKey('wheel-option-count-2')), findsOneWidget);
     expect(find.byKey(const ValueKey('wheel-result')), findsNothing);
   });
+
+  testWidgets(
+    'reveals only after confirmation and the unchanged spin duration',
+    (tester) async {
+      final gateway = _PageWheelGateway(initialOptions: const ['مطعم', 'مقهى'])
+        ..spinCompleter = Completer();
+      await _prepareSpin(tester, gateway);
+      await tester.tap(find.byKey(const ValueKey('wheel-spin-button')));
+      await tester.pump(const Duration(seconds: 5));
+      expect(find.byType(WheelResultReveal), findsNothing);
+      expect(gateway.spinCalls, 1);
+
+      gateway.spinCompleter!.complete(gateway.resultFor(gateway.options[1]));
+      await tester.pump();
+      await tester.pump();
+      final spin =
+          tester
+                  .widget<AnimatedBuilder>(
+                    find
+                        .ancestor(
+                          of: find.byType(DynamicWheel),
+                          matching: find.byType(AnimatedBuilder),
+                        )
+                        .first,
+                  )
+                  .animation
+              as AnimationController;
+      expect(spin.duration, const Duration(milliseconds: 3600));
+      await tester.pump(const Duration(milliseconds: 3599));
+      expect(find.byType(WheelResultReveal), findsNothing);
+      await tester.pump(const Duration(milliseconds: 1));
+      // Render the route on the next display frame after the spin completes.
+      await tester.pump(const Duration(milliseconds: 16));
+      expect(find.byType(WheelResultReveal), findsOneWidget);
+      expect(
+        tester.widget<WheelResultReveal>(find.byType(WheelResultReveal)).result,
+        'مقهى',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('wheel-result-dismiss')));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 5));
+      expect(find.byType(WheelResultReveal), findsNothing);
+      expect(gateway.spinCalls, 1);
+    },
+  );
+
+  testWidgets(
+    'spin again requests one new winner and replays even for the same result',
+    (tester) async {
+      final gateway = _PageWheelGateway(initialOptions: const ['مطعم', 'مقهى']);
+      await _prepareSpin(tester, gateway);
+      await tester.tap(find.byKey(const ValueKey('wheel-spin-button')));
+      await tester.pumpAndSettle();
+      expect(gateway.spinCalls, 1);
+      await tester.tap(find.byKey(const ValueKey('wheel-result-spin-again')));
+      await tester.pump();
+      await tester.pump();
+      expect(gateway.spinCalls, 2);
+      expect(find.byType(WheelResultReveal), findsNothing);
+      await tester.pump(const Duration(milliseconds: 3600));
+      await tester.pump(const Duration(milliseconds: 16));
+      await tester.pump(const Duration(milliseconds: 225));
+      expect(find.byKey(const ValueKey('wheel-reveal-logo')), findsOneWidget);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('wheel-result-value')), findsOneWidget);
+      expect(gateway.spinCalls, 2);
+      await tester.tap(find.byKey(const ValueKey('wheel-result-dismiss')));
+      await tester.pumpAndSettle();
+    },
+  );
+
+  testWidgets(
+    'leaving while spinning cancels safely without a late result dialog',
+    (tester) async {
+      final gateway = _PageWheelGateway(initialOptions: const ['مطعم', 'مقهى']);
+      await _prepareSpin(tester, gateway);
+      await tester.tap(find.byKey(const ValueKey('wheel-spin-button')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(seconds: 5));
+      expect(find.byType(WheelResultReveal), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
+}
+
+Future<void> _prepareSpin(
+  WidgetTester tester,
+  _PageWheelGateway gateway,
+) async {
+  tester.view.physicalSize = const Size(390, 844);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+  final auth = _authController();
+  addTearDown(auth.dispose);
+  await auth.loginWithPhone('+966500000000');
+  await tester.pumpWidget(_pageApp(auth, gateway, locale: const Locale('ar')));
+  await tester.pumpAndSettle();
+  await tester.ensureVisible(find.byKey(const ValueKey('wheel-spin-button')));
+  await tester.pumpAndSettle();
 }
 
 Widget _wheelFlowApp(AuthSessionController auth, _PageWheelGateway gateway) {

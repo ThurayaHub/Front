@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 import 'package:thuraya/core/theme/app_colors.dart';
 import 'package:thuraya/features/home/models/restaurant_map_marker.dart';
+import 'package:thuraya/features/home/presentation/widgets/restaurant_marker_images.dart';
 
 /// Owns the native MapLibre source and style layers used for restaurant POIs.
 ///
@@ -16,15 +17,18 @@ abstract final class RestaurantMarkerLayer {
   static const String _clusterShadowLayerId =
       'thuraya-restaurant-cluster-shadow-layer';
   static const String clusterLayerId = 'thuraya-restaurant-clusters-layer';
+  static const String clusterCountLayerId =
+      'thuraya-restaurant-cluster-count-layer';
   static const String _pointHitLayerId = 'thuraya-restaurant-point-hit-layer';
+  static const List<String> interactiveLayerIds = [
+    clusterLayerId,
+    _pointHitLayerId,
+  ];
   static const String _pointShadowLayerId =
       'thuraya-restaurant-point-shadow-layer';
   static const String _pointLayerId = 'thuraya-restaurant-points-layer';
   static const String _restaurantGlyphLayerId =
       'thuraya-restaurant-point-glyph-layer';
-  static const String _cafeGlyphLayerId = 'thuraya-cafe-point-glyph-layer';
-  static const String _cafeGlyphCenterLayerId =
-      'thuraya-cafe-point-glyph-center-layer';
   static const String _pointLabelLayerId =
       'thuraya-restaurant-point-label-layer';
   static const String _selectedHaloLayerId =
@@ -33,10 +37,6 @@ abstract final class RestaurantMarkerLayer {
       'thuraya-selected-restaurant-point-layer';
   static const String _selectedRestaurantGlyphLayerId =
       'thuraya-selected-restaurant-glyph-layer';
-  static const String _selectedCafeGlyphLayerId =
-      'thuraya-selected-cafe-glyph-layer';
-  static const String _selectedCafeGlyphCenterLayerId =
-      'thuraya-selected-cafe-glyph-center-layer';
   static const double clusterMaxZoom = 14;
   static const double individualFocusZoom = 15.5;
 
@@ -46,7 +46,14 @@ abstract final class RestaurantMarkerLayer {
     ['has', 'point_count'],
   ];
 
-  static Future<void> install(MapLibreMapController controller) async {
+  static Future<void> install(
+    MapLibreMapController controller, {
+    double imagePixelRatio = 1,
+  }) async {
+    final images = await RestaurantMarkerImages.load();
+    for (final image in images.entries) {
+      await controller.addImage(image.key, image.value);
+    }
     await controller.addSource(
       sourceId,
       GeojsonSourceProperties(
@@ -63,8 +70,8 @@ abstract final class RestaurantMarkerLayer {
     );
 
     await _addClusterLayers(controller);
-    await _addPointLayers(controller);
-    await _addSelectedLayers(controller);
+    await _addPointLayers(controller, imagePixelRatio);
+    await _addSelectedLayers(controller, imagePixelRatio);
   }
 
   static Future<void> _addClusterLayers(
@@ -93,9 +100,31 @@ abstract final class RestaurantMarkerLayer {
       filter: _clusterFilter,
       enableInteraction: true,
     );
+    // Render counts in the map itself so they cannot drift off their circles
+    // during camera animations or on screens with different pixel densities.
+    await controller.addSymbolLayer(
+      sourceId,
+      clusterCountLayerId,
+      SymbolLayerProperties(
+        textField: const [
+          'to-string',
+          ['get', 'point_count_abbreviated'],
+        ],
+        textFont: const ['Noto Sans Bold'],
+        textSize: 13.5,
+        textColor: _mapColor(AppColors.onPrimary),
+        textAllowOverlap: true,
+        textIgnorePlacement: true,
+      ),
+      filter: _clusterFilter,
+      enableInteraction: false,
+    );
   }
 
-  static Future<void> _addPointLayers(MapLibreMapController controller) async {
+  static Future<void> _addPointLayers(
+    MapLibreMapController controller,
+    double imagePixelRatio,
+  ) async {
     // The nearly-transparent circle preserves a comfortable 44px tap target
     // without making the visible marker dominate the map.
     await controller.addCircleLayer(
@@ -132,34 +161,29 @@ abstract final class RestaurantMarkerLayer {
       filter: _pointFilter,
       enableInteraction: false,
     );
-    await controller.addCircleLayer(
+    await controller.addSymbolLayer(
       sourceId,
       _restaurantGlyphLayerId,
-      CircleLayerProperties(
-        circleRadius: _restaurantGlyphRadius,
-        circleColor: _mapColor(AppColors.surface),
+      SymbolLayerProperties(
+        iconImage: _categoryIcon,
+        iconSize: [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          9.5,
+          20 * imagePixelRatio / RestaurantMarkerImages.imageSize,
+          16,
+          22 * imagePixelRatio / RestaurantMarkerImages.imageSize,
+        ],
+        iconAnchor: 'center',
+        iconPitchAlignment: 'viewport',
+        iconRotationAlignment: 'viewport',
+        // Circles are always drawn: their category glyphs must remain visible
+        // too. Density is managed by the clustered source, not icon collisions.
+        iconAllowOverlap: true,
+        iconIgnorePlacement: true,
       ),
-      filter: _placeTypeFilter('restaurant'),
-      enableInteraction: false,
-    );
-    await controller.addCircleLayer(
-      sourceId,
-      _cafeGlyphLayerId,
-      CircleLayerProperties(
-        circleRadius: _cafeGlyphRadius,
-        circleColor: _mapColor(AppColors.surface),
-      ),
-      filter: _placeTypeFilter('cafe'),
-      enableInteraction: false,
-    );
-    await controller.addCircleLayer(
-      sourceId,
-      _cafeGlyphCenterLayerId,
-      CircleLayerProperties(
-        circleRadius: 1.8,
-        circleColor: _mapColor(AppColors.primary),
-      ),
-      filter: _placeTypeFilter('cafe'),
+      filter: _pointFilter,
       enableInteraction: false,
     );
     await controller.addSymbolLayer(
@@ -177,7 +201,7 @@ abstract final class RestaurantMarkerLayer {
         // Prefer either side of the unchanged marker, then fall back above
         // or below when MapLibre's collision detection needs more room.
         textVariableAnchor: const ['left', 'right', 'top', 'bottom'],
-        textRadialOffset: 1.4,
+        textRadialOffset: 1.8,
         textPadding: 3,
         textAllowOverlap: false,
         textIgnorePlacement: false,
@@ -193,12 +217,13 @@ abstract final class RestaurantMarkerLayer {
 
   static Future<void> _addSelectedLayers(
     MapLibreMapController controller,
+    double imagePixelRatio,
   ) async {
     await controller.addCircleLayer(
       _selectedSourceId,
       _selectedHaloLayerId,
       const CircleLayerProperties(
-        circleRadius: 20,
+        circleRadius: 25,
         circleColor: 'rgba(212, 175, 55, 0.22)',
         circleBlur: 0.35,
       ),
@@ -208,41 +233,25 @@ abstract final class RestaurantMarkerLayer {
       _selectedSourceId,
       _selectedPointLayerId,
       CircleLayerProperties(
-        circleRadius: 15,
-        circleColor: _mapColor(AppColors.primary),
+        circleRadius: 20,
+        circleColor: _mapColor(AppColors.secondary),
         circleStrokeWidth: 3,
-        circleStrokeColor: _mapColor(AppColors.secondary),
+        circleStrokeColor: _mapColor(AppColors.surface),
       ),
       enableInteraction: false,
     );
-    await controller.addCircleLayer(
+    await controller.addSymbolLayer(
       _selectedSourceId,
       _selectedRestaurantGlyphLayerId,
-      CircleLayerProperties(
-        circleRadius: 4,
-        circleColor: _mapColor(AppColors.surface),
+      SymbolLayerProperties(
+        iconImage: _categoryIcon,
+        iconSize: 26 * imagePixelRatio / RestaurantMarkerImages.imageSize,
+        iconAnchor: 'center',
+        iconPitchAlignment: 'viewport',
+        iconRotationAlignment: 'viewport',
+        iconAllowOverlap: true,
+        iconIgnorePlacement: true,
       ),
-      filter: _selectedPlaceTypeFilter('restaurant'),
-      enableInteraction: false,
-    );
-    await controller.addCircleLayer(
-      _selectedSourceId,
-      _selectedCafeGlyphLayerId,
-      CircleLayerProperties(
-        circleRadius: 5,
-        circleColor: _mapColor(AppColors.surface),
-      ),
-      filter: _selectedPlaceTypeFilter('cafe'),
-      enableInteraction: false,
-    );
-    await controller.addCircleLayer(
-      _selectedSourceId,
-      _selectedCafeGlyphCenterLayerId,
-      CircleLayerProperties(
-        circleRadius: 2,
-        circleColor: _mapColor(AppColors.primary),
-      ),
-      filter: _selectedPlaceTypeFilter('cafe'),
       enableInteraction: false,
     );
   }
@@ -305,25 +314,15 @@ abstract final class RestaurantMarkerLayer {
     };
   }
 
-  static List<Object> _placeTypeFilter(String placeType) {
-    return [
-      'all',
-      _pointFilter,
-      [
-        '==',
-        ['get', 'placeType'],
-        placeType,
-      ],
-    ];
-  }
-
-  static List<Object> _selectedPlaceTypeFilter(String placeType) {
-    return [
-      '==',
-      ['get', 'placeType'],
-      placeType,
-    ];
-  }
+  // placeType is supplied by the backend from all assigned categories. Award
+  // status only affects label priority and never changes the business icon.
+  static const List<Object> _categoryIcon = [
+    'match',
+    ['get', 'placeType'],
+    'cafe',
+    RestaurantMarkerImages.cafe,
+    RestaurantMarkerImages.restaurant,
+  ];
 
   static const List<Object> _clusterRadius = [
     'interpolate',
@@ -368,11 +367,11 @@ abstract final class RestaurantMarkerLayer {
     ['linear'],
     ['zoom'],
     9.5,
-    10.5,
+    14,
     13,
-    11.5,
+    15,
     16,
-    13,
+    16,
   ];
 
   static const List<Object> _pointShadowRadius = [
@@ -380,31 +379,11 @@ abstract final class RestaurantMarkerLayer {
     ['linear'],
     ['zoom'],
     9.5,
+    16.5,
     13,
-    13,
-    14,
+    17.5,
     16,
-    15.5,
-  ];
-
-  static const List<Object> _restaurantGlyphRadius = [
-    'interpolate',
-    ['linear'],
-    ['zoom'],
-    9.5,
-    2.6,
-    16,
-    3.5,
-  ];
-
-  static const List<Object> _cafeGlyphRadius = [
-    'interpolate',
-    ['linear'],
-    ['zoom'],
-    9.5,
-    3.6,
-    16,
-    4.6,
+    18.5,
   ];
 
   static const List<Object> _labelTextSize = [

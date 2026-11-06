@@ -758,6 +758,18 @@ abstract class AppLocalizations {
   /// **'Your choice is'**
   String get yourWheelChoice;
 
+  /// No description provided for @wheelSpinAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Spin again'**
+  String get wheelSpinAgain;
+
+  /// No description provided for @wheelDismissResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get wheelDismissResult;
+
   /// No description provided for @wheelEmptyState.
   ///
   /// In en, this message translates to:

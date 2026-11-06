@@ -1,13 +1,16 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:thuraya/core/auth/authentication_guard.dart';
+import 'package:thuraya/core/constants/app_assets.dart';
 import 'package:thuraya/core/constants/app_spacing.dart';
 import 'package:thuraya/core/theme/app_colors.dart';
 import 'package:thuraya/core/theme/app_text_styles.dart';
 import 'package:thuraya/core/widgets/thuraya_bottom_navigation_bar.dart';
 import 'package:thuraya/features/wheel/models/wheel_models.dart';
 import 'package:thuraya/features/wheel/presentation/widgets/dynamic_wheel.dart';
+import 'package:thuraya/features/wheel/presentation/widgets/wheel_result_reveal.dart';
 import 'package:thuraya/features/wheel/presentation/wheel_controller.dart';
 import 'package:thuraya/features/wheel/services/wheel_service.dart';
 import 'package:thuraya/l10n/generated/app_localizations.dart';
@@ -30,7 +33,6 @@ class _WheelPageState extends State<WheelPage>
   late final AnimationController _spinController;
   Animation<double>? _rotationAnimation;
   double _rotation = 0;
-  String? _selectedOption;
   String? _validationMessage;
   bool _initialized = false;
   bool _isSpinning = false;
@@ -52,6 +54,8 @@ class _WheelPageState extends State<WheelPage>
     if (_initialized) return;
 
     _initialized = true;
+    // Warm the existing brand asset while the wheel is being loaded/spun.
+    unawaited(precacheImage(const AssetImage(AppAssets.thurayaLogo), context));
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _initializeWheel();
     });
@@ -101,7 +105,6 @@ class _WheelPageState extends State<WheelPage>
     }
     if (!mounted || removed != true) return;
     setState(() {
-      _selectedOption = null;
       _validationMessage = null;
     });
   }
@@ -136,7 +139,6 @@ class _WheelPageState extends State<WheelPage>
     if (!mounted || added != true) return;
     setState(() {
       _optionController.clear();
-      _selectedOption = null;
       _validationMessage = null;
     });
     FocusScope.of(context).unfocus();
@@ -150,7 +152,6 @@ class _WheelPageState extends State<WheelPage>
     if (options.length < 2) {
       setState(() {
         _validationMessage = localizations.minimumWheelOptions;
-        _selectedOption = null;
       });
       return;
     }
@@ -158,7 +159,6 @@ class _WheelPageState extends State<WheelPage>
     FocusScope.of(context).unfocus();
     setState(() {
       _isSpinning = true;
-      _selectedOption = null;
       _validationMessage = null;
     });
     WheelSpinSelection? selection;
@@ -198,22 +198,30 @@ class _WheelPageState extends State<WheelPage>
           );
     });
 
-    await _spinController.forward(from: 0);
+    try {
+      await _spinController.forward(from: 0).orCancel;
+    } on TickerCanceled {
+      return;
+    }
     if (!mounted) return;
 
     setState(() {
       _rotation = endRotation;
-      _selectedOption = resolvedSelection.result.selectedOption.text;
       _isSpinning = false;
     });
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !_scrollController.hasClients) return;
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 280),
-        curve: Curves.easeOut,
-      );
-    });
+    final action = await showDialog<WheelResultAction>(
+      context: context,
+      barrierColor: AppColors.primary.withValues(alpha: 0.18),
+      // The content owns the complete 800ms sequence; avoid adding route motion
+      // or stretching the existing spin duration with another transition.
+      animationStyle: AnimationStyle.noAnimation,
+      builder: (_) => WheelResultReveal(
+        result: resolvedSelection.result.selectedOption.text,
+      ),
+    );
+    if (mounted && action == WheelResultAction.spinAgain) {
+      unawaited(_spin());
+    }
   }
 
   double _normalizeAngle(double angle) {
@@ -456,44 +464,6 @@ class _WheelPageState extends State<WheelPage>
                   ),
                 ),
               ),
-              if (_selectedOption != null) ...[
-                const SizedBox(height: AppSpacing.lg),
-                Container(
-                  key: const ValueKey('wheel-result'),
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  decoration: BoxDecoration(
-                    color: AppColors.panel,
-                    borderRadius: BorderRadius.circular(AppSpacing.lg),
-                    border: Border.all(color: AppColors.panelBorder),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x0D000666),
-                        offset: Offset(0, 4),
-                        blurRadius: 10,
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        localizations.yourWheelChoice,
-                        style: AppTextStyles.detailsAwardTitle,
-                      ),
-                      const SizedBox(height: AppSpacing.xxs),
-                      Text(
-                        _selectedOption!,
-                        key: const ValueKey('wheel-result-value'),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
-                        style: AppTextStyles.cardTitle.copyWith(
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
             ],
           ),
         ),

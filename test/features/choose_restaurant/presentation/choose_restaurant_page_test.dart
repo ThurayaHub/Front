@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:thuraya/core/widgets/thuraya_loading_indicator.dart';
+import 'package:thuraya/core/network/api_client.dart';
+import 'package:thuraya/core/routing/app_route_names.dart';
+import 'package:thuraya/core/widgets/thuraya_result_reveal.dart';
 import 'package:thuraya/features/choose_restaurant/models/choose_restaurant_dto.dart';
 import 'package:thuraya/features/choose_restaurant/models/restaurant_lookup.dart';
 import 'package:thuraya/features/choose_restaurant/presentation/choose_restaurant_controller.dart';
@@ -165,27 +167,296 @@ void main() {
     final request = controller.requestRecommendation();
     await tester.pump();
 
-    expect(
-      find.byKey(const ValueKey('choose-recommendation-loading')),
-      findsOneWidget,
-    );
-    expect(find.byType(ThurayaLoadingIndicator), findsOneWidget);
+    expect(find.byType(ThurayaResultReveal), findsOneWidget);
+    await tester.pump(const Duration(milliseconds: 450));
+    expect(find.byType(LinearProgressIndicator), findsOneWidget);
     expect(find.text('لحظة... ثريا تختار لك'), findsOneWidget);
 
     pendingRecommendation.complete(_recommendation);
     await request;
     await tester.pump();
   });
+
+  testWidgets(
+    'submit starts the shared logo immediately and guards a fast result',
+    (tester) async {
+      final pending = Completer<ChooseRestaurantResponseDto>();
+      final gateway = _ChooseGateway(pending);
+      final controller = await _readyToChoose(tester, gateway);
+      final button = tester.widget<ButtonStyleButton>(
+        find
+            .descendant(
+              of: find.byKey(const ValueKey('choose-step-action')),
+              matching: find.byWidgetPredicate(
+                (widget) => widget is ButtonStyleButton,
+              ),
+            )
+            .first,
+      );
+      button.onPressed!();
+      button.onPressed!();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 225));
+      expect(find.byType(ThurayaResultReveal), findsOneWidget);
+      expect(find.byKey(const ValueKey('thuraya-reveal-logo')), findsOneWidget);
+      expect(find.byKey(const ValueKey('choose-result-name')), findsNothing);
+      expect(gateway.requests, hasLength(1));
+      expect(gateway.requests.single.toJson(), {
+        'priceLevelIds': [2],
+        'categoryIds': [8],
+        'neighborhoodIds': [16],
+      });
+      pending.complete(_recommendation);
+      await tester.pump();
+      // A queued second press after the fast response must not start another call
+      // during the remaining reveal animation.
+      button.onPressed!();
+      await tester.pump(const Duration(milliseconds: 224));
+      expect(_chooseOpacity(tester), 0);
+      await tester.pump(const Duration(milliseconds: 351));
+      expect(_chooseOpacity(tester), 1);
+      expect(gateway.requests, hasLength(1));
+      expect(controller.recommendationStatus, RecommendationStatus.success);
+      await tester.pumpAndSettle();
+    },
+  );
+
+  testWidgets(
+    'slow request holds the logo with loading, then reveals without replaying',
+    (tester) async {
+      final pending = Completer<ChooseRestaurantResponseDto>();
+      final gateway = _ChooseGateway(pending);
+      await _readyToChoose(tester, gateway);
+      await tester.tap(find.byKey(const ValueKey('choose-step-action')));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 2));
+      expect(find.byKey(const ValueKey('thuraya-reveal-logo')), findsOneWidget);
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+      expect(find.byKey(const ValueKey('choose-result-name')), findsNothing);
+      expect(_chooseOpacity(tester), 0);
+      pending.complete(_recommendation);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 175));
+      expect(_chooseOpacity(tester), inExclusiveRange(0, 1));
+      await tester.pump(const Duration(milliseconds: 175));
+      expect(_chooseOpacity(tester), 1);
+      expect(find.byType(LinearProgressIndicator), findsNothing);
+      await tester.pumpAndSettle();
+    },
+  );
+
+  for (final status in [404, 500]) {
+    testWidgets(
+      'request $status leaves the reveal for existing failure UI and can retry',
+      (tester) async {
+        final pending = Completer<ChooseRestaurantResponseDto>();
+        final gateway = _ChooseGateway(pending);
+        await _readyToChoose(tester, gateway);
+        await tester.tap(find.byKey(const ValueKey('choose-step-action')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 500));
+        pending.completeError(
+          ApiException('No recommendation', statusCode: status),
+        );
+        await tester.pumpAndSettle();
+        expect(find.byType(ThurayaResultReveal), findsNothing);
+        expect(
+          find.byKey(
+            ValueKey(
+              status == 404 ? 'choose-no-match' : 'choose-request-error',
+            ),
+          ),
+          findsOneWidget,
+        );
+        expect(find.byKey(const ValueKey('choose-result-name')), findsNothing);
+        gateway.pendingRecommendation = null;
+        final l10n = AppLocalizations.of(
+          tester.element(
+            find.byKey(
+              ValueKey(
+                status == 404 ? 'choose-no-match' : 'choose-request-error',
+              ),
+            ),
+          ),
+        );
+        await tester.tap(
+          find.text(status == 404 ? l10n.chooseAnother : l10n.retry),
+        );
+        await tester.pumpAndSettle();
+        expect(gateway.requests, hasLength(2));
+        expect(
+          find.byKey(const ValueKey('choose-result-name')),
+          findsOneWidget,
+        );
+      },
+    );
+  }
+
+  testWidgets(
+    'choose again replays once and existing details action retains the selected ID',
+    (tester) async {
+      final gateway = _ChooseGateway();
+      RouteSettings? opened;
+      await _readyToChoose(
+        tester,
+        gateway,
+        onRoute: (settings) => opened = settings,
+      );
+      await tester.tap(find.byKey(const ValueKey('choose-step-action')));
+      await tester.pumpAndSettle();
+      final firstRevealKey = tester
+          .widget<ThurayaResultReveal>(find.byType(ThurayaResultReveal))
+          .key;
+      final again = find.byKey(const ValueKey('choose-another'));
+      await tester.ensureVisible(again);
+      await tester.pumpAndSettle();
+      await tester.tap(again);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 225));
+      expect(
+        tester
+            .widget<ThurayaResultReveal>(find.byType(ThurayaResultReveal))
+            .key,
+        isNot(firstRevealKey),
+      );
+      expect(find.byKey(const ValueKey('thuraya-reveal-logo')), findsOneWidget);
+      expect(gateway.requests, hasLength(2));
+      await tester.pumpAndSettle();
+      final details = find.byKey(const ValueKey('choose-view-restaurant'));
+      await tester.ensureVisible(details);
+      await tester.pumpAndSettle();
+      await tester.tap(details);
+      await tester.pumpAndSettle();
+      expect(opened?.name, AppRouteNames.restaurantDetailsFor(1));
+      expect(opened?.arguments, 1);
+    },
+  );
+
+  testWidgets(
+    'back cancels a pending reveal and late data cannot replace preferences',
+    (tester) async {
+      final pending = Completer<ChooseRestaurantResponseDto>();
+      final gateway = _ChooseGateway(pending);
+      final controller = await _readyToChoose(tester, gateway);
+      await tester.tap(find.byKey(const ValueKey('choose-step-action')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.tap(find.byKey(const ValueKey('choose-back')));
+      await tester.pumpAndSettle();
+      pending.complete(_recommendation);
+      await tester.pumpAndSettle();
+      expect(controller.recommendationStatus, RecommendationStatus.idle);
+      expect(find.byType(ThurayaResultReveal), findsNothing);
+      expect(
+        find.byKey(const ValueKey('choose-neighborhood-step')),
+        findsOneWidget,
+      );
+      expect(controller.selectedCategoryIds, {8});
+    },
+  );
+
+  for (final locale in ['ar', 'en']) {
+    testWidgets(
+      'reduced motion still waits for selection and uses $locale result content',
+      (tester) async {
+        final pending = Completer<ChooseRestaurantResponseDto>();
+        await _readyToChoose(
+          tester,
+          _ChooseGateway(pending),
+          locale: locale,
+          disableAnimations: true,
+        );
+        await tester.tap(find.byKey(const ValueKey('choose-step-action')));
+        await tester.pump();
+        expect(find.byKey(const ValueKey('choose-result-name')), findsNothing);
+        expect(find.byType(LinearProgressIndicator), findsNothing);
+        pending.complete(_recommendation);
+        await tester.pumpAndSettle();
+        expect(_chooseOpacity(tester), 1);
+        final name = find.byKey(const ValueKey('choose-result-name'));
+        expect(
+          tester.widget<Text>(name).data,
+          locale == 'ar' ? 'ساكورا الرياض' : 'Riyadh Sakura',
+        );
+        expect(
+          Directionality.of(tester.element(name)),
+          locale == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+        );
+      },
+    );
+  }
+}
+
+double _chooseOpacity(WidgetTester tester) => tester
+    .widget<FadeTransition>(
+      find.byKey(const ValueKey('thuraya-result-entrance')),
+    )
+    .opacity
+    .value;
+
+Future<ChooseRestaurantController> _readyToChoose(
+  WidgetTester tester,
+  _ChooseGateway gateway, {
+  String locale = 'ar',
+  bool disableAnimations = false,
+  ValueChanged<RouteSettings>? onRoute,
+}) async {
+  tester.view.physicalSize = const Size(390, 844);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+  final controller = ChooseRestaurantController(
+    lookupGateway: _LookupGateway(),
+    chooseGateway: gateway,
+    detailsLoader: (_) => Future.error(Exception('No details')),
+  );
+  addTearDown(controller.dispose);
+  await controller.initialize();
+  controller.togglePriceLevel(2);
+  controller.toggleCategory(8);
+  controller.toggleNeighborhood(16);
+  controller.nextStep();
+  controller.nextStep();
+  await tester.pumpWidget(
+    _TestApp(
+      controller: controller,
+      locale: Locale(locale),
+      disableAnimations: disableAnimations,
+      onRoute: onRoute,
+    ),
+  );
+  await tester.pumpAndSettle();
+  return controller;
 }
 
 class _TestApp extends StatelessWidget {
-  const _TestApp({required this.controller});
+  const _TestApp({
+    required this.controller,
+    this.locale = const Locale('ar'),
+    this.disableAnimations = false,
+    this.onRoute,
+  });
   final ChooseRestaurantController controller;
+  final Locale locale;
+  final bool disableAnimations;
+  final ValueChanged<RouteSettings>? onRoute;
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      locale: const Locale('ar'),
+      locale: locale,
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(
+          context,
+        ).copyWith(disableAnimations: disableAnimations),
+        child: child!,
+      ),
+      onGenerateRoute: (settings) {
+        onRoute?.call(settings);
+        return MaterialPageRoute<void>(
+          builder: (_) => const Scaffold(body: Text('Restaurant details')),
+        );
+      },
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
@@ -233,14 +504,16 @@ class _LookupGateway implements RestaurantLookupGateway {
 }
 
 class _ChooseGateway implements ChooseRestaurantGateway {
-  const _ChooseGateway([this.pendingRecommendation]);
+  _ChooseGateway([this.pendingRecommendation]);
 
-  final Completer<ChooseRestaurantResponseDto>? pendingRecommendation;
+  Completer<ChooseRestaurantResponseDto>? pendingRecommendation;
+  final requests = <ChooseRestaurantRequest>[];
 
   @override
   Future<ChooseRestaurantResponseDto> choose(
     ChooseRestaurantRequest request,
   ) async {
+    requests.add(request);
     final pending = pendingRecommendation;
     if (pending != null) return pending.future;
     return _recommendation;

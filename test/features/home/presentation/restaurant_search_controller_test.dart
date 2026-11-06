@@ -87,6 +87,35 @@ void main() {
       expect(controller.isLoadingSuggestions, isFalse);
     },
   );
+
+  test(
+    'viewport and background refreshes do not create new camera fit requests',
+    () async {
+      final gateway = _SearchGateway(results: const [_restaurant]);
+      final controller = RestaurantSearchController(
+        searchGateway: gateway,
+        lookupGateway: const _LookupGateway(),
+      );
+      addTearDown(controller.dispose);
+      await controller.loadViewport(_viewport);
+      await controller.applyFilters(
+        RestaurantSearchFilters(searchText: 'burger'),
+      );
+      final fitRequest = controller.cameraFitRequestId;
+      final requests = gateway.requests.length;
+      expect(controller.shouldFitSearchResults, isTrue);
+      await controller.loadViewport(_viewport.expandedBy(0.1));
+      expect(gateway.requests, hasLength(requests));
+      await controller.search(force: true);
+      controller.setResultsView(RestaurantResultsView.list);
+      await Future<void>.delayed(Duration.zero);
+      expect(controller.cameraFitRequestId, fitRequest);
+      await controller.applyFilters(
+        RestaurantSearchFilters(searchText: 'coffee'),
+      );
+      expect(controller.cameraFitRequestId, fitRequest + 1);
+    },
+  );
 }
 
 class _SearchGateway implements RestaurantSearchGateway {

@@ -166,6 +166,8 @@
   "minimumWheelOptions": "Add at least two options",
   "spinWheel": "Spin the wheel",
   "yourWheelChoice": "Your choice is",
+  "wheelSpinAgain": "Spin again",
+  "wheelDismissResult": "Done",
   "wheelEmptyState": "Add your options and start spinning",
   "removeWheelOption": "Remove option",
   "wheelNetworkError": "The wheel could not connect right now. Please try again.",

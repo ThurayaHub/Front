@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:thuraya/core/network/api_client.dart';
 import 'package:thuraya/features/choose_restaurant/models/choose_restaurant_dto.dart';
@@ -101,6 +103,41 @@ void main() {
     expect(controller.recommendationStatus, RecommendationStatus.noMatch);
     expect(controller.recommendation, isNull);
   });
+
+  test(
+    'returning to preferences ignores an earlier result after a newer failure',
+    () async {
+      final gateway = _DeferredChooseGateway();
+      final controller = _controller(chooseGateway: gateway);
+      addTearDown(controller.dispose);
+      await controller.initialize();
+      controller.togglePriceLevel(2);
+      controller.toggleCategory(8);
+      final earlier = controller.requestRecommendation();
+      controller.changeSelections();
+      final current = controller.requestRecommendation();
+      gateway.pending[1].completeError(
+        const ApiException('Unavailable', statusCode: 500),
+      );
+      await current;
+      gateway.pending[0].complete(_selection);
+      await earlier;
+      expect(controller.recommendationStatus, RecommendationStatus.error);
+      expect(controller.recommendation, isNull);
+      expect(controller.selectedPriceLevelIds, {2});
+      expect(controller.selectedCategoryIds, {8});
+    },
+  );
+}
+
+class _DeferredChooseGateway implements ChooseRestaurantGateway {
+  final pending = <Completer<ChooseRestaurantResponseDto>>[];
+  @override
+  Future<ChooseRestaurantResponseDto> choose(ChooseRestaurantRequest request) {
+    final response = Completer<ChooseRestaurantResponseDto>();
+    pending.add(response);
+    return response.future;
+  }
 }
 
 ChooseRestaurantController _controller({

@@ -371,6 +371,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get yourWheelChoice => 'Your choice is';
 
   @override
+  String get wheelSpinAgain => 'Spin again';
+
+  @override
+  String get wheelDismissResult => 'Done';
+
+  @override
   String get wheelEmptyState => 'Add your options and start spinning';
 
   @override
